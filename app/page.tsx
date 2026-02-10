@@ -26,7 +26,7 @@ export default function HomePage() {
         </div>
 
         {/* CONTENU (descendu et aéré) */}
-        <div className="relative z-10 mx-auto max-w-6xl px-6 pt-28 pb-40 sm:pt-32 sm:pb-44 lg:pt-36 lg:pb-52">
+        <div className="relative z-10 mx-auto max-w-6xl px-6 pt-28 pb-40 sm:pt-15 sm:pb-15 lg:pt-36 lg:pb-52">
           <div className="max-w-2xl">
             <p className="text-sm tracking-[0.22em] uppercase text-foreground/70">
               École artistique musicale • Brabant Wallon
@@ -73,7 +73,7 @@ export default function HomePage() {
 
       {/* PRÉSENTATION CREA’STAR */}
       <section className="relative bg-background text-foreground">
-        <div className="mx-auto max-w-6xl px-6 pt-24 pb-20 sm:pt-24 sm:pb-20 lg:pt-15 lg:pb-10">
+        <div className="mx-auto max-w-6xl px-6 pt-24 pb-20 sm:pt-15 sm:pb-15 lg:pt-15 lg:pb-10">
           <h2 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
             Une école dédiée à la création et à l’accompagnement artistique
           </h2>
@@ -105,7 +105,7 @@ export default function HomePage() {
 
       {/* PROGRAMMES / PARCOURS */}
       <section className="relative bg-background text-foreground">
-        <div className="mx-auto max-w-6xl px-6 pt-20 pb-28 sm:pt-0 sm:pb-32 lg:pt-15 lg:pb-10">
+        <div className="mx-auto max-w-6xl px-6 pt-20 pb-28 sm:pt-15 sm:pb-15 lg:pt-15 lg:pb-10">
           {/* Titre centré + ligne dorée */}
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="relative inline-block text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
@@ -228,7 +228,7 @@ export default function HomePage() {
 
       {/* AUTRES OFFRES */}
       <section className="relative bg-background text-foreground">
-        <div className="mx-auto max-w-6xl px-6 pt-16 pb-24 sm:pt-0 sm:pb-28 lg:pt-20 lg:pb-15">
+        <div className="mx-auto max-w-6xl px-6 pt-16 pb-24  sm:pt-15 sm:pb-15 lg:pt-20 lg:pb-15">
           {/* Titre */}
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="relative inline-block text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
@@ -342,7 +342,7 @@ export default function HomePage() {
 
       {/* VALEURS & APPROCHE */}
       <section className="relative bg-background text-foreground">
-        <div className="mx-auto max-w-6xl px-6 pt-20 pb-28 sm:pt-5 sm:pb-20 lg:pt-15 lg:pb-36">
+        <div className="mx-auto max-w-6xl px-6 pt-20 pb-28 sm:pt-15 sm:pb-15 lg:pt-15 lg:pb-36">
           <div className="max-w-6xl">
             <h2 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
               Une approche artistique exigeante, humaine et collective
@@ -435,7 +435,7 @@ export default function HomePage() {
         {/* Contenu */}
         <div className="relative z-10 mx-auto max-w-6xl px-6 pt-32 pb-36 sm:pt-36 sm:pb-40 lg:pt-40 lg:pb-48 text-center">
           <h2 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
-            Et tout ceci prend vie à travers la création
+            Et tout ceci prend vie à travers la création 
             <br className="hidden sm:block" />
             d’un spectacle imaginé et porté ensemble...
           </h2>
@@ -523,6 +523,11 @@ export default function HomePage() {
                 <li>
                   <a href="/actualites" className="transition hover:text-foreground">
                     Actualités
+                  </a>
+                </li>
+                <li>
+                  <a href="/FAQ" className="transition hover:text-foreground">
+                    FAQ
                   </a>
                 </li>
               </ul>
