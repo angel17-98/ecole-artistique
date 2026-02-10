@@ -90,8 +90,9 @@ export default function Header() {
   }, [mobileOpen]);
 
   return (
-    <header className="fixed top-0 inset-x-0 z-50 h-20 bg-transparent backdrop-blur-md">
-      <div className="mx-auto flex h-20 max-w-6xl items-center justify-between px-4">
+    <header className="fixed top-0 inset-x-0 z-50 h-20 bg-transparent">
+      <div className="absolute inset-0 backdrop-blur-md" aria-hidden />
+      <div className="relative mx-auto flex h-20 max-w-6xl items-center justify-between px-4">
         {/* Logo / Nom */}
         <Link href="/" className="group inline-flex items-start">
           <span className="relative flex flex-col text-3xl font-semibold tracking-tight leading-[0.85]">
@@ -121,9 +122,9 @@ export default function Header() {
         </Link>
 
         {/* Ligne décorative bas du header */}
-        <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-[2px]">
-          <div className="h-[1px] bg-primary" />
-          <div className="h-[1px] bg-accent" />
+        <div className="pointer-events-none fixed top-[80px] left-0 right-0 z-40">
+          <div className="h-px bg-primary" />
+          <div className="h-px bg-accent" />
         </div>
 
         {/* Navigation DESKTOP (inchangée) */}
@@ -148,7 +149,7 @@ export default function Header() {
           {/* Hamburger mobile */}
           <button
             type="button"
-            className="md:hidden inline-flex items-center justify-center rounded-xl border border-white/10 bg-background/40 px-3 py-2 text-sm text-foreground backdrop-blur-sm transition hover:bg-background/60"
+            className="md:hidden inline-flex items-center justify-center rounded-xl border border-white/15 bg-background/50 px-4 py-3 text-xl text-foreground backdrop-blur-sm transition hover:bg-background/70"
             aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
             aria-expanded={mobileOpen}
             onClick={() => setMobileOpen((v) => !v)}
@@ -160,7 +161,7 @@ export default function Header() {
 
       {/* MENU MOBILE (overlay) */}
       {mobileOpen && (
-        <div className="md:hidden fixed inset-0 z-50">
+        <div className="md:hidden fixed inset-0 z-[999]">
           {/* Fond cliquable */}
           <button
             aria-label="Fermer le menu"
