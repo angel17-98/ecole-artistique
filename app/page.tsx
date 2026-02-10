@@ -435,7 +435,7 @@ export default function HomePage() {
         {/* Contenu */}
         <div className="relative z-10 mx-auto max-w-6xl px-6 pt-32 pb-36 sm:pt-36 sm:pb-40 lg:pt-40 lg:pb-48 text-center">
           <h2 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
-            Et tout ceci prend vie à travers la création 
+            Et tout ceci prend vie à travers la création{" "}
             <br className="hidden sm:block" />
             d’un spectacle imaginé et porté ensemble...
           </h2>
