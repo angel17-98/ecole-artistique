@@ -51,7 +51,7 @@ function Dropdown({
       </button>
 
       {/* Menu */}
-      <div className="absolute left-0 top-full mt-2 w-60 opacity-0 invisible transition-all duration-200 group-hover:opacity-100 group-hover:visible">
+      <div className="absolute left-0 top-full mt-2 w-60 opacity-0 invisible transition-all duration-200 group-hover:opacity-100 group-hover:visible z-50">
         <div className="rounded-2xl border border-white/10 bg-background/95 p-2 shadow-xl backdrop-blur">
           {items.map((item) => (
             <Link
@@ -63,7 +63,7 @@ function Dropdown({
             </Link>
           ))}
         </div>
-      </div>
+      </div>    
     </div>
   );
 }
@@ -94,31 +94,12 @@ export default function Header() {
       <div className="absolute inset-0 backdrop-blur-md" aria-hidden />
       <div className="relative mx-auto flex h-20 max-w-6xl items-center justify-between px-4">
         {/* Logo / Nom */}
-        <Link href="/" className="group inline-flex items-start">
-          <span className="relative flex flex-col text-3xl font-semibold tracking-tight leading-[0.85]">
-            {/* CREA' (blanc) */}
-            <span
-              className="text-foreground"
-              style={{
-                textShadow:
-                  "0 2px 0 rgba(0,0,0,0.65), 0 12px 26px rgba(0,0,0,0.85)",
-              }}
-            >
-              CREA&apos;
-            </span>
-
-            {/* STAR (doré) en dessous, décalé pour commencer sous le E */}
-            <span
-              className="pl-[1.15em] text-accent transition-all duration-300"
-              style={{
-                WebkitTextStroke: "0.35px rgb(var(--accent))",
-              }}
-            >
-              <span className="inline-block transition-all duration-300 group-hover:drop-shadow-[0_2px_0_rgba(0,0,0,0.65)] group-hover:drop-shadow-[0_16px_34px_rgba(0,0,0,0.8)]">
-                STAR
-              </span>
-            </span>
-          </span>
+        <Link href="/" className="inline-flex items-center">
+          <img
+            src="/Logo-footer.png"
+            alt="Logo CREA'STAR"
+            className="block h-[52px] w-auto sm:h-[60px]"
+          />
         </Link>
 
         {/* Ligne décorative bas du header */}

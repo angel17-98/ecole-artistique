@@ -29,15 +29,15 @@ export default function HomePage() {
         <div className="relative z-10 mx-auto max-w-6xl px-6 pt-28 pb-40 sm:pt-15 sm:pb-15 lg:pt-36 lg:pb-52">
           <div className="max-w-2xl">
             <p className="text-sm tracking-[0.22em] uppercase text-foreground/70">
-              École artistique musicale • Brabant Wallon
+              Centre artistique musical • Brabant Wallon
             </p>
 
             <h1 className="mt-6 text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl">
-              La création au cœur du parcours artistique
+              La création au cœur de l'apprentissage
             </h1>
 
             <p className="mt-8 text-base leading-relaxed text-foreground/85 sm:text-lg">
-              Une école dédiée à la formation d’artistes
+              Un centre dédié à la formation d’artistes
               complets, à travers des parcours pluridisciplinaires, structurés et créatifs.
               
             </p>
@@ -75,13 +75,13 @@ export default function HomePage() {
       <section className="relative bg-background text-foreground">
         <div className="mx-auto max-w-6xl px-6 pt-24 pb-20 sm:pt-15 sm:pb-15 lg:pt-15 lg:pb-10">
           <h2 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
-            Une école dédiée à la création et à l’accompagnement artistique
+            Un centre dédié à la création et à l’accompagnement artistique
           </h2>
 
           <div className="mt-12 space-y-6 text-base leading-relaxed text-foreground/80 sm:text-lg">
             <p>
-              Crea’Star est une école artistique musicale implantée dans le Brabant
-              Wallon, dédiée à la formation et à l’accompagnement d’artistes complets.
+              Crea’Star est un centre artistique musical implanté dans le Brabant
+              Wallon, dédié à la formation et à l’accompagnement d’artistes complets.
             </p>
 
             <p>
@@ -474,36 +474,19 @@ export default function HomePage() {
           {/* Haut du footer */}
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5 lg:items-start">
             {/* LOGO — identique au header */}
-            <div>
-              <span className="relative flex flex-col text-4xl font-semibold tracking-tight leading-[0.85]">
-                <span
-                  className="text-foreground"
-                  style={{
-                    textShadow:
-                      "0 2px 0 rgba(0,0,0,0.65), 0 12px 26px rgba(0,0,0,0.85)",
-                  }}
-                >
-                  CREA’
-                </span>
-                <span
-                  className="ml-6 text-accent"
-                  style={{
-                    textShadow:
-                      "0 0 12px rgba(218,180,90,0.45), 0 0 28px rgba(218,180,90,0.35)",
-                  }}
-                >
-                  STAR
-                </span>
-              </span>
+            <div className="lg:col-span-2">
+              <img
+                src="/Logo-footer.png"
+                alt="Logo CREA'STAR"
+                className="block w-[180px] h-auto"
+              />
 
-              {/* Slogan sous le logo */}
-              <p className="mt-4 w-64 font-bold text-xl leading-relaxed text-foreground/80">
+              <p className="mt-4 max-w-[260px] font-bold text-xl leading-relaxed text-foreground/80">
                 La création au cœur<br />
                 du parcours artistique
               </p>
-            </div>
-            
-            {/* Colonne vide pour respiration (desktop) */}
+            </div>            
+          {/* Colonne vide pour respiration (desktop) */}
             <div className="hidden lg:block" />
 
             {/* À propos */}
