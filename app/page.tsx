@@ -10,7 +10,7 @@ export default function HomePage() {
         {/* IMAGE DE FOND */}
         <div className="absolute inset-0">
           <Image
-            src="/hero-studio.jpg"
+            src="/hero-studio-4.jpg"
             alt="Artiste en studio avec casque et micro"
             fill
             priority
@@ -27,13 +27,13 @@ export default function HomePage() {
 
         {/* CONTENU (descendu et aéré) */}
         <div className="relative z-10 mx-auto max-w-6xl px-6 pt-28 pb-40 sm:pt-15 sm:pb-15 lg:pt-36 lg:pb-52">
-          <div className="max-w-2xl">
+          <div className="max-w-5xl">
             <p className="text-sm tracking-[0.22em] uppercase text-foreground/70">
               Centre artistique musical • Brabant Wallon
             </p>
 
-            <h1 className="mt-6 text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl">
-              La création au cœur de l'apprentissage
+            <h1 className="mt-6 text-4xl font-semibold leading-[1.08] tracking-tight sm:text-5xl lg:text-7xl">
+              La création au coeur de l'apprentissage
             </h1>
 
             <p className="mt-8 text-base leading-relaxed text-foreground/85 sm:text-lg">
@@ -472,91 +472,102 @@ export default function HomePage() {
 
         <div className="mx-auto max-w-7xl px-6 py-12">
           {/* Haut du footer */}
-          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5 lg:items-start">
-            {/* LOGO — identique au header */}
-            <div className="lg:col-span-2">
-              <img
+            <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:items-start">
+
+            {/* LOGO + slogan */}
+            <div>
+                <img
                 src="/Logo-footer.png"
                 alt="Logo CREA'STAR"
                 className="block w-[180px] h-auto"
-              />
+                />
 
-              <p className="mt-4 max-w-[260px] font-bold text-xl leading-relaxed text-foreground/80">
+                <p className="mt-4 max-w-[260px] font-bold text-xl leading-relaxed text-foreground/80">
                 La création au cœur<br />
-                du parcours artistique
-              </p>
-            </div>            
-          {/* Colonne vide pour respiration (desktop) */}
-            <div className="hidden lg:block" />
-
-            {/* À propos */}
-            <div>
-              <p className="text-sm font-semibold text-foreground">À propos</p>
-              <ul className="mt-4 space-y-1 text-sm text-foreground/70">
-                <li>
-                  <a href="/a-propos/notre-ecole" className="transition hover:text-foreground">
-                    Notre école
-                  </a>
-                </li>
-                <li>
-                  <a href="/a-propos/notre-equipe" className="transition hover:text-foreground">
-                    Notre équipe
-                  </a>
-                </li>
-                <li>
-                  <a href="/actualites" className="transition hover:text-foreground">
-                    Actualités
-                  </a>
-                </li>
-                <li>
-                  <a href="/FAQ" className="transition hover:text-foreground">
-                    FAQ
-                  </a>
-                </li>
-              </ul>
+                de l'apprentissage
+                </p>
             </div>
 
-            {/* Notre offre */}
-            <div>
-              <p className="text-sm font-semibold text-foreground">Notre offre</p>
-              <ul className="mt-4 space-y-1 text-sm text-foreground/70">
-                <li>
-                  <a href="/cours/full-artist" className="transition hover:text-foreground">
-                    Full Artist
-                  </a>
-                </li>
-                <li>
-                  <a href="/cours/comedie-musicale" className="transition hover:text-foreground">
-                    Comédie musicale
-                  </a>
-                </li>
-                <li>
-                  <a href="/cours/eveil-musical" className="transition hover:text-foreground">
-                    Éveil musical
-                  </a>
-                </li>
-                <li>
-                  <a href="/cours/cours-individuels" className="transition hover:text-foreground">
-                    Cours individuels
-                  </a>
-                </li>
-                <li>
-                  <a href="/locations" className="transition hover:text-foreground">
-                    Location studio & salles
-                  </a>
-                </li>
-              </ul>
+
+            {/* Navigation */}
+            <div className="grid grid-cols-2 gap-10">
+                
+                {/* À propos */}
+                <div>
+                <p className="text-sm font-semibold text-foreground">À propos</p>
+
+                <ul className="mt-4 space-y-1 text-sm text-foreground/70">
+                    <li>
+                    <a href="/a-propos/notre-ecole" className="transition hover:text-foreground">
+                        Notre école
+                    </a>
+                    </li>
+                    <li>
+                    <a href="/a-propos/notre-equipe" className="transition hover:text-foreground">
+                        Notre équipe
+                    </a>
+                    </li>
+                    <li>
+                    <a href="/actualites" className="transition hover:text-foreground">
+                        Actualités
+                    </a>
+                    </li>
+                    <li>
+                    <a href="/FAQ" className="transition hover:text-foreground">
+                        FAQ
+                    </a>
+                    </li>
+                </ul>
+                </div>
+
+                {/* Notre offre */}
+                <div>
+                <p className="text-sm font-semibold text-foreground">Notre offre</p>
+
+                <ul className="mt-4 space-y-1 text-sm text-foreground/70">
+                    <li>
+                    <a href="/cours/full-artist" className="transition hover:text-foreground">
+                        Full Artist
+                    </a>
+                    </li>
+                    <li>
+                    <a href="/cours/comedie-musicale" className="transition hover:text-foreground">
+                        Comédie musicale
+                    </a>
+                    </li>
+                    <li>
+                    <a href="/cours/eveil-musical" className="transition hover:text-foreground">
+                        Éveil musical
+                    </a>
+                    </li>
+                    <li>
+                    <a href="/cours/cours-individuels" className="transition hover:text-foreground">
+                        Cours individuels
+                    </a>
+                    </li>
+                    <li>
+                    <a href="/locations" className="transition hover:text-foreground">
+                        Location studio & salles
+                    </a>
+                    </li>
+                </ul>
+                </div>
+
             </div>
 
-            {/* Adresse */}
+
+            {/* Coordonnées */}
             <div className="text-sm text-foreground/70 lg:text-right">
-              <p>Chaussée de Bruxelles, 258</p>
-              <p>1410 Waterloo</p>
-              <p className="invisible">—</p>
-              <p>+32 (0) 471 01 61 81</p>
-            </div>
-          </div>
+                <p className="font-semibold text-foreground">Coordonnées</p>
 
+                <div className="mt-4 space-y-1">
+                <p>Chaussée de Bruxelles, 258</p>
+                <p>1410 Waterloo</p>
+                <p className="pt-2">+32 (0) 471 01 61 81</p>
+                </div>
+            </div>
+
+            </div>
           {/* Bas du footer */}
           <div className="mt-10 flex flex-col gap-4 border-t border-foreground/10 pt-6 text-xs text-foreground/60 sm:flex-row sm:items-center sm:justify-between">
             {/* Gauche : copyright + slogan */}

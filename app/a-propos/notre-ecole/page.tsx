@@ -3,12 +3,12 @@ import Link from "next/link";
 
 const spaces = [
   {
-    title: "Salle de danse — 100 m²",
+    title: "Salle de danse",
     description:
       "Un grand espace de mouvement, de chorégraphie et de travail collectif, pensé pour explorer le corps, l’énergie scénique et la création en groupe.",
   },
   {
-    title: "Salle avec scène de spectacle",
+    title: "Salle polyvalente",
     description:
       "Un lieu dédié à la présence scénique, aux répétitions, aux présentations et à la mise en situation artistique dans des conditions concrètes.",
   },
@@ -38,9 +38,9 @@ export default function NotreEcolePage() {
         <div aria-hidden className="h-20" />
 
         {/* Image de fond */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 mt-20">
           <Image
-            src="/Photo générale 2-test.png"
+            src="/espaces/tilia.jpg"
             alt="Univers artistique CREA'STAR"
             fill
             priority
@@ -54,7 +54,7 @@ export default function NotreEcolePage() {
 
         {/* Contenu */}
         <div className="relative z-10 mx-auto max-w-6xl px-6 pt-24 pb-28 sm:pt-28 sm:pb-32 lg:pt-36 lg:pb-40">
-          <div className="max-w-3xl">
+          <div className="max-w-6xl">
             <p className="text-sm uppercase tracking-[0.22em] text-foreground/70">
               À propos • Notre école
             </p>
@@ -66,7 +66,7 @@ export default function NotreEcolePage() {
               </span>
             </h1>
 
-            <p className="mt-8 max-w-2xl text-base leading-relaxed text-foreground/85 sm:text-lg">
+            <p className="mt-8 max-w-4xl text-base leading-relaxed text-foreground/85 sm:text-lg">
               Crea'Star est un centre artistique musical pensé comme un lieu
               vivant, où les artistes apprennent, créent, expérimentent et
               grandissent ensemble dans une dynamique profondément humaine.
@@ -79,7 +79,7 @@ export default function NotreEcolePage() {
 
         {/* NOTRE HISTOIRE */}
         <section className="bg-background text-foreground">
-        <div className="mx-auto max-w-6xl px-6 pt-8 pb-24 sm:pt-8 sm:pb-20 lg:pt-8 lg:pb-28">
+        <div className="mx-auto max-w-6xl px-6 pt-4 pb-10 sm:pt-8 sm:pb-20 lg:pt-8 lg:pb-16">
             <div className="mx-auto max-w-3xl text-center">
             <h2 className="relative inline-block text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
                 Notre histoire
@@ -121,73 +121,9 @@ export default function NotreEcolePage() {
         </div>
         </section>
 
-    {/* CE QUI NOUS ANIME */}
-    <section className="bg-background">
-    <div className="mx-auto max-w-6xl px-6 pt-8 pb-24 sm:pt-8 sm:pb-20 lg:pt-8 lg:pb-24">
-        
-        {/* Titre */}
-        <div className="mx-auto max-w-3xl text-center">
-        <h2 className="relative inline-block text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
-            Ce qui nous anime
-            <span
-            aria-hidden
-            className="absolute left-1/2 top-full mt-4 h-px w-[140%] -translate-x-1/2 bg-accent/70"
-            />
-        </h2>
-
-        <p className="mt-10 text-base leading-relaxed text-foreground/80 sm:text-lg">
-            L’école repose sur quelques convictions simples : créer avant de reproduire,
-            apprendre ensemble, explorer plusieurs formes d’expression et évoluer dans
-            un cadre artistique exigeant et humain.
-        </p>
-        </div>
-
-        {/* Piliers */}
-        <div className="mt-14 grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-
-        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8">
-            <h3 className="text-lg font-semibold">Créer avant de reproduire</h3>
-            <p className="mt-4 text-sm leading-relaxed text-foreground/75">
-            L’apprentissage commence par l’exploration, l’imaginaire et la création
-            personnelle plutôt que par la simple reproduction de modèles.
-            </p>
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(218,180,90,0.08),transparent_60%)]" />
-        </div>
-
-        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8">
-            <h3 className="text-lg font-semibold">Pluridisciplinarité</h3>
-            <p className="mt-4 text-sm leading-relaxed text-foreground/75">
-            La musique, la scène, le mouvement et l’expression artistique dialoguent
-            pour permettre l’émergence d’artistes complets.
-            </p>
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(5,102,79,0.10),transparent_60%)]" />
-        </div>
-
-        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8">
-            <h3 className="text-lg font-semibold">Créer ensemble</h3>
-            <p className="mt-4 text-sm leading-relaxed text-foreground/75">
-            Le collectif est une force créative : les artistes se rencontrent,
-            collaborent et construisent des projets communs.
-            </p>
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(218,180,90,0.08),transparent_60%)]" />
-        </div>
-
-        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-8">
-            <h3 className="text-lg font-semibold">Un cadre humain et exigeant</h3>
-            <p className="mt-4 text-sm leading-relaxed text-foreground/75">
-            Offrir un environnement artistique stimulant, où l’exigence s’accompagne
-            d’écoute, de respect et de confiance.
-            </p>
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(218,180,90,0.08),transparent_60%)]" />
-        </div>
-
-        </div>
-    </div>
-    </section>      
-
     {/* LES ESPACES */}
     <section className="relative bg-background text-foreground">
-    <div className="mx-auto max-w-6xl px-6 pt-8 pb-24 sm:pt-8 sm:pb-20 lg:pt-8 lg:pb-24">
+    <div className="mx-auto max-w-6xl px-6 pt-4 pb-24 sm:pt-8 sm:pb-20 lg:pt-8 lg:pb-24">
         <div className="mx-auto max-w-3xl text-center">
         <h2 className="relative inline-block text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
             Les espaces du centre
@@ -200,7 +136,7 @@ export default function NotreEcolePage() {
         <p className="mt-10 text-base leading-relaxed text-foreground/80 sm:text-lg">
             Crea&apos;Star a été pensé comme un lieu complet, avec différents espaces
             dédiés au mouvement, à la scène, au travail individuel, à
-            l’enregistrement et aux temps de pause.
+            l’enregistrement et aux temps de repos, espace de rencontre.
         </p>
         </div>
 
@@ -209,7 +145,7 @@ export default function NotreEcolePage() {
         <div className="group relative overflow-hidden rounded-2xl border border-foreground/10 bg-background/40 backdrop-blur-sm transition hover:border-accent/40">
             <div className="relative aspect-[4/3] w-full">
             <Image
-                src="/espaces/eveil-musical.jpg"
+                src="/espaces/salle-danse.jpg"
                 alt="Salle de danse de 100 m²"
                 fill
                 unoptimized
@@ -220,7 +156,7 @@ export default function NotreEcolePage() {
             </div>
 
             <div className="p-6">
-            <h3 className="text-lg font-semibold">Salle de danse — 100 m²</h3>
+            <h3 className="text-lg font-semibold">Salle de danse</h3>
             <p className="mt-3 text-sm leading-relaxed text-foreground/75">
                 Un grand espace pour le mouvement, la chorégraphie, l’énergie
                 scénique et le travail collectif.
@@ -232,7 +168,7 @@ export default function NotreEcolePage() {
         <div className="group relative overflow-hidden rounded-2xl border border-foreground/10 bg-background/40 backdrop-blur-sm transition hover:border-accent/40">
             <div className="relative aspect-[4/3] w-full">
             <Image
-                src="/espaces/salle-spectacle.jpg"
+                src="/espaces/scene.jpg"
                 alt="Salle avec scène de spectacle"
                 fill
                 unoptimized
@@ -243,7 +179,7 @@ export default function NotreEcolePage() {
             </div>
 
             <div className="p-6">
-            <h3 className="text-lg font-semibold">Salle avec scène de spectacle</h3>
+            <h3 className="text-lg font-semibold">Salle polyvalente</h3>
             <p className="mt-3 text-sm leading-relaxed text-foreground/75">
                 Un lieu pour répéter, présenter, expérimenter la scène et vivre la
                 création dans des conditions concrètes.
@@ -255,7 +191,7 @@ export default function NotreEcolePage() {
         <div className="group relative overflow-hidden rounded-2xl border border-foreground/10 bg-background/40 backdrop-blur-sm transition hover:border-accent/40">
             <div className="relative aspect-[4/3] w-full">
             <Image
-                src="/espaces/cours-individuels.jpg"
+                src="/espaces/salle-individuel.jpg"
                 alt="Trois salles individuelles"
                 fill
                 unoptimized
@@ -278,7 +214,7 @@ export default function NotreEcolePage() {
         <div className="group relative overflow-hidden rounded-2xl border border-foreground/10 bg-background/40 backdrop-blur-sm transition hover:border-accent/40">
             <div className="relative aspect-[4/3] w-full">
             <Image
-                src="/espaces/studio.jpg"
+                src="/espaces/studio-salle.jpg"
                 alt="Studio d’enregistrement"
                 fill
                 unoptimized
@@ -301,7 +237,7 @@ export default function NotreEcolePage() {
         <div className="group relative overflow-hidden rounded-2xl border border-foreground/10 bg-background/40 backdrop-blur-sm transition hover:border-accent/40">
             <div className="relative aspect-[4/3] w-full">
             <Image
-                src="/espaces/eveil-musical.jpg"
+                src="/espaces/accueil.jpg"
                 alt="Espace accueil et repos"
                 fill
                 unoptimized
@@ -323,53 +259,6 @@ export default function NotreEcolePage() {
     </div>
     </section>
 
-    {/* DÉCOUVRIR LES PARCOURS / CTA */}
-    <section className="relative overflow-hidden bg-background text-foreground">
-    {/* Image de fond */}
-    <div className="absolute inset-0">
-        <Image
-        src="/spectacles/salle-spectacle.jpg"
-        alt="Scène de spectacle CREA'STAR"
-        fill
-        unoptimized
-        className="object-cover object-center"
-        sizes="100vw"
-        />
-
-        <div className="absolute inset-0 bg-gradient-to-t from-background/85 via-background/55 to-background/20" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(218,180,90,0.10),transparent_60%)]" />
-    </div>
-
-    {/* Contenu */}
-    <div className="relative z-10 mx-auto max-w-6xl px-6 pt-32 pb-36 text-center sm:pt-36 sm:pb-40 lg:pt-40 lg:pb-48">
-        <h2 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
-        Découvrir les parcours CREA&apos;STAR
-        </h2>
-
-        <p className="mx-auto mt-8 max-w-2xl text-base leading-relaxed text-foreground/80 sm:text-lg">
-        Explore les programmes proposés par l’école et découvre un parcours
-        construit autour de la création, de la progression et de l’expérience
-        artistique.
-        </p>
-
-        <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
-        <Link
-            href="/cours/full-artist"
-            className="inline-flex items-center justify-center rounded-xl bg-primary border border-accent/60 px-10 py-4 text-base font-semibold text-foreground transition hover:border-accent"
-        >
-            Voir les parcours
-        </Link>
-
-        <Link
-            href="/inscriptions"
-            className="inline-flex items-center justify-center rounded-xl bg-background border border-accent/60 px-10 py-4 text-base font-medium text-foreground/90 transition hover:border-accent"
-        >
-            S’inscrire
-        </Link>
-        </div>
-    </div>
-    </section>
-
       {/* FOOTER */}
       <footer className="relative bg-background text-foreground">
         {/* Ligne signature */}
@@ -377,91 +266,102 @@ export default function NotreEcolePage() {
 
         <div className="mx-auto max-w-7xl px-6 py-12">
           {/* Haut du footer */}
-          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5 lg:items-start">
-            {/* LOGO — identique au header */}
-            <div className="lg:col-span-2">
-              <img
+            <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:items-start">
+
+            {/* LOGO + slogan */}
+            <div>
+                <img
                 src="/Logo-footer.png"
                 alt="Logo CREA'STAR"
                 className="block w-[180px] h-auto"
-              />
+                />
 
-              <p className="mt-4 max-w-[260px] font-bold text-xl leading-relaxed text-foreground/80">
+                <p className="mt-4 max-w-[260px] font-bold text-xl leading-relaxed text-foreground/80">
                 La création au cœur<br />
-                du parcours artistique
-              </p>
-            </div>            
-          {/* Colonne vide pour respiration (desktop) */}
-            <div className="hidden lg:block" />
-
-            {/* À propos */}
-            <div>
-              <p className="text-sm font-semibold text-foreground">À propos</p>
-              <ul className="mt-4 space-y-1 text-sm text-foreground/70">
-                <li>
-                  <a href="/a-propos/notre-ecole" className="transition hover:text-foreground">
-                    Notre école
-                  </a>
-                </li>
-                <li>
-                  <a href="/a-propos/notre-equipe" className="transition hover:text-foreground">
-                    Notre équipe
-                  </a>
-                </li>
-                <li>
-                  <a href="/actualites" className="transition hover:text-foreground">
-                    Actualités
-                  </a>
-                </li>
-                <li>
-                  <a href="/FAQ" className="transition hover:text-foreground">
-                    FAQ
-                  </a>
-                </li>
-              </ul>
+                de l'apprentissage
+                </p>
             </div>
 
-            {/* Notre offre */}
-            <div>
-              <p className="text-sm font-semibold text-foreground">Notre offre</p>
-              <ul className="mt-4 space-y-1 text-sm text-foreground/70">
-                <li>
-                  <a href="/cours/full-artist" className="transition hover:text-foreground">
-                    Full Artist
-                  </a>
-                </li>
-                <li>
-                  <a href="/cours/comedie-musicale" className="transition hover:text-foreground">
-                    Comédie musicale
-                  </a>
-                </li>
-                <li>
-                  <a href="/cours/eveil-musical" className="transition hover:text-foreground">
-                    Éveil musical
-                  </a>
-                </li>
-                <li>
-                  <a href="/cours/cours-individuels" className="transition hover:text-foreground">
-                    Cours individuels
-                  </a>
-                </li>
-                <li>
-                  <a href="/locations" className="transition hover:text-foreground">
-                    Location studio & salles
-                  </a>
-                </li>
-              </ul>
+
+            {/* Navigation */}
+            <div className="grid grid-cols-2 gap-10">
+                
+                {/* À propos */}
+                <div>
+                <p className="text-sm font-semibold text-foreground">À propos</p>
+
+                <ul className="mt-4 space-y-1 text-sm text-foreground/70">
+                    <li>
+                    <a href="/a-propos/notre-ecole" className="transition hover:text-foreground">
+                        Notre école
+                    </a>
+                    </li>
+                    <li>
+                    <a href="/a-propos/notre-equipe" className="transition hover:text-foreground">
+                        Notre équipe
+                    </a>
+                    </li>
+                    <li>
+                    <a href="/actualites" className="transition hover:text-foreground">
+                        Actualités
+                    </a>
+                    </li>
+                    <li>
+                    <a href="/FAQ" className="transition hover:text-foreground">
+                        FAQ
+                    </a>
+                    </li>
+                </ul>
+                </div>
+
+                {/* Notre offre */}
+                <div>
+                <p className="text-sm font-semibold text-foreground">Notre offre</p>
+
+                <ul className="mt-4 space-y-1 text-sm text-foreground/70">
+                    <li>
+                    <a href="/cours/full-artist" className="transition hover:text-foreground">
+                        Full Artist
+                    </a>
+                    </li>
+                    <li>
+                    <a href="/cours/comedie-musicale" className="transition hover:text-foreground">
+                        Comédie musicale
+                    </a>
+                    </li>
+                    <li>
+                    <a href="/cours/eveil-musical" className="transition hover:text-foreground">
+                        Éveil musical
+                    </a>
+                    </li>
+                    <li>
+                    <a href="/cours/cours-individuels" className="transition hover:text-foreground">
+                        Cours individuels
+                    </a>
+                    </li>
+                    <li>
+                    <a href="/locations" className="transition hover:text-foreground">
+                        Location studio & salles
+                    </a>
+                    </li>
+                </ul>
+                </div>
+
             </div>
 
-            {/* Adresse */}
+
+            {/* Coordonnées */}
             <div className="text-sm text-foreground/70 lg:text-right">
-              <p>Chaussée de Bruxelles, 258</p>
-              <p>1410 Waterloo</p>
-              <p className="invisible">—</p>
-              <p>+32 (0) 471 01 61 81</p>
-            </div>
-          </div>
+                <p className="font-semibold text-foreground">Coordonnées</p>
 
+                <div className="mt-4 space-y-1">
+                <p>Chaussée de Bruxelles, 258</p>
+                <p>1410 Waterloo</p>
+                <p className="pt-2">+32 (0) 471 01 61 81</p>
+                </div>
+            </div>
+
+            </div>
           {/* Bas du footer */}
           <div className="mt-10 flex flex-col gap-4 border-t border-foreground/10 pt-6 text-xs text-foreground/60 sm:flex-row sm:items-center sm:justify-between">
             {/* Gauche : copyright + slogan */}
@@ -481,6 +381,7 @@ export default function NotreEcolePage() {
           </div>
         </div>
       </footer>
+
     </main>
   );
 }

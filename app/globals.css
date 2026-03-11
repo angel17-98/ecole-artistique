@@ -4,8 +4,8 @@
   --background: 0 0 0;      /* noir*/
   --foreground: 245 245 247;   /* blanc cassé */
 
-  --primary: 0 88 83;        /* vert */
-  --accent: 212 175 55;        /* doré */
+  --primary: 0 50 30;        /* vert */
+  --accent: 130 130 0;        /* doré */
 }
 
 @theme inline {
