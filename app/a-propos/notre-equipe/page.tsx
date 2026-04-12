@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Reveal from "../../components/Reveal";
 
 const pedagogicalTeam = [
   {
@@ -55,311 +56,197 @@ const pedagogicalTeam = [
 
 export default function NotreEquipePage() {
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      {/* HERO IMAGE SEULE */}
-      <section className="relative overflow-hidden">
-        <div aria-hidden className="h-20" />
-
-        <div className="relative h-[38vh] min-h-[260px] w-full sm:h-[46vh] lg:h-[56vh]">
-          <Image
-            src="/equipe/hero-equipe-test.jpg"
-            alt="L’équipe CREA'STAR"
-            fill
-            priority
-            unoptimized
-            className="object-cover object-center"
-          />
-
-          <div className="absolute inset-0 bg-gradient-to-t from-background/45 via-background/10 to-transparent" />
-        </div>
-      </section>
-
-        {/* DEUX PERSONNES PRINCIPALES */}
-        <section className="bg-background">
-        <div className="mx-auto max-w-6xl px-6 py-20 sm:py-24 lg:py-28">
-
-            {/* Titre */}
-            <div className="mx-auto max-w-3xl text-center">
-            <h2 className="relative inline-block text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
-                NOTRE EQUIPE
-                <span
-                aria-hidden
-                className="absolute left-1/2 top-full mt-4 h-px w-[130%] -translate-x-1/2 bg-accent/70"
-                />
-            </h2>
+    <main className="min-h-screen text-foreground">
+      <section className="px-4 pb-8 pt-2 md:px-6">
+        <div className="site-shell">
+          <div className="relative overflow-hidden rounded-[34px] border border-black/6 bg-surface shadow-[0_25px_90px_rgba(16,16,16,0.08)]">
+            <div className="relative h-[40svh] min-h-[280px] w-full sm:h-[48svh] lg:h-[58svh]">
+              <Image
+                src="/equipe/hero-equipe-test.jpg"
+                alt="L’équipe CREA'STAR"
+                fill
+                priority
+                unoptimized
+                className="object-cover object-center"
+              />
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(247,244,238,0.10),rgba(247,244,238,0.62))]" />
             </div>
 
-            <div className="mt-20 space-y-20">
-
-            {/* PERSONNE 1 */}
-            <article className="grid gap-10 lg:grid-cols-[420px_1fr] lg:items-center">
-
-                {/* Photo */}
-                <div className="mx-auto w-full max-w-[340px] overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-lg">
-                <div className="relative aspect-[4/5] w-full">
-                    <Image
-                    src="/equipe/lisman-angelie.jpg"
-                    alt="Lisman Angélie"
-                    fill
-                    unoptimized
-                    className="object-cover object-center"
-                    sizes="340px"
-                    />
-                </div>
-                </div>
-
-                {/* Texte */}
-                <div>
-                <p className="text-sm uppercase tracking-[0.22em] text-accent/80">
-                    Direction générale • Fondatrice
+            <div className="relative z-10 px-6 pb-10 pt-8 md:px-10 lg:px-14 lg:pb-14">
+              <Reveal>
+                <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
+                  À propos • Notre équipe
                 </p>
+              </Reveal>
 
-                <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-                    Lisman Angélie
-                </h2>
-
-                <p className="mt-6 text-base leading-relaxed text-foreground/80 sm:text-lg">
-                    Depuis toujours animée par une sensibilité artistique forte, elle développe très jeune une pratique créative autodidacte qui façonne
-                    progressivement sa vision de l'apprentissage artistique.
-                </p>
-
-                <p className="mt-5 text-base leading-relaxed text-foreground/80 sm:text-lg">
-                    Sa participation à The Voice Belgique en 2017, au sein de l'équipe de BJ Scott, lui permet de vivre
-                    une expérience médiatique et scénique marquante, renforçant sa conviction que l'expression artistique
-                    ne se limite pas à la technique, mais s'enracine avant tout dans la création et l'identité personnelle.
-                </p>
-
-                <p className="mt-5 text-base leading-relaxed text-foreground/80 sm:text-lg">
-                    A travers Crea'Star, elle porte une vision claire: placer la création au coeur du processus d'apprentissage et
-                    accompagner l'émergence d'une nouvelle génération d'artistes complets, capables d'explorer, d'inventer et de 
-                    construire leur propre univers artistique.
-                </p>
-                </div>
-
-            </article>
-
-            {/* PERSONNE 2 */}
-            <article className="grid gap-10 lg:grid-cols-[1fr_420px] lg:items-center">
-
-                {/* Texte */}
-                <div>
-                <p className="text-sm uppercase tracking-[0.22em] text-accent/80">
-                    Direction artistique
-                </p>
-
-                <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-                    Delvaux Mélissa
-                </h2>
-
-                <p className="mt-6 text-base leading-relaxed text-foreground/80 sm:text-lg">
-                    Mélissa accompagne les artistes avec une sensibilité profondément humaine et une expérience de la mise en scène de spectacle.
-                </p>
-
-                <p className="mt-5 text-base leading-relaxed text-foreground/80 sm:text-lg">
-                    Après un parcours dans le domaine du soin et de l'accompagnement - dont les plus petits - elle développe
-                    une approche pédagogique attentive, bienveillante et centrée sur l'épanouissement des personnes.
-                </p>
-
-                <p className="mt-5 text-base leading-relaxed text-foreground/80 sm:text-lg">
-                    Parllèlement, elle évolue depuis plus de 20 ans dans l'univers du spectacle, au sein d'une troupe de cabaret dont elle a 
-                    reprit la direction artistique. Cette longue expérience de la scène nourrit aujourd'hui son travail au sein de Crea'Star, 
-                    où elle supervise notamment les ateliers d'éveil musical et accompagne les élèves tout au long de leur parcours artistique.
-                </p>
-                </div>
-
-                {/* Photo */}
-                <div className="mx-auto w-full max-w-[340px] overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-lg">
-                <div className="relative aspect-[4/5] w-full">
-                    <Image
-                    src="/equipe/delvaux-melissa.jpg"
-                    alt="Delvaux Mélissa"
-                    fill
-                    unoptimized
-                    className="object-cover object-center"
-                    sizes="340px"
-                    />
-                </div>
-                </div>
-
-            </article>
-
+              <Reveal delay={1}>
+                <h1 className="mt-4 max-w-4xl text-4xl font-semibold leading-[1.04] tracking-tight text-balance sm:text-5xl lg:text-6xl">
+                  Une équipe engagée au service de la création et de l’accompagnement artistique
+                </h1>
+              </Reveal>
             </div>
-
-        </div>
-        </section>
-      {/* SÉPARATEUR DORÉ */}
-      <section className="bg-background">
-        <div className="mx-auto max-w-10xl px-6">
-          <div className="h-px w-full bg-accent/50" />
-        </div>
-      </section>
-
-      {/* ÉQUIPE PÉDAGOGIQUE */}
-      <section className="bg-background">
-        <div className="mx-auto max-w-6xl px-6 pt-16 pb-24 sm:pt-20 sm:pb-28 lg:pt-24 lg:pb-32">
-          <div className="mx-auto max-w-6xl text-left">
-            <h2 className="text-3xl font-semibold leading-tight tracking-tight sm:text-3xl">
-              L'EQUIPE PEDAGOGIQUE
-            </h2>
           </div>
+        </div>
+      </section>
 
-          <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
-            {pedagogicalTeam.map((member) => (
-              <article
-                key={member.name + member.role}
-                className="group relative overflow-hidden rounded-3xl border border-white/10 bg-background/40 transition hover:border-accent/40"
-              >
-                <div className="relative aspect-[4/5] w-full">
-                  <Image
-                    src={member.image}
-                    alt={`${member.name} — ${member.role}`}
-                    fill
-                    unoptimized
-                    className="object-cover object-center transition duration-700 group-hover:scale-[1.02]"
-                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                  />
+      <section className="section-space">
+        <div className="site-shell">
+          <Reveal>
+            <div className="mx-auto max-w-3xl text-center">
+              <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
+                Direction
+              </p>
+              <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl text-balance">
+                Les deux figures fondatrices du projet
+              </h2>
+            </div>
+          </Reveal>
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/88 via-background/20 to-transparent" />
+          <div className="mt-16 space-y-16">
+            <Reveal>
+              <article className="grid gap-10 lg:grid-cols-[380px_1fr] lg:items-center">
+                <div className="mx-auto w-full max-w-[340px] overflow-hidden rounded-[30px] border border-black/6 bg-white/80 shadow-[0_16px_50px_rgba(16,16,16,0.06)]">
+                  <div className="relative aspect-[4/5] w-full">
+                    <Image
+                      src="/equipe/lisman-angelie.jpg"
+                      alt="Lisman Angélie"
+                      fill
+                      unoptimized
+                      className="object-cover object-center"
+                      sizes="340px"
+                    />
+                  </div>
+                </div>
 
-                  {/* Texte superposé */}
-                  <div className="absolute inset-x-0 bottom-0 p-6">
-                    <h3 className="text-xl font-semibold text-foreground">
-                      {member.name}
-                    </h3>
+                <div className="rounded-[30px] border border-black/6 bg-white/82 p-8 shadow-[0_18px_60px_rgba(16,16,16,0.06)] backdrop-blur-sm sm:p-10">
+                  <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
+                    Direction générale • Fondatrice
+                  </p>
 
-                    <p className="mt-1 text-sm text-foreground/80">
-                      {member.role}
-                    </p>
+                  <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
+                    Lisman Angélie
+                  </h2>
+
+                  <p className="mt-6 text-base leading-8 text-black/68 sm:text-lg">
+                    Depuis toujours animée par une sensibilité artistique forte, elle développe très jeune une pratique créative autodidacte qui façonne progressivement sa vision de l&apos;apprentissage artistique.
+                  </p>
+
+                  <p className="mt-5 text-base leading-8 text-black/68 sm:text-lg">
+                    Sa participation à The Voice Belgique en 2017, au sein de l&apos;équipe de BJ Scott, lui permet de vivre une expérience médiatique et scénique marquante, renforçant sa conviction que l&apos;expression artistique ne se limite pas à la technique, mais s&apos;enracine avant tout dans la création et l&apos;identité personnelle.
+                  </p>
+
+                  <p className="mt-5 text-base leading-8 text-black/68 sm:text-lg">
+                    À travers Crea&apos;Star, elle porte une vision claire : placer la création au cœur du processus d&apos;apprentissage et accompagner l&apos;émergence d&apos;une nouvelle génération d&apos;artistes complets, capables d&apos;explorer, d&apos;inventer et de construire leur propre univers artistique.
+                  </p>
+                </div>
+              </article>
+            </Reveal>
+
+            <Reveal delay={1}>
+              <article className="grid gap-10 lg:grid-cols-[1fr_380px] lg:items-center">
+                <div className="rounded-[30px] border border-black/6 bg-white/82 p-8 shadow-[0_18px_60px_rgba(16,16,16,0.06)] backdrop-blur-sm sm:p-10">
+                  <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
+                    Direction artistique
+                  </p>
+
+                  <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
+                    Delvaux Mélissa
+                  </h2>
+
+                  <p className="mt-6 text-base leading-8 text-black/68 sm:text-lg">
+                    Mélissa accompagne les artistes avec une sensibilité profondément humaine et une expérience de la mise en scène de spectacle.
+                  </p>
+
+                  <p className="mt-5 text-base leading-8 text-black/68 sm:text-lg">
+                    Après un parcours dans le domaine du soin et de l&apos;accompagnement, elle développe une approche pédagogique attentive, bienveillante et centrée sur l&apos;épanouissement des personnes.
+                  </p>
+
+                  <p className="mt-5 text-base leading-8 text-black/68 sm:text-lg">
+                    Parallèlement, elle évolue depuis plus de 20 ans dans l&apos;univers du spectacle, au sein d&apos;une troupe de cabaret dont elle a repris la direction artistique. Cette longue expérience de la scène nourrit aujourd&apos;hui son travail au sein de Crea&apos;Star, où elle supervise notamment les ateliers d&apos;éveil musical et accompagne les élèves tout au long de leur parcours artistique.
+                  </p>
+                </div>
+
+                <div className="mx-auto w-full max-w-[340px] overflow-hidden rounded-[30px] border border-black/6 bg-white/80 shadow-[0_16px_50px_rgba(16,16,16,0.06)]">
+                  <div className="relative aspect-[4/5] w-full">
+                    <Image
+                      src="/equipe/delvaux-melissa.jpg"
+                      alt="Delvaux Mélissa"
+                      fill
+                      unoptimized
+                      className="object-cover object-center"
+                      sizes="340px"
+                    />
                   </div>
                 </div>
               </article>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      <section className="section-space pt-0">
+        <div className="site-shell">
+          <Reveal>
+            <div className="mx-auto max-w-4xl rounded-[32px] border border-primary/12 bg-[linear-gradient(135deg,rgba(22,92,71,0.92),rgba(15,75,57,0.96))] p-8 text-white shadow-[0_20px_60px_rgba(16,16,16,0.12)] sm:p-10 lg:p-12 text-center">
+              <p className="text-sm uppercase tracking-[0.24em] text-white/72">
+                Pédagogie
+              </p>
+              <h2 className="mt-5 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl text-balance">
+                Une équipe qui accompagne autant la progression que l’émergence artistique
+              </h2>
+              <p className="mt-6 text-base leading-8 text-white/82 sm:text-lg">
+                L&apos;équipe pédagogique de Crea&apos;Star réunit des intervenants issus de disciplines complémentaires, au service d&apos;une formation vivante, pluridisciplinaire et profondément humaine.
+              </p>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      <section className="section-space pt-0">
+        <div className="site-shell">
+          <Reveal>
+            <div className="max-w-4xl">
+              <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
+                Équipe pédagogique
+              </p>
+              <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl text-balance">
+                Les intervenants du centre
+              </h2>
+            </div>
+          </Reveal>
+
+          <div className="mt-14 grid gap-8 sm:grid-cols-2 lg:grid-cols-5">
+            {pedagogicalTeam.map((member, index) => (
+              <Reveal key={member.name + member.role} delay={(index % 3) as 0 | 1 | 2 | 3}>
+                <article className="group overflow-hidden rounded-[28px] border border-black/6 bg-white/80 shadow-[0_10px_30px_rgba(16,16,16,0.05)] transition hover:-translate-y-1 hover:border-primary/18">
+                  <div className="relative aspect-[4/5] w-full overflow-hidden">
+                    <Image
+                      src={member.image}
+                      alt={`${member.name} — ${member.role}`}
+                      fill
+                      unoptimized
+                      className="object-cover object-center transition duration-700 group-hover:scale-[1.03]"
+                      sizes="(min-width: 1024px) 20vw, (min-width: 640px) 50vw, 100vw"
+                    />
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-[rgba(247,244,238,0.88)] via-[rgba(247,244,238,0.16)] to-transparent" />
+
+                    <div className="absolute inset-x-0 bottom-0 p-5">
+                      <h3 className="text-lg font-semibold text-black">
+                        {member.name}
+                      </h3>
+
+                      <p className="mt-1 text-sm text-black/68">
+                        {member.role}
+                      </p>
+                    </div>
+                  </div>
+                </article>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
-
-      {/* FOOTER */}
-      <footer className="relative bg-background text-foreground">
-        {/* Ligne signature */}
-        <div className="h-px w-full bg-accent/50" />
-
-        <div className="mx-auto max-w-7xl px-6 py-12">
-          {/* Haut du footer */}
-            <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:items-start">
-
-            {/* LOGO + slogan */}
-            <div>
-                <img
-                src="/Logo-footer.png"
-                alt="Logo CREA'STAR"
-                className="block w-[180px] h-auto"
-                />
-
-                <p className="mt-4 max-w-[260px] font-bold text-xl leading-relaxed text-foreground/80">
-                La création au cœur<br />
-                de l'apprentissage
-                </p>
-            </div>
-
-
-            {/* Navigation */}
-            <div className="grid grid-cols-2 gap-10">
-                
-                {/* À propos */}
-                <div>
-                <p className="text-sm font-semibold text-foreground">À propos</p>
-
-                <ul className="mt-4 space-y-1 text-sm text-foreground/70">
-                    <li>
-                    <a href="/a-propos/notre-ecole" className="transition hover:text-foreground">
-                        Notre école
-                    </a>
-                    </li>
-                    <li>
-                    <a href="/a-propos/notre-equipe" className="transition hover:text-foreground">
-                        Notre équipe
-                    </a>
-                    </li>
-                    <li>
-                    <a href="/actualites" className="transition hover:text-foreground">
-                        Actualités
-                    </a>
-                    </li>
-                    <li>
-                    <a href="/FAQ" className="transition hover:text-foreground">
-                        FAQ
-                    </a>
-                    </li>
-                </ul>
-                </div>
-
-                {/* Notre offre */}
-                <div>
-                <p className="text-sm font-semibold text-foreground">Notre offre</p>
-
-                <ul className="mt-4 space-y-1 text-sm text-foreground/70">
-                    <li>
-                    <a href="/cours/full-artist" className="transition hover:text-foreground">
-                        Full Artist
-                    </a>
-                    </li>
-                    <li>
-                    <a href="/cours/comedie-musicale" className="transition hover:text-foreground">
-                        Comédie musicale
-                    </a>
-                    </li>
-                    <li>
-                    <a href="/cours/eveil-musical" className="transition hover:text-foreground">
-                        Éveil musical
-                    </a>
-                    </li>
-                    <li>
-                    <a href="/cours/cours-individuels" className="transition hover:text-foreground">
-                        Cours individuels
-                    </a>
-                    </li>
-                    <li>
-                    <a href="/locations" className="transition hover:text-foreground">
-                        Location studio & salles
-                    </a>
-                    </li>
-                </ul>
-                </div>
-
-            </div>
-
-
-            {/* Coordonnées */}
-            <div className="text-sm text-foreground/70 lg:text-right">
-                <p className="font-semibold text-foreground">Coordonnées</p>
-
-                <div className="mt-4 space-y-1">
-                <p>Chaussée de Bruxelles, 258</p>
-                <p>1410 Waterloo</p>
-                <p className="pt-2">+32 (0) 471 01 61 81</p>
-                </div>
-            </div>
-
-            </div>
-          {/* Bas du footer */}
-          <div className="mt-10 flex flex-col gap-4 border-t border-foreground/10 pt-6 text-xs text-foreground/60 sm:flex-row sm:items-center sm:justify-between">
-            {/* Gauche : copyright + slogan */}
-            <div className="leading-relaxed">
-              <p>© {new Date().getFullYear()} CREA’STAR</p>
-            </div>
-
-            {/* Droite : liens légaux */}
-            <div className="flex gap-6 sm:justify-end">
-              <a href="/confidentialite" className="transition hover:text-foreground">
-                Confidentialité
-              </a>
-              <a href="/mentions-legales" className="transition hover:text-foreground">
-                Mentions légales
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </main>
   );
 }
