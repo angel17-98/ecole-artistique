@@ -71,82 +71,86 @@ const values = [
 export default function HomePage() {
   return (
     <main className="min-h-screen text-foreground">
-      <section className="px-4 pb-8 pt-2 md:px-6">
-        <div className="site-shell">
-          <div className="relative overflow-hidden rounded-[34px] border border-black/6 bg-surface shadow-[0_25px_90px_rgba(16,16,16,0.08)]">
-            <div className="absolute inset-0 hero-fade-soft" />
+      {/* HERO FULL WIDTH */}
+      <section className="relative -mt-24 min-h-[85vh] overflow-hidden pt-24 lg:min-h-[80svh]">
+        <div className="absolute inset-0">
+          <Image
+            src="/hero-studio-6.jpg"
+            alt="Artiste en studio avec casque et micro"
+            fill
+            priority
+            unoptimized
+            className="object-cover object-[72%_center]"
+          />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,10,10,0.76)_0%,rgba(10,10,10,0.52)_34%,rgba(10,10,10,0.14)_68%,rgba(10,10,10,0.05)_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(185,151,83,0.10),transparent_24%),radial-gradient(circle_at_right_center,rgba(22,92,71,0.12),transparent_26%)]" />
+        </div>
 
-            <div className="grid min-h-[78svh] items-end lg:grid-cols-[1.1fr_0.9fr]">
-              <div className="relative z-10 px-6 py-12 md:px-10 md:py-16 lg:px-14 lg:py-20">
-                <Reveal>
-                  <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
-                    Centre artistique musical • Brabant Wallon
-                  </p>
-                </Reveal>
+        <div className="relative z-10 flex min-h-[85svh] items-end lg:min-h-[80svh]">
+          <div className="site-shell-wide w-full px-6 pb-16 pt-36 md:px-10 lg:px-14 lg:pb-24 lg:pt-40">
+            <div className="max-w-4xl">
+              <Reveal>
+                <p className="text-sm uppercase tracking-[0.24em] text-white/70">
+                  Centre de formation artistique musical • Brabant Wallon
+                </p>
+              </Reveal>
 
-                <Reveal delay={1}>
-                  <h1 className="mt-6 max-w-4xl text-4xl font-semibold leading-[1.02] tracking-tight text-balance sm:text-5xl lg:text-7xl">
-                    La création au cœur de l’apprentissage
-                  </h1>
-                </Reveal>
+              <Reveal delay={1}>
+                <h1 className="mt-6 text-4xl font-semibold leading-[1.02] tracking-tight text-white text-balance sm:text-5xl lg:text-7xl">
+                  La création au cœur de l’apprentissage
+                </h1>
+              </Reveal>
 
-                <Reveal delay={2}>
-                  <p className="mt-8 max-w-2xl text-base leading-8 text-black/68 sm:text-lg">
-                    Un centre dédié à la formation d’artistes complets, à travers
-                    des parcours pluridisciplinaires, structurés, créatifs et profondément humains.
-                  </p>
-                </Reveal>
+              <Reveal delay={2}>
+                <p className="mt-8 max-w-2xl text-base leading-8 text-white/78 sm:text-lg">
+                  Un centre dédié à la formation d’artistes complets, à travers
+                  des parcours pluridisciplinaires, structurés, créatifs et profondément humains.
+                </p>
+              </Reveal>
 
-                <Reveal delay={3}>
-                  <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-                    <Link
-                      href="/inscriptions"
-                      className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-medium text-white transition hover:bg-primary-strong"
-                    >
-                      S&apos;inscrire
-                    </Link>
+              <Reveal delay={3}>
+                <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+                  <Link
+                    href="/inscriptions"
+                    className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-medium text-black transition hover:bg-[rgb(var(--background-soft))]"
+                  >
+                    S&apos;inscrire
+                  </Link>
 
-                    <Link
-                      href="/locations"
-                      className="inline-flex items-center justify-center rounded-full border border-primary/18 bg-white/85 px-6 py-3 text-sm font-medium text-black/82 transition hover:border-primary/28 hover:text-primary"
-                    >
-                      Réserver une salle / studio
-                    </Link>
-                  </div>
-                </Reveal>
+                  <Link
+                    href="/locations"
+                    className="inline-flex items-center justify-center rounded-full border border-white/22 bg-white/50 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/30"
+                  >
+                    Réserver une salle / studio
+                  </Link>
+                </div>
+              </Reveal>
 
-                <Reveal delay={3}>
-                  <div className="mt-10 flex flex-wrap gap-x-3 gap-y-2 text-sm text-black/56">
-                    <span>Parcours annuels progressifs</span>
-                    <span>•</span>
-                    <span>Projets & création scénique</span>
-                    <span>•</span>
-                    <span>Studio d’enregistrement</span>
-                  </div>
-                </Reveal>
-              </div>
-
-              <div className="relative min-h-[360px] lg:min-h-full">
-                <Image
-                  src="/hero-studio-4.jpg"
-                  alt="Artiste en studio avec casque et micro"
-                  fill
-                  priority
-                  unoptimized
-                  className="object-cover object-[72%_center]"
-                />
-                <div className="absolute inset-0 hero-fade" />
-              </div>
+              <Reveal delay={3}>
+                <div className="mt-10 flex flex-wrap gap-x-3 gap-y-2 text-sm text-white/80">
+                  <span>Parcours annuels progressifs</span>
+                  <span>•</span>
+                  <span>Projets & création scénique</span>
+                  <span>•</span>
+                  <span>Studio d’enregistrement</span>
+                </div>
+              </Reveal>
             </div>
           </div>
         </div>
+
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-[linear-gradient(180deg,transparent,rgba(247,244,238,0.12))]" />
       </section>
 
-      <section className="section-space">
-        <div className="site-shell">
+      {/* PRESENTATION */}
+      <section className="relative bg-[rgb(239,244,239)] text-foreground">
+        <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(22,92,71,0.12),transparent)]" />
+        <div className="absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(90deg,transparent,rgba(185,151,83,0.10),transparent)]" />
+
+        <div className="site-shell-wide px-6 py-20 md:px-10 lg:px-14 lg:py-24">
           <Reveal>
-            <div className="max-w-4xl">
-              <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
+            <div className="max-w-8xl">
+              <p className="text-l uppercase tracking-[0.24em] text-primary/82">
                 Présentation
               </p>
               <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl text-balance">
@@ -156,7 +160,7 @@ export default function HomePage() {
           </Reveal>
 
           <Reveal delay={1}>
-            <div className="mt-10 max-w-4xl space-y-6 text-base leading-8 text-black/68 sm:text-lg">
+            <div className="mt-10 max-w-8xl space-y-6 text-base leading-8 text-black/68 sm:text-lg">
               <p>
                 Crea’Star est un centre artistique musical implanté dans le Brabant
                 Wallon, dédié à la formation et à l’accompagnement d’artistes complets.
@@ -181,16 +185,15 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section-space">
-        <div className="site-shell">
+      {/* PARCOURS */}
+      <section className="relative bg-background">
+        <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(16,16,16,0.08),transparent)]" />
+        <div className="site-shell-wide px-6 py-20 md:px-10 lg:px-14 lg:py-24">
           <Reveal>
             <div className="mx-auto max-w-3xl text-center">
-              <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
-                Parcours
+              <p className="text-3xl uppercase font-semibold tracking-[0.24em] text-primary/82">
+                Nos parcours
               </p>
-              <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl text-balance">
-                Nos parcours phares
-              </h2>
               <p className="mt-6 text-base leading-8 text-black/64 sm:text-lg">
                 Deux programmes annuels pensés pour développer la technique, la créativité
                 et l’expression scénique avec une progression structurée vers la scène.
@@ -198,26 +201,26 @@ export default function HomePage() {
             </div>
           </Reveal>
 
-          <div className="mt-14 grid gap-8 lg:grid-cols-2">
+          <div className="mt-14 grid gap-8 xl:gap-10">
             {featuredPrograms.map((program, index) => (
               <Reveal key={program.href} delay={(index + 1) as 1 | 2 | 3}>
                 <Link
                   href={program.href}
-                  className="group block overflow-hidden rounded-[30px] border border-black/6 bg-white/78 shadow-[0_12px_38px_rgba(16,16,16,0.05)] backdrop-blur-sm transition hover:-translate-y-1 hover:border-primary/20"
+                  className="group grid items-center gap-6 rounded-[30px] border border-black/6 bg-white/74 p-4 shadow-[0_12px_38px_rgba(16,16,16,0.05)] backdrop-blur-sm transition hover:-translate-y-1 hover:border-primary/20 sm:p-5 md:grid-cols-[280px_1fr] md:gap-7 lg:grid-cols-[340px_1fr] lg:p-6 xl:grid-cols-[420px_1fr] xl:gap-10"
                 >
-                  <div className="relative aspect-[6/4] w-full overflow-hidden">
+                  <div className="relative aspect-[5/4] w-full overflow-hidden rounded-[22px] md:aspect-[4/3]">
                     <Image
                       src={program.image}
                       alt={program.alt}
                       fill
                       unoptimized
                       className="object-cover transition duration-700 group-hover:scale-[1.03]"
-                      sizes="(min-width: 1024px) 50vw, 100vw"
+                      sizes="(min-width: 1280px) 420px, (min-width: 1024px) 340px, (min-width: 768px) 280px, 100vw"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[rgba(247,244,238,0.86)] via-[rgba(247,244,238,0.18)] to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[rgba(247,244,238,0.42)] via-[rgba(247,244,238,0.08)] to-transparent" />
                   </div>
 
-                  <div className="relative p-8 sm:p-10">
+                  <div className="relative py-1 lg:pr-4">
                     <p className="text-sm uppercase tracking-[0.22em] text-black/52">
                       {program.eyebrow}
                     </p>
@@ -227,7 +230,7 @@ export default function HomePage() {
                       <span className="text-accent">{program.titleAccent}</span>
                     </h3>
 
-                    <p className="mt-5 text-base leading-8 text-black/68 sm:text-lg">
+                    <p className="mt-5 max-w-4xl text-base leading-8 text-black/68 sm:text-lg">
                       {program.text}
                     </p>
 
@@ -240,7 +243,7 @@ export default function HomePage() {
                       ))}
                     </div>
 
-                    <div className="mt-10 inline-flex items-center gap-2 text-sm font-medium text-primary transition group-hover:gap-3">
+                    <div className="mt-8 inline-flex items-center gap-2 text-sm font-medium text-primary transition group-hover:gap-3">
                       Découvrir le parcours <span aria-hidden>→</span>
                     </div>
                   </div>
@@ -251,16 +254,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section-space">
-        <div className="site-shell">
+      {/* AUTRES OFFRES */}
+      <section className="relative bg-[rgb(239,244,239)] foreground">
+        <div className="site-shell px-6 py-20 md:px-8 lg:py-24">
           <Reveal>
-            <div className="mx-auto max-w-3xl text-center">
-              <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
-                Offres complémentaires
-              </p>
-              <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl text-balance">
+            <div className="mx-auto max-w-4xl text-center">
+              <p className="text-3xl uppercase font-semibold tracking-[0.24em] text-primary/82">
                 Autres offres & accompagnements
-              </h2>
+              </p>
               <p className="mt-6 text-base leading-8 text-black/64 sm:text-lg">
                 En complément des parcours phares, Crea’Star propose d’autres formats pour
                 découvrir, approfondir ou pratiquer la musique et les arts de la scène.
@@ -284,7 +285,7 @@ export default function HomePage() {
                       className="object-cover transition duration-700 group-hover:scale-[1.03]"
                       sizes="(min-width: 1024px) 33vw, 100vw"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[rgba(247,244,238,0.82)] via-[rgba(247,244,238,0.15)] to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[rgba(247,244,238,0.54)] via-[rgba(247,244,238,0.08)] to-transparent" />
                   </div>
 
                   <div className="p-6">
@@ -303,18 +304,20 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="section-space">
-        <div className="site-shell">
+      {/* VALEURS */}
+      <section className="relative bg-[rgb(243,246,243)]">
+        <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(22,92,71,0.10),transparent)]" />
+        <div className="site-shell px-6 py-20 md:px-8 lg:py-24">
           <Reveal>
-            <div className="max-w-4xl">
-              <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
+            <div className="max-w-8xl">
+              <p className="text-l uppercase tracking-[0.24em] text-primary/82">
                 Valeurs
               </p>
               <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl text-balance">
                 Une approche artistique exigeante, humaine et collective
               </h2>
               <p className="mt-6 text-base leading-8 text-black/66 sm:text-lg">
-                À Crea&apos;Star, la formation artistique ne se limite pas à l’apprentissage
+                À Crea'Star, la formation artistique ne se limite pas à l’apprentissage
                 de techniques. Elle s’inscrit dans un accompagnement global où la création,
                 le collectif et l’épanouissement personnel occupent une place centrale.
               </p>
@@ -337,8 +340,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden px-4 pb-8 pt-2 md:px-6">
-        <div className="site-shell">
+      {/* CTA FINAL EN CARTE */}
+      <section className="relative px-6 py-12 md:px-10 lg:px-14 lg:py-16">
+        <div className="site-shell-wide">
           <div className="relative overflow-hidden rounded-[34px] border border-black/6 shadow-[0_25px_90px_rgba(16,16,16,0.08)]">
             <div className="absolute inset-0">
               <Image
@@ -349,24 +353,25 @@ export default function HomePage() {
                 className="object-cover object-center"
                 sizes="100vw"
               />
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(247,244,238,0.18),rgba(247,244,238,0.82))]" />
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,10,10,0.14),rgba(10,10,10,0.44))]" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(185,151,83,0.10),transparent_52%)]" />
             </div>
 
-            <div className="relative z-10 px-6 py-20 text-center sm:px-10 lg:px-14 lg:py-28">
+            <div className="relative z-10 px-6 py-24 text-center md:px-10 lg:px-14 lg:py-28">
               <Reveal>
-                <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
+                <p className="text-l uppercase tracking-[0.24em] text-white/72">
                   Expérience scénique
                 </p>
               </Reveal>
 
               <Reveal delay={1}>
-                <h2 className="mx-auto mt-4 max-w-4xl text-3xl font-semibold leading-tight tracking-tight sm:text-5xl text-balance">
+                <h2 className="mx-auto mt-4 max-w-4xl text-3xl font-semibold leading-tight tracking-tight text-white sm:text-5xl text-balance">
                   Et tout cela prend vie à travers un spectacle imaginé et porté ensemble
                 </h2>
               </Reveal>
 
               <Reveal delay={2}>
-                <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-black/66 sm:text-lg">
+                <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-white/76 sm:text-lg">
                   Rejoignez Crea’Star et vivez une expérience artistique complète,
                   de l’apprentissage à la scène.
                 </p>
@@ -376,14 +381,14 @@ export default function HomePage() {
                 <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
                   <Link
                     href="/inscriptions"
-                    className="inline-flex items-center justify-center rounded-full bg-primary px-10 py-4 text-base font-semibold text-white transition hover:bg-primary-strong"
+                    className="inline-flex items-center justify-center rounded-full bg-white px-10 py-4 text-base font-semibold text-black transition hover:bg-[rgb(var(--background-soft))]"
                   >
                     S’inscrire
                   </Link>
 
                   <Link
                     href="/contact"
-                    className="inline-flex items-center justify-center rounded-full border border-primary/18 bg-white/86 px-10 py-4 text-base font-medium text-black/82 transition hover:border-primary/28 hover:text-primary"
+                    className="inline-flex items-center justify-center rounded-full border border-white/24 bg-white/50 px-10 py-4 text-base font-medium text-white transition hover:bg-white/30"
                   >
                     Nous contacter
                   </Link>

@@ -23,14 +23,17 @@ function NavLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="text-sm font-medium text-black/75 transition hover:text-primary"
+      className="group relative whitespace-nowrap text-[13px] font-medium !text-white/84 transition duration-200 hover:text-white"
     >
-      {label}
+      <span className="relative inline-block">
+        {label}
+        <span className="absolute -bottom-1 left-0 h-px w-0 bg-white/70 transition-all duration-300 group-hover:w-full" />
+      </span>
     </Link>
   );
 }
 
-function Dropdown({
+function DesktopDropdown({
   label,
   items,
 }: {
@@ -41,24 +44,62 @@ function Dropdown({
     <div className="group relative">
       <button
         type="button"
-        className="inline-flex items-center gap-2 text-sm font-medium text-black/75 transition hover:text-primary"
+        className="group inline-flex items-center gap-2 whitespace-nowrap text-[13px] font-medium text-white/84 transition duration-200 hover:text-white"
       >
-        {label}
-        <span className="text-black/45 transition group-hover:text-primary">▾</span>
+        <span className="relative inline-block">
+          {label}
+          <span className="absolute -bottom-1 left-0 h-px w-0 bg-white/70 transition-all duration-300 group-hover:w-full" />
+        </span>
+        <span className="text-white/46 transition duration-200 group-hover:rotate-180 group-hover:text-white/74">
+          ▾
+        </span>
       </button>
 
-      <div className="invisible absolute left-0 top-full z-50 mt-4 w-64 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100">
-        <div className="rounded-3xl border border-black/7 bg-[rgba(255,253,249,0.94)] p-2 shadow-[0_18px_50px_rgba(16,16,16,0.08)] backdrop-blur-xl">
-          {items.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="block rounded-2xl px-4 py-3 text-sm text-black/75 transition hover:bg-[rgb(var(--background-soft))] hover:text-primary"
-            >
-              {item.label}
-            </Link>
-          ))}
+      <div className="invisible absolute left-0 top-full z-50 pt-4 opacity-0 transition-all duration-300 group-hover:visible group-hover:opacity-100">
+        <div className="w-72 overflow-hidden rounded-[24px] border border-black/8 bg-white shadow-[0_24px_70px_rgba(0,0,0,0.18)]">
+          <div className="h-px w-full bg-[linear-gradient(90deg,transparent,rgba(185,151,83,0.45),transparent)]" />
+          <div className="p-2">
+            {items.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="block rounded-[18px] px-4 py-3 text-sm font-medium text-black/78 transition duration-200 hover:bg-[rgb(var(--background-soft))] hover:text-black"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function MobileGroup({
+  title,
+  items,
+  onNavigate,
+}: {
+  title: string;
+  items: { href: string; label: string }[];
+  onNavigate: () => void;
+}) {
+  return (
+    <div className="rounded-[24px] border border-white/10 bg-white/[0.06] p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/72">
+        {title}
+      </p>
+      <div className="mt-3 space-y-1">
+        {items.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={onNavigate}
+            className="block rounded-[18px] px-3 py-3 text-sm font-medium text-white/82 transition duration-200 hover:bg-white/8 hover:text-white"
+          >
+            {item.label}
+          </Link>
+        ))}
       </div>
     </div>
   );
@@ -66,13 +107,15 @@ function Dropdown({
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     if (!mobileOpen) return;
+
+    const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = originalOverflow;
     };
   }, [mobileOpen]);
 
@@ -85,29 +128,14 @@ export default function Header() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [mobileOpen]);
 
-  useEffect(() => {
-    function onScroll() {
-      setScrolled(window.scrollY > 10);
-    }
-
-    onScroll();
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
   return (
-    <header className="fixed inset-x-0 top-0 z-50 py-4">
-      <div className="site-shell">
-        <div
-          className={`relative overflow-hidden rounded-[28px] border transition-all duration-300 ${
-            scrolled
-              ? "border-black/8 bg-[rgba(255,253,249,0.88)] shadow-[0_12px_40px_rgba(16,16,16,0.08)] backdrop-blur-xl"
-              : "border-black/6 bg-[rgba(255,253,249,0.72)] backdrop-blur-lg"
-          }`}
-        >
-          <div className="absolute inset-y-0 left-0 w-[300px] bg-[linear-gradient(90deg,rgba(8,8,8,0.94)_0%,rgba(20,20,20,0.88)_62%,rgba(20,20,20,0.00)_100%)]" />
-          <div className="relative flex h-20 items-center justify-between px-4 sm:px-6">
-            <Link href="/" className="relative z-10 inline-flex items-center pl-2 sm:pl-3">
+    <>
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/8 bg-black/70 backdrop-blur-xl">
+        <div className="absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(90deg,transparent,rgba(185,151,83,0.18),transparent)]" />
+
+        <div className="site-shell-wide">
+          <div className="flex min-h-[88px] items-center justify-between px-6 md:px-10 lg:px-14">
+            <Link href="/" className="relative inline-flex items-center shrink-0">
               <img
                 src="/Logo-footer.png"
                 alt="Logo CREA'STAR"
@@ -115,25 +143,25 @@ export default function Header() {
               />
             </Link>
 
-            <nav className="hidden items-center gap-7 md:flex">
-              <Dropdown label="À propos" items={aboutItems} />
-              <Dropdown label="Nos cours" items={courseItems} />
+            <nav className="hidden items-center gap-5 lg:flex xl:gap-7">
+              <DesktopDropdown label="À propos" items={aboutItems} />
+              <DesktopDropdown label="Nos cours" items={courseItems} />
               <NavLink href="/stages" label="Nos stages" />
               <NavLink href="/inscriptions" label="Inscriptions" />
-              <NavLink href="/locations" label="Réservation salles / studio" />
+              <NavLink href="/locations" label="Réservation studio / salles" />
             </nav>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 shrink-0">
               <Link
                 href="/login"
-                className="hidden md:inline-flex rounded-full border border-primary/18 bg-white/70 px-4 py-2 text-sm font-medium text-black/82 transition hover:border-primary/28 hover:text-primary"
+                className="hidden md:inline-flex items-center justify-center rounded-full border border-white/14 bg-white/70 px-5 py-2.5 text-sm font-medium text-white transition duration-200 hover:bg-white/40"
               >
                 Connexion
               </Link>
 
               <button
                 type="button"
-                className="inline-flex items-center justify-center rounded-full border border-black/8 bg-white/70 px-4 py-3 text-lg text-black/80 backdrop-blur-sm transition hover:bg-white md:hidden"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/14 bg-white/12 text-lg text-white transition duration-200 hover:bg-white/18 lg:hidden"
                 aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
                 aria-expanded={mobileOpen}
                 onClick={() => setMobileOpen((v) => !v)}
@@ -142,90 +170,74 @@ export default function Header() {
               </button>
             </div>
           </div>
-
-          <div className="pointer-events-none absolute inset-x-8 bottom-0">
-            <div className="gold-line" />
-          </div>
         </div>
-      </div>
+      </header>
 
       {mobileOpen && (
-        <div className="fixed inset-0 z-[999] md:hidden">
+        <div className="fixed inset-0 z-[999] lg:hidden">
           <button
             aria-label="Fermer le menu"
-            className="absolute inset-0 bg-black/22 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-black/60 backdrop-blur-[3px]"
             onClick={() => setMobileOpen(false)}
           />
 
-          <div className="absolute right-0 top-0 h-full w-[90%] max-w-sm overflow-y-auto border-l border-black/7 bg-[rgba(255,253,249,0.96)] p-5 backdrop-blur-xl">
+          <aside className="absolute right-0 top-0 h-[100dvh] w-[92%] max-w-sm overflow-y-auto overscroll-contain border-l border-white/10 bg-[linear-gradient(180deg,rgba(7,10,9,0.99)_0%,rgba(10,18,14,0.99)_100%)] p-5 shadow-[-20px_0_60px_rgba(0,0,0,0.32)] backdrop-blur-xl">
             <div className="flex items-center justify-between">
-              <span className="text-xs uppercase tracking-[0.24em] text-primary/80">
-                Menu
-              </span>
+              <div>
+                <p className="text-xs uppercase tracking-[0.24em] text-white/52">
+                  Navigation
+                </p>
+                <p className="mt-1 text-sm text-white/84">CREA&apos;STAR</p>
+              </div>
+
               <button
                 type="button"
-                className="inline-flex items-center justify-center rounded-full border border-black/8 bg-white/70 px-3 py-2 text-sm text-black/80"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/10 text-sm text-white transition hover:bg-white/16"
                 onClick={() => setMobileOpen(false)}
               >
                 ✕
               </button>
             </div>
 
-            <div className="mt-8 space-y-6">
-              <div className="rounded-3xl border border-black/6 bg-white/80 p-4">
-                <p className="text-sm font-semibold text-black">À propos</p>
-                <div className="mt-3 space-y-1">
-                  {aboutItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setMobileOpen(false)}
-                      className="block rounded-2xl px-3 py-3 text-sm text-black/72 transition hover:bg-[rgb(var(--background-soft))] hover:text-primary"
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
+            <div className="mt-8 space-y-5 pb-8 text-white/72">
+              <MobileGroup
+                title="À propos"
+                items={aboutItems}
+                onNavigate={() => setMobileOpen(false)}
+              />
 
-              <div className="rounded-3xl border border-black/6 bg-white/80 p-4">
-                <p className="text-sm font-semibold text-black">Nos cours</p>
-                <div className="mt-3 space-y-1">
-                  {courseItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setMobileOpen(false)}
-                      className="block rounded-2xl px-3 py-3 text-sm text-black/72 transition hover:bg-[rgb(var(--background-soft))] hover:text-primary"
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
+              <MobileGroup
+                title="Nos cours"
+                items={courseItems}
+                onNavigate={() => setMobileOpen(false)}
+              />
 
-              <div className="rounded-3xl border border-black/6 bg-white/80 p-4">
-                <div className="space-y-1">
+              <div className="rounded-[24px] border border-white/10 bg-white/[0.06] p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/72">
+                  Autres
+                </p>
+
+                <div className="mt-3 space-y-1">
                   <Link
                     href="/stages"
                     onClick={() => setMobileOpen(false)}
-                    className="block rounded-2xl px-3 py-3 text-sm text-black/72 transition hover:bg-[rgb(var(--background-soft))] hover:text-primary"
+                    className="block rounded-[18px] px-3 py-3 text-sm font-medium text-white/82 transition duration-200 hover:bg-white/8 hover:text-white"
                   >
                     Nos stages
                   </Link>
                   <Link
                     href="/inscriptions"
                     onClick={() => setMobileOpen(false)}
-                    className="block rounded-2xl px-3 py-3 text-sm text-black/72 transition hover:bg-[rgb(var(--background-soft))] hover:text-primary"
+                    className="block rounded-[18px] px-3 py-3 text-sm font-medium text-white/82 transition duration-200 hover:bg-white/8 hover:text-white"
                   >
                     Inscriptions
                   </Link>
                   <Link
                     href="/locations"
                     onClick={() => setMobileOpen(false)}
-                    className="block rounded-2xl px-3 py-3 text-sm text-black/72 transition hover:bg-[rgb(var(--background-soft))] hover:text-primary"
+                    className="block rounded-[18px] px-3 py-3 text-sm font-medium text-white/82 transition duration-200 hover:bg-white/8 hover:text-white"
                   >
-                    Réservation salles / studio
+                    Réservation studio / salles
                   </Link>
                 </div>
 
@@ -233,16 +245,16 @@ export default function Header() {
                   <Link
                     href="/login"
                     onClick={() => setMobileOpen(false)}
-                    className="inline-flex w-full items-center justify-center rounded-full bg-primary px-4 py-3 text-sm font-medium text-white transition hover:bg-primary-strong"
+                    className="inline-flex w-full items-center justify-center rounded-full bg-white px-4 py-3 text-sm font-semibold !text-black transition duration-200 hover:bg-[rgb(var(--background-soft))]"
                   >
                     Connexion
                   </Link>
                 </div>
               </div>
             </div>
-          </div>
+          </aside>
         </div>
       )}
-    </header>
+    </>
   );
 }

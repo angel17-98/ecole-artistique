@@ -2,9 +2,12 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="relative mt-8 border-t border-black/6 bg-[rgba(255,253,249,0.7)] text-foreground backdrop-blur-sm">
-      <div className="site-shell py-14">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:items-start">
+    <footer className="relative overflow-hidden bg-black/90 text-white">
+      <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(185,151,83,0.38),transparent)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(185,151,83,0.08),transparent_24%),radial-gradient(circle_at_right_center,rgba(22,92,71,0.16),transparent_28%)]" />
+
+      <div className="relative site-shell-wide px-6 py-16 md:px-10 lg:px-14 lg:py-20">
+        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-[1.1fr_1fr_1fr] lg:items-start">
           <div>
             <img
               src="/Logo-footer.png"
@@ -12,7 +15,7 @@ export default function Footer() {
               className="block w-[180px] h-auto"
             />
 
-            <p className="mt-5 max-w-[280px] text-xl font-semibold leading-relaxed text-black/80">
+            <p className="mt-6 max-w-[300px] text-xl font-semibold leading-relaxed text-white/82">
               La création au cœur
               <br />
               de l&apos;apprentissage
@@ -21,28 +24,28 @@ export default function Footer() {
 
           <div className="grid grid-cols-2 gap-10">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.14em] text-black/86">
+              <p className="text-sm font-semibold uppercase tracking-[0.14em] text-white/86">
                 À propos
               </p>
 
-              <ul className="mt-4 space-y-2 text-sm text-black/66">
+              <ul className="mt-4 space-y-2 text-sm text-white/62">
                 <li>
-                  <Link href="/a-propos/notre-ecole" className="transition hover:text-primary">
+                  <Link href="/a-propos/notre-ecole" className="transition hover:text-white">
                     Notre école
                   </Link>
                 </li>
                 <li>
-                  <Link href="/a-propos/notre-equipe" className="transition hover:text-primary">
+                  <Link href="/a-propos/notre-equipe" className="transition hover:text-white">
                     Notre équipe
                   </Link>
                 </li>
                 <li>
-                  <Link href="/actualites" className="transition hover:text-primary">
+                  <Link href="/actualites" className="transition hover:text-white">
                     Actualités
                   </Link>
                 </li>
                 <li>
-                  <Link href="/faq" className="transition hover:text-primary">
+                  <Link href="/faq" className="transition hover:text-white">
                     FAQ
                   </Link>
                 </li>
@@ -50,33 +53,33 @@ export default function Footer() {
             </div>
 
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.14em] text-black/86">
+              <p className="text-sm font-semibold uppercase tracking-[0.14em] text-white/86">
                 Notre offre
               </p>
 
-              <ul className="mt-4 space-y-2 text-sm text-black/66">
+              <ul className="mt-4 space-y-2 text-sm text-white/62">
                 <li>
-                  <Link href="/cours/full-artist" className="transition hover:text-primary">
+                  <Link href="/cours/full-artist" className="transition hover:text-white">
                     Full Artist
                   </Link>
                 </li>
                 <li>
-                  <Link href="/cours/comedie-musicale" className="transition hover:text-primary">
+                  <Link href="/cours/comedie-musicale" className="transition hover:text-white">
                     Comédie musicale
                   </Link>
                 </li>
                 <li>
-                  <Link href="/cours/eveil-musical" className="transition hover:text-primary">
+                  <Link href="/cours/eveil-musical" className="transition hover:text-white">
                     Éveil musical
                   </Link>
                 </li>
                 <li>
-                  <Link href="/cours/cours-individuels" className="transition hover:text-primary">
+                  <Link href="/cours/cours-individuels" className="transition hover:text-white">
                     Cours individuels
                   </Link>
                 </li>
                 <li>
-                  <Link href="/locations" className="transition hover:text-primary">
+                  <Link href="/locations" className="transition hover:text-white">
                     Location studio & salles
                   </Link>
                 </li>
@@ -84,8 +87,8 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="text-sm text-black/66 lg:text-right">
-            <p className="font-semibold text-black/90 uppercase tracking-[0.14em]">
+          <div className="text-sm text-white/62 lg:text-right">
+            <p className="font-semibold uppercase tracking-[0.14em] text-white/86">
               Coordonnées
             </p>
 
@@ -97,18 +100,18 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="my-8 gold-line" />
+        <div className="my-10 h-px w-full bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent)]" />
 
-        <div className="flex flex-col gap-4 text-xs text-black/56 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 text-xs text-white/46 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p>© {new Date().getFullYear()} CREA’STAR</p>
           </div>
 
           <div className="flex gap-6 sm:justify-end">
-            <Link href="/confidentialite" className="transition hover:text-primary">
+            <Link href="/confidentialite" className="transition hover:text-white">
               Confidentialité
             </Link>
-            <Link href="/mentions-legales" className="transition hover:text-primary">
+            <Link href="/mentions-legales" className="transition hover:text-white">
               Mentions légales
             </Link>
           </div>
