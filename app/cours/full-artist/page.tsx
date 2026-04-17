@@ -1,6 +1,10 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import Reveal from "../../components/Reveal";
+import InscriptionModal from "../../components/InscriptionModal";
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
@@ -76,10 +80,20 @@ const premiumBenefits = [
 // ─── PAGE ────────────────────────────────────────────────────────────────────
 
 export default function FullArtistPage() {
+  const [modalOpen, setModalOpen] = useState(false);
+
   return (
     <main className="min-h-screen text-foreground">
 
-      {/* ── HERO FULL WIDTH — cohérent avec Notre École & Notre Équipe ── */}
+      {/* Modale d'inscription */}
+      {modalOpen && (
+        <InscriptionModal
+          parcours="full-artist"
+          onClose={() => setModalOpen(false)}
+        />
+      )}
+
+      {/* ── HERO ── */}
       <section className="relative -mt-24 min-h-[68vh] overflow-hidden pt-24 lg:min-h-[64svh]">
         <div className="absolute inset-0">
           <Image
@@ -107,7 +121,6 @@ export default function FullArtistPage() {
                 <h1 className="mt-6 text-4xl font-semibold leading-[1.03] tracking-tight text-white text-balance sm:text-5xl lg:text-6xl">
                   Parcours{" "}
                   <span className="text-[rgb(var(--accent))]">Full Artist</span>
-                  {" "}
                   <br />
                   Devenir un artiste complet
                 </h1>
@@ -115,20 +128,21 @@ export default function FullArtistPage() {
 
               <Reveal delay={2}>
                 <p className="mt-8 max-w-3xl text-base leading-8 text-white/78 sm:text-lg">
-                  Le parcours Full Artist réunit chant, danse, théâtre, écriture, composition, expréssion scénique
-                  et studio dans une seule expérience annuelle — pensée pour ceux
-                  qui veulent créer, pas seulement interpréter.
+                  Le parcours Full Artist réunit chant, danse, théâtre, écriture,
+                  composition, expression scénique et studio dans une seule expérience
+                  annuelle — pensée pour ceux qui veulent créer, pas seulement interpréter.
                 </p>
               </Reveal>
 
               <Reveal delay={3}>
                 <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-                  <Link
-                    href="/inscriptions"
+                  {/* Hero CTA ouvre la modale */}
+                  <button
+                    onClick={() => setModalOpen(true)}
                     className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-medium text-black transition hover:bg-[rgb(var(--background-soft))]"
                   >
-                    S'inscrire
-                  </Link>
+                    Rejoindre le parcours
+                  </button>
                   <Link
                     href="/contact"
                     className="inline-flex items-center justify-center rounded-full border border-white/22 bg-white/60 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/40"
@@ -156,7 +170,7 @@ export default function FullArtistPage() {
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-[linear-gradient(180deg,transparent,rgba(247,244,238,0.12))]" />
       </section>
 
-      {/* ── ACCROCHE — ce que c'est vraiment ── */}
+      {/* ── ACCROCHE ── */}
       <section className="relative bg-[rgb(239,244,239)] text-foreground">
         <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(22,92,71,0.12),transparent)]" />
         <div className="absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(90deg,transparent,rgba(185,151,83,0.10),transparent)]" />
@@ -165,7 +179,7 @@ export default function FullArtistPage() {
           <div className="grid gap-14 lg:grid-cols-2 lg:items-center lg:gap-20">
             <Reveal>
               <div>
-                <p className="text-l uppercase tracking-[0.24em] text-primary/82">
+                <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
                   Le concept
                 </p>
                 <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl text-balance">
@@ -209,14 +223,14 @@ export default function FullArtistPage() {
         </div>
       </section>
 
-      {/* ── CE QUE ÇA IMPLIQUE CONCRÈTEMENT ── */}
+      {/* ── L'EXPÉRIENCE ── */}
       <section className="relative bg-background">
         <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(16,16,16,0.08),transparent)]" />
 
         <div className="site-shell-wide px-6 py-20 md:px-10 lg:px-14 lg:py-24">
           <Reveal>
             <div className="mx-auto max-w-3xl text-center">
-              <p className="text-l uppercase tracking-[0.24em] text-primary/82">
+              <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
                 L'expérience
               </p>
               <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl text-balance">
@@ -228,7 +242,7 @@ export default function FullArtistPage() {
           <div className="mt-14 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
             {experienceCards.map((card, index) => (
               <Reveal key={card.title} delay={(index % 3) as 0 | 1 | 2 | 3}>
-                <div className="soft-card relative overflow-hidden rounded-[26px] p-8 h-full">
+                <div className="soft-card relative h-full overflow-hidden rounded-[26px] p-8">
                   <p className="text-xs uppercase tracking-[0.22em] text-primary/76">
                     {card.eyebrow}
                   </p>
@@ -241,8 +255,6 @@ export default function FullArtistPage() {
               </Reveal>
             ))}
           </div>
-
-
         </div>
       </section>
 
@@ -252,8 +264,8 @@ export default function FullArtistPage() {
 
         <div className="site-shell-wide px-6 py-20 md:px-10 lg:px-14 lg:py-24">
           <Reveal>
-            <div className="max-w-10xl">
-              <p className="text-l uppercase tracking-[0.24em] text-primary/82">
+            <div className="max-w-8xl">
+              <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
                 Programme
               </p>
               <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl text-balance">
@@ -293,7 +305,7 @@ export default function FullArtistPage() {
         <div className="site-shell-wide px-6 py-20 md:px-10 lg:px-14 lg:py-24">
           <Reveal>
             <div className="mx-auto max-w-3xl text-center">
-              <p className="text-l uppercase tracking-[0.24em] text-primary/82">
+              <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
                 Progression
               </p>
               <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl text-balance">
@@ -335,21 +347,21 @@ export default function FullArtistPage() {
         </div>
       </section>
 
-      {/* ── POUR QUI ── */}
+      {/* ── POUR QUI + CANDIDATURE ── */}
       <section className="relative bg-[rgb(239,244,239)]">
         <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(22,92,71,0.10),transparent)]" />
 
         <div className="site-shell-wide px-6 py-20 md:px-10 lg:px-14 lg:py-24">
-          <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-20">
+          <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-start lg:gap-20">
             <Reveal>
               <div>
                 <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
                   Pour qui ?
                 </p>
                 <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl text-balance">
-                  Pour ceux qui veulent créer, partager son univers
+                  Pour ceux qui veulent créer et partager leur univers
                 </h2>
-                <div className="mt-8 space-y-4 text-base leading-8 text-black/68 sm:text-lg">
+                <div className="mt-6 space-y-4 text-base leading-8 text-black/68 sm:text-lg">
                   <p>
                     Le parcours Full Artist est ouvert{" "}
                     <strong className="text-primary">à partir de 8 ans</strong>, sans
@@ -358,33 +370,58 @@ export default function FullArtistPage() {
                     esprit de groupe.
                   </p>
                   <p>
-                    Aucune expérience préalable n'est requise pour le niveau 1.
-                    Ce qui compte, c'est l'envie de créer, d'explorer et de s'investir
+                    Aucune expérience préalable n'est requise. Ce qui compte,
+                    c'est l'envie de créer, d'explorer et de s'investir pleinement
                     dans un projet collectif.
                   </p>
+                </div>
+
+                {/* Bloc candidature — déclencheur de la modale */}
+                <div className="mt-8 rounded-[20px] border border-primary/14 bg-white/80 p-6 shadow-[0_8px_24px_rgba(16,16,16,0.05)]">
+                  <p className="text-sm font-semibold text-black">
+                    Comment s'inscrire ?
+                  </p>
+                  <p className="mt-2 text-sm leading-6 text-black/62">
+                    L'accès au parcours se fait par candidature — pas d'audition,
+                    pas de niveau requis. Une lettre d'intention et une courte vidéo
+                    suffisent pour nous permettre de te connaître.
+                  </p>
+                  <button
+                    onClick={() => setModalOpen(true)}
+                    className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary transition hover:gap-3"
+                  >
+                    Voir comment ça se passe <span aria-hidden>→</span>
+                  </button>
                 </div>
               </div>
             </Reveal>
 
             <Reveal delay={1}>
-              <div className="space-y-4">
+              <div className="space-y-3 lg:mt-[4.5rem]">
                 {[
                   { label: "Âge d'entrée", value: "Dès 8 ans" },
                   { label: "Taille des groupes", value: "10 à 15 élèves max." },
-                  { label: "Rythme", value: "2h / semaine" },
+                  { label: "Rythme", value: "2h / semaine minimum" },
                   { label: "Durée du parcours", value: "1 à 4 ans" },
-                  { label: "Expérience requise", value: "Motivation uniquement" },
+                  { label: "Expérience requise", value: "Aucune" },
+                  { label: "Accès", value: "Sur candidature" },
                 ].map((item) => (
                   <div
                     key={item.label}
-                    className="flex items-center justify-between rounded-[20px] border border-black/6 bg-white/80 px-6 py-4 shadow-[0_6px_20px_rgba(16,16,16,0.04)]"
+                    className="flex items-center justify-between rounded-[18px] border border-black/6 bg-white/80 px-5 py-3.5 shadow-[0_4px_16px_rgba(16,16,16,0.04)]"
                   >
-                    <span className="text-sm text-black/60">{item.label}</span>
-                    <span className="text-sm font-semibold text-primary">
-                      {item.value}
-                    </span>
+                    <span className="text-sm text-black/56">{item.label}</span>
+                    <span className="text-sm font-semibold text-primary">{item.value}</span>
                   </div>
                 ))}
+
+                {/* CTA secondaire dans la colonne droite */}
+                <button
+                  onClick={() => setModalOpen(true)}
+                  className="mt-2 w-full inline-flex items-center justify-center rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-primary-strong"
+                >
+                  Déposer ma candidature
+                </button>
               </div>
             </Reveal>
           </div>
@@ -398,7 +435,7 @@ export default function FullArtistPage() {
         <div className="site-shell-wide px-6 py-20 md:px-10 lg:px-14 lg:py-24">
           <Reveal>
             <div className="mx-auto max-w-3xl text-center">
-              <p className="text-l uppercase tracking-[0.24em] text-primary/82">
+              <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
                 Tarif
               </p>
               <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl text-balance">
@@ -414,7 +451,6 @@ export default function FullArtistPage() {
 
           <Reveal delay={1}>
             <div className="mt-14 overflow-hidden rounded-[32px] border border-black/6 bg-white/82 shadow-[0_18px_60px_rgba(16,16,16,0.06)]">
-              {/* Tarif principal */}
               <div className="grid gap-0 divide-y divide-black/6 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
                 {[
                   { label: "Durée", value: "60h", sub: "par année scolaire" },
@@ -431,9 +467,8 @@ export default function FullArtistPage() {
                 ))}
               </div>
 
-              {/* Avantages Premium */}
               <div className="border-t border-black/6 bg-[rgb(var(--background-soft))/0.4] px-8 py-10 sm:px-10">
-                <p className="text-sm uppercase tracking-[0.22em] text-primary/76">
+                <p className="text-xs uppercase tracking-[0.22em] text-primary/76">
                   Avantages inclus — Statut Premium
                 </p>
                 <div className="mt-6 grid gap-4 md:grid-cols-3">
@@ -446,7 +481,7 @@ export default function FullArtistPage() {
                       <p className="mt-2 text-sm leading-6 text-black/66">
                         {benefit.text}
                         {benefit.note && (
-                          <span className="block text-xs text-black/44 mt-1">
+                          <span className="block mt-1 text-xs text-black/44">
                             {benefit.note}
                           </span>
                         )}
@@ -493,19 +528,20 @@ export default function FullArtistPage() {
 
                 <Reveal delay={2}>
                   <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-white/76 sm:text-lg">
-                    Les inscriptions pour l'année 2027 sont ouvertes. Rejoins le parcours
-                    Full Artist et commence à construire l'artiste que tu veux devenir.
+                    Les inscriptions pour l'année 2028 sont ouvertes. Dépose ta candidature
+                    et commence à construire l'artiste que tu veux devenir.
                   </p>
                 </Reveal>
 
                 <Reveal delay={3}>
                   <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                    <Link
-                      href="/inscriptions"
+                    {/* CTA final ouvre aussi la modale */}
+                    <button
+                      onClick={() => setModalOpen(true)}
                       className="inline-flex items-center justify-center rounded-full bg-white px-10 py-4 text-base font-semibold text-black transition hover:bg-[rgb(var(--background-soft))]"
                     >
-                      S'inscrire au parcours
-                    </Link>
+                      Déposer ma candidature
+                    </button>
                     <Link
                       href="/cours/calendrier"
                       className="inline-flex items-center justify-center rounded-full border border-white/24 bg-white/50 px-10 py-4 text-base font-medium text-white transition hover:bg-white/40"
