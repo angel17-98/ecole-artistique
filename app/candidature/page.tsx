@@ -7,6 +7,7 @@ import Link from "next/link";
 // ─── TYPES ────────────────────────────────────────────────────────────────────
 
 type Parcours = "full-artist" | "comedie-musicale";
+type VideoMode = "upload" | "link" | "both";
 
 interface FormData {
   prenom: string;
@@ -26,6 +27,8 @@ interface FormData {
   eval_scenique: number;
   eval_studio: number;
   video: File | null;
+  video_link: string;
+  video_mode: VideoMode;
 }
 
 // ─── DATA ─────────────────────────────────────────────────────────────────────
@@ -134,17 +137,27 @@ export default function CandidaturePage() {
     eval_chant: 0, eval_danse: 0, eval_theatre: 0,
     eval_ecriture: 0, eval_scenique: 0, eval_studio: 0,
     video: null,
+    video_link: "",
+    video_mode: "upload",
   });
 
   const set = useCallback(<K extends keyof FormData>(key: K, value: FormData[K]) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   }, []);
 
+  // Validation étape 4 — au moins une vidéo (fichier OU lien)
+  const videoValid = () => {
+    if (form.video_mode === "upload") return form.video !== null;
+    if (form.video_mode === "link") return form.video_link.trim().length > 10;
+    if (form.video_mode === "both") return form.video !== null && form.video_link.trim().length > 10;
+    return false;
+  };
+
   const canProceed = () => {
     if (step === 1) return form.prenom.trim() && form.nom.trim() && form.email.trim() && form.age.trim();
     if (step === 2) return form.pourquoi.trim().length >= 80 && form.projet.trim().length >= 40 && form.esprit_creastar.trim().length >= 40;
     if (step === 3) return disciplines.every((d) => form[d.id] > 0);
-    if (step === 4) return form.video !== null;
+    if (step === 4) return videoValid();
     return false;
   };
 
@@ -166,56 +179,64 @@ export default function CandidaturePage() {
   };
 
   const handleSubmit = async () => {
-    if (!form.video) return;
     setSubmitting(true);
     setError(null);
 
     try {
-      // ── ÉTAPE A : Obtenir une URL d'upload signée depuis notre API ──
-      // Notre serveur génère l'URL, mais n'envoie jamais le fichier lui-même.
-      // Cela contourne complètement la limite de 4.5 MB de Vercel.
-      const presignRes = await fetch("/api/candidature/presign-video", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: form.email,
-          parcours: form.parcours,
-          filename: form.video.name,
-          contentType: form.video.type,
-        }),
-      });
+      let videoUrl = "";
 
-      if (!presignRes.ok) throw new Error("Impossible de préparer l'upload");
-      const { uploadUrl, readUrl } = await presignRes.json();
-
-      // ── ÉTAPE B : Upload direct navigateur → Supabase Storage ──
-      // Le fichier ne passe PAS par Vercel — il va directement chez Supabase.
-      setUploadStatus("uploading");
-
-      await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.upload.addEventListener("progress", (e) => {
-          if (e.lengthComputable) {
-            setUploadProgress(Math.round((e.loaded / e.total) * 100));
-          }
+      // Upload fichier si présent
+      if (form.video) {
+        // Obtenir URL signée
+        const presignRes = await fetch("/api/candidature/presign-video", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: form.email,
+            parcours: form.parcours,
+            filename: form.video.name,
+            contentType: form.video.type,
+            fileSize: form.video.size, // ← ajout : taille pour vérif côté serveur
+          }),
         });
-        xhr.addEventListener("load", () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            resolve();
-          } else {
-            reject(new Error(`Upload échoué (${xhr.status})`));
-          }
+
+        // 507 = storage plein → basculer en mode lien sans bloquer le candidat
+        if (presignRes.status === 507) {
+          setSubmitting(false);
+          setForm((prev) => ({ ...prev, video_mode: "link", video: null }));
+          if (fileRef.current) fileRef.current.value = "";
+          setError(
+            "L'envoi de fichier vidéo est temporairement indisponible dû à un nombre de candidatures important aujourd'hui. " +
+            "Tu peux envoyer ta candidature avec un lien YouTube ou Google Drive — " +
+            "ça fonctionne exactement pareil !"
+          );
+          return;
+        }
+
+        if (!presignRes.ok) throw new Error("Impossible de préparer l'upload");
+        const { uploadUrl, readUrl } = await presignRes.json();
+
+        // Upload direct navigateur → Supabase (bypass limite Vercel)
+        setUploadStatus("uploading");
+        await new Promise<void>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.upload.addEventListener("progress", (e) => {
+            if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100));
+          });
+          xhr.addEventListener("load", () => {
+            xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(`Upload échoué (${xhr.status})`));
+          });
+          xhr.addEventListener("error", () => reject(new Error("Erreur réseau pendant l'upload")));
+          xhr.open("PUT", uploadUrl);
+          xhr.setRequestHeader("Content-Type", form.video!.type);
+          xhr.send(form.video);
         });
-        xhr.addEventListener("error", () => reject(new Error("Erreur réseau pendant l'upload")));
-        // PUT direct sur l'URL signée Supabase
-        xhr.open("PUT", uploadUrl);
-        xhr.setRequestHeader("Content-Type", form.video!.type);
-        xhr.send(form.video);
-      });
 
-      setUploadStatus("done");
+        setUploadStatus("done");
+        videoUrl = readUrl;
+      }
 
-      // ── ÉTAPE C : Soumettre la candidature (sans le fichier, juste l'URL) ──
+      // Soumettre la candidature complète
       const submitRes = await fetch("/api/candidature/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -229,7 +250,8 @@ export default function CandidaturePage() {
           eval_chant: form.eval_chant, eval_danse: form.eval_danse,
           eval_theatre: form.eval_theatre, eval_ecriture: form.eval_ecriture,
           eval_scenique: form.eval_scenique, eval_studio: form.eval_studio,
-          video_url: readUrl,
+          video_url: videoUrl,
+          video_link: form.video_link,
         }),
       });
 
@@ -254,17 +276,14 @@ export default function CandidaturePage() {
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
             <span className="text-3xl text-primary">✓</span>
           </div>
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            Candidature envoyée !
-          </h1>
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Candidature envoyée !</h1>
           <p className="mt-5 text-base leading-8 text-black/64">
             Merci {form.prenom}. On a bien reçu ta candidature pour le parcours{" "}
             <strong className="text-primary">{parcoursLabels[form.parcours]}</strong>.
-            Tu vas recevoir un email de confirmation. On te répond sous 2 semaines.
+            Tu vas recevoir un email de confirmation. On te répond sous 1 semaine.
           </p>
           <div className="mt-6 rounded-[18px] border border-black/6 bg-white/80 px-6 py-4 text-sm leading-7 text-black/58">
-            <strong className="text-black">Et maintenant ?</strong> Rien à faire — on s'occupe de tout.
-            Si tu as des questions, contacte-nous.
+            <strong className="text-black">Et maintenant ?</strong> Rien à faire — on s'occupe de tout. Si tu as des questions, contacte-nous.
           </div>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link href="/" className="inline-flex items-center justify-center rounded-full bg-primary px-8 py-3 text-sm font-semibold text-white transition hover:bg-primary-strong">
@@ -290,8 +309,7 @@ export default function CandidaturePage() {
             ← Retour au parcours
           </Link>
           <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-            Candidature —{" "}
-            <span className="text-primary">{parcoursLabels[form.parcours]}</span>
+            Candidature — <span className="text-primary">{parcoursLabels[form.parcours]}</span>
           </h1>
           <p className="mt-2 text-sm leading-6 text-black/56">
             Pas d'audition, pas de niveau requis. Juste de la motivation et l'envie de créer.
@@ -321,7 +339,7 @@ export default function CandidaturePage() {
           ))}
         </div>
 
-        {/* Carte */}
+        {/* Carte formulaire */}
         <div className="rounded-[24px] border border-black/6 bg-white/90 shadow-[0_12px_40px_rgba(16,16,16,0.06)]">
 
           {/* ── ÉTAPE 1 ── */}
@@ -329,7 +347,6 @@ export default function CandidaturePage() {
             <div className="px-6 py-8 sm:px-8">
               <h2 className="text-xl font-semibold">Qui es-tu ?</h2>
               <p className="mt-1 text-sm text-black/50">Quelques infos de base pour commencer.</p>
-
               <div className="mt-7 space-y-5">
                 <div>
                   <Label required>Parcours souhaité</Label>
@@ -337,9 +354,7 @@ export default function CandidaturePage() {
                     {(["full-artist", "comedie-musicale"] as Parcours[]).map((p) => (
                       <button key={p} type="button" onClick={() => set("parcours", p)}
                         className={`rounded-[14px] border px-4 py-3 text-left text-sm font-medium transition ${
-                          form.parcours === p
-                            ? "border-primary bg-primary/6 text-primary"
-                            : "border-black/10 bg-white text-black/64 hover:border-black/20"
+                          form.parcours === p ? "border-primary bg-primary/6 text-primary" : "border-black/10 bg-white text-black/64 hover:border-black/20"
                         }`}
                       >
                         {parcoursLabels[p]}
@@ -347,15 +362,12 @@ export default function CandidaturePage() {
                     ))}
                   </div>
                 </div>
-
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div><Label required>Prénom</Label><Input value={form.prenom} onChange={(v) => set("prenom", v)} placeholder="Marie" required /></div>
                   <div><Label required>Nom</Label><Input value={form.nom} onChange={(v) => set("nom", v)} placeholder="Dupont" required /></div>
                 </div>
-
                 <div><Label required>Email</Label><Input type="email" value={form.email} onChange={(v) => set("email", v)} placeholder="marie@exemple.com" required /></div>
                 <div><Label>Téléphone</Label><Input type="tel" value={form.telephone} onChange={(v) => set("telephone", v)} placeholder="+32 470 00 00 00" /></div>
-
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div><Label required>Âge</Label><Input type="number" value={form.age} onChange={(v) => set("age", v)} placeholder="16" required /></div>
                   <div><Label>Ville</Label><Input value={form.ville} onChange={(v) => set("ville", v)} placeholder="Waterloo" /></div>
@@ -369,7 +381,6 @@ export default function CandidaturePage() {
             <div className="px-6 py-8 sm:px-8">
               <h2 className="text-xl font-semibold">Ta lettre d'intention</h2>
               <p className="mt-1 text-sm text-black/50">Pas besoin d'être parfait — sois sincère.</p>
-
               <div className="mt-7 space-y-6">
                 <div>
                   <Label required>Pourquoi tu veux rejoindre Crea'Star ?</Label>
@@ -377,14 +388,12 @@ export default function CandidaturePage() {
                   <Textarea value={form.pourquoi} onChange={(v) => set("pourquoi", v)} placeholder="Depuis que j'ai découvert Crea'Star..." rows={5} required />
                   <p className="mt-1 text-right text-xs text-black/36">{form.pourquoi.length} / 80 min.</p>
                 </div>
-
                 <div>
                   <Label required>Qu'est-ce que tu veux créer cette année ?</Label>
                   <p className="mb-2 text-xs text-black/42">Un projet, une idée, un univers — même vague, dis-nous.</p>
                   <Textarea value={form.projet} onChange={(v) => set("projet", v)} placeholder="J'aimerais écrire et interpréter..." rows={4} required />
                   <p className="mt-1 text-right text-xs text-black/36">{form.projet.length} / 40 min.</p>
                 </div>
-
                 <div>
                   <Label required>Qu'est-ce qui t'attire dans l'esprit Crea'Star ?</Label>
                   <p className="mb-2 text-xs text-black/42">La pluridisciplinarité, le collectif, la scène, le studio...</p>
@@ -399,11 +408,7 @@ export default function CandidaturePage() {
           {step === 3 && (
             <div className="px-6 py-8 sm:px-8">
               <h2 className="text-xl font-semibold">Où tu en es aujourd'hui ?</h2>
-              <p className="mt-1 text-sm text-black/50">
-                Sois honnête — il n'y a pas de bonne ou mauvaise réponse.
-                C'est pour former des groupes cohérents, pas pour te juger.
-              </p>
-
+              <p className="mt-1 text-sm text-black/50">Sois honnête — pas de bonne ou mauvaise réponse.</p>
               <div className="mt-7 space-y-8">
                 {disciplines.map((discipline) => (
                   <div key={discipline.id}>
@@ -430,56 +435,98 @@ export default function CandidaturePage() {
             </div>
           )}
 
-          {/* ── ÉTAPE 4 ── */}
+          {/* ── ÉTAPE 4 — VIDÉO ── */}
           {step === 4 && (
             <div className="px-6 py-8 sm:px-8">
               <h2 className="text-xl font-semibold">Ta vidéo de présentation</h2>
-              <p className="mt-1 text-sm text-black/50">2 à 3 minutes max. Montre-nous qui tu es artistiquement aujourd'hui.</p>
+              <p className="mt-1 text-sm text-black/50">Montre-nous qui tu es artistiquement — 2 à 3 minutes max.</p>
 
               <div className="mt-4 rounded-[14px] bg-[rgb(239,244,239)] px-5 py-4">
                 <p className="text-sm leading-6 text-[rgb(15,65,48)]">
                   <strong className="font-semibold">Qu'est-ce qu'on veut voir ?</strong>{" "}
-                  Chante un couplet, danse, joue une scène, présente-toi, parle de ton projet.
-                  Ou un peu de tout — c'est toi qui choisis.
+                  Chante un couplet, danse, joue une scène, parle de ton projet. Ou un peu de tout.
                 </p>
               </div>
 
+              {/* Choix du mode vidéo */}
               <div className="mt-6">
-                <input ref={fileRef} type="file" accept="video/mp4,video/quicktime,video/avi,video/x-msvideo" onChange={handleFileChange} className="hidden" />
-
-                {!form.video ? (
-                  <button type="button" onClick={() => fileRef.current?.click()}
-                    className="w-full rounded-[18px] border-2 border-dashed border-black/14 bg-white/60 px-6 py-10 text-center transition hover:border-primary/30 hover:bg-white"
-                  >
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/8 text-2xl text-primary">↑</div>
-                      <div>
-                        <p className="text-sm font-medium text-black/70">Clique pour choisir ta vidéo</p>
-                        <p className="mt-1 text-xs text-black/40">MP4, MOV ou AVI · 200 MB maximum</p>
-                      </div>
-                    </div>
-                  </button>
-                ) : (
-                  <div className="rounded-[18px] border border-primary/20 bg-primary/4 px-5 py-4">
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex min-w-0 items-center gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/12 text-sm text-primary">▶</div>
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-black">{form.video.name}</p>
-                          <p className="text-xs text-black/50">{(form.video.size / 1024 / 1024).toFixed(1)} MB</p>
-                        </div>
-                      </div>
-                      <button type="button" onClick={() => { set("video", null); if (fileRef.current) fileRef.current.value = ""; }}
-                        className="shrink-0 text-xs text-black/42 underline hover:text-black/70"
-                      >
-                        Changer
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+                <Label required>Comment envoies-tu ta vidéo ?</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {([
+                    { value: "upload", label: "Fichier", sub: "MP4, MOV, AVI" },
+                    { value: "link", label: "Lien", sub: "YouTube, Drive…" },
+                    { value: "both", label: "Les deux", sub: "Fichier + lien" },
+                  ] as { value: VideoMode; label: string; sub: string }[]).map((opt) => (
+                    <button key={opt.value} type="button" onClick={() => { set("video_mode", opt.value); setError(null); }}
+                      className={`flex flex-col items-center rounded-[14px] border px-3 py-3 text-center transition ${
+                        form.video_mode === opt.value ? "border-primary bg-primary/6" : "border-black/10 bg-white hover:border-black/20"
+                      }`}
+                    >
+                      <span className={`text-sm font-semibold ${form.video_mode === opt.value ? "text-primary" : "text-black/70"}`}>{opt.label}</span>
+                      <span className="mt-0.5 text-xs text-black/40">{opt.sub}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
+
+              {/* Zone upload fichier */}
+              {(form.video_mode === "upload" || form.video_mode === "both") && (
+                <div className="mt-5">
+                  <Label required={form.video_mode === "upload" || form.video_mode === "both"}>
+                    {form.video_mode === "both" ? "Fichier vidéo" : "Fichier vidéo"}
+                  </Label>
+                  <input ref={fileRef} type="file" accept="video/mp4,video/quicktime,video/avi,video/x-msvideo" onChange={handleFileChange} className="hidden" />
+
+                  {!form.video ? (
+                    <button type="button" onClick={() => fileRef.current?.click()}
+                      className="w-full rounded-[18px] border-2 border-dashed border-black/14 bg-white/60 px-6 py-8 text-center transition hover:border-primary/30 hover:bg-white"
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/8 text-xl text-primary">↑</div>
+                        <p className="text-sm font-medium text-black/70">Clique pour choisir ta vidéo</p>
+                        <p className="text-xs text-black/40">MP4, MOV ou AVI · 200 MB maximum</p>
+                      </div>
+                    </button>
+                  ) : (
+                    <div className="rounded-[18px] border border-primary/20 bg-primary/4 px-5 py-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/12 text-sm text-primary">▶</div>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-medium text-black">{form.video.name}</p>
+                            <p className="text-xs text-black/50">{(form.video.size / 1024 / 1024).toFixed(1)} MB</p>
+                          </div>
+                        </div>
+                        <button type="button" onClick={() => { set("video", null); if (fileRef.current) fileRef.current.value = ""; }}
+                          className="shrink-0 text-xs text-black/42 underline hover:text-black/70"
+                        >
+                          Changer
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Zone lien vidéo */}
+              {(form.video_mode === "link" || form.video_mode === "both") && (
+                <div className="mt-5">
+                  <Label required={form.video_mode === "link" || form.video_mode === "both"}>
+                    {form.video_mode === "both" ? "Lien vidéo (en complément)" : "Lien vers ta vidéo"}
+                  </Label>
+                  <Input
+                    type="url"
+                    value={form.video_link}
+                    onChange={(v) => set("video_link", v)}
+                    placeholder="https://youtube.com/watch?v=... ou https://drive.google.com/..."
+                  />
+                  <p className="mt-1.5 text-xs text-black/42">
+                    YouTube, Google Drive, Dropbox, Vimeo… Assure-toi que le lien est accessible sans connexion.
+                  </p>
+                </div>
+              )}
+
+              {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
               {/* Récapitulatif */}
               <div className="mt-8 rounded-[18px] border border-black/6 bg-white/60 px-5 py-5">
@@ -513,9 +560,8 @@ export default function CandidaturePage() {
               </div>
             </div>
           )}
-
           {submitting && uploadStatus === "done" && (
-            <div className="border-t border-black/6 px-6 py-4 text-center text-sm text-black/56 sm:px-8">
+            <div className="border-t border-black/6 px-6 py-3 text-center text-sm text-black/56 sm:px-8">
               Vidéo envoyée — finalisation de la candidature…
             </div>
           )}
