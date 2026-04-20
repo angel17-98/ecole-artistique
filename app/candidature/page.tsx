@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -117,7 +117,7 @@ function Textarea({ value, onChange, placeholder, rows = 4, required }: {
 
 // ─── PAGE ─────────────────────────────────────────────────────────────────────
 
-export default function CandidaturePage() {
+function CandidatureForm() {
   const searchParams = useSearchParams();
   const parcoursParam = searchParams.get("parcours") as Parcours | null;
 
@@ -599,5 +599,18 @@ export default function CandidaturePage() {
 
       </div>
     </main>
+  );
+}
+
+// ─── PAGE PRINCIPALE avec Suspense ───────────────────────────────────────────
+export default function CandidaturePage() {
+  return (
+    <Suspense fallback={
+      <main className="flex min-h-screen items-center justify-center bg-[rgb(239,244,239)]">
+        <p className="text-sm text-black/50">Chargement…</p>
+      </main>
+    }>
+      <CandidatureForm />
+    </Suspense>
   );
 }
