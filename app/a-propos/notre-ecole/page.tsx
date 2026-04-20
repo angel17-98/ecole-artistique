@@ -1,200 +1,272 @@
 import Image from "next/image";
+import Link from "next/link";
 import Reveal from "../../components/Reveal";
+
+// ─── DATA ────────────────────────────────────────────────────────────────────
+
+const visionSteps = [
+  {
+    number: "1",
+    title: "Un manque réel, une réponse concrète",
+    text: "Il existait des cours de chant, de danse, de théâtre. Mais pas de lieu qui réunissait tout ça dans une seule expérience cohérente — pensée pour former des artistes complets, capables de créer leur propre univers. Crea'Star est né de cette absence.",
+  },
+  {
+    number: "2",
+    title: "Créer avant d'interpréter",
+    text: "On ne forme pas des élèves à bien reproduire. Chant, danse, théâtre, écriture, présence scénique et studio avancent ensemble — au service d'un seul objectif : aider chaque élève à construire quelque chose qui lui appartient vraiment.",
+  },
+  {
+    number: "3",
+    title: "Des groupes, pas des classes",
+    text: "10 à 15 élèves maximum par groupe — pas pour faire bien sur le papier, mais parce qu'un vrai suivi personnalisé est impossible au-delà. Chaque élève est connu, accompagné et challengé individuellement.",
+  },
+  {
+    number: "4",
+    title: "Une vraie première, chaque année",
+    text: "En fin d'année, les élèves montent sur une vraie scène, devant un vrai public, avec un spectacle qu'ils ont eux-mêmes imaginé et construit. Pas une démonstration de fin de trimestre — une expérience artistique complète.",
+  },
+];
 
 const spaces = [
   {
     title: "Salle de danse",
-    description:
-      "Un grand espace de mouvement, de chorégraphie et de travail collectif, pensé pour explorer le corps, l’énergie scénique et la création en groupe.",
+    description: "Un grand espace lumineux avec le sol, les miroirs et la hauteur qu'il faut pour vraiment habiter le mouvement. Conçu pour la chorégraphie, l'énergie de groupe et l'exploration corporelle.",
     image: "/espaces/salle-danse.jpg",
-    alt: "Salle de danse de 100 m²",
+    alt: "Salle de danse Crea'Star",
   },
   {
-    title: "Salle polyvalente",
-    description:
-      "Un lieu dédié à la présence scénique, aux répétitions, aux présentations et à la mise en situation artistique dans des conditions concrètes.",
+    title: "Scène & salle polyvalente",
+    description: "Une scène intégrée pour répéter, se mettre en situation et défendre un projet devant un regard extérieur. L'endroit où les idées quittent la tête et prennent corps.",
     image: "/espaces/scene.jpg",
     alt: "Salle polyvalente avec scène",
   },
   {
-    title: "3 salles individuelles",
-    description:
-      "Des espaces plus intimistes pour les cours personnalisés, le coaching, le travail vocal, instrumental ou l’accompagnement ciblé.",
-    image: "/espaces/salle-individuel.jpg",
-    alt: "Trois salles individuelles",
-  },
-  {
-    title: "Studio d’enregistrement",
-    description:
-      "Un espace pour poser la voix, enregistrer, expérimenter, affiner une interprétation et découvrir le travail de création en studio.",
+    title: "Studio d'enregistrement",
+    description: "Un vrai studio pour poser la voix, s'entendre dans un casque et découvrir ce que ça change. C'est ici que l'hymne annuel de chaque groupe prend vie — et que les niveaux avancés explorent leurs propres compositions.",
     image: "/espaces/studio-salle.jpg",
-    alt: "Studio d’enregistrement",
+    alt: "Studio d'enregistrement",
   },
   {
-    title: "Espace accueil & repos",
-    description:
-      "Un lieu de respiration, d’échange et de pause pour les élèves, pensé comme un espace vivant au cœur du centre.",
+    title: "3 salles individuelles",
+    description: "Des espaces intimes pour les cours personnalisés, le coaching vocal et le travail en profondeur — sans le regard du groupe, avec toute l'attention d'un intervenant dédié.",
+    image: "/espaces/salle-individuel.jpg",
+    alt: "Salles individuelles",
+  },
+  {
+    title: "Espace accueil & détente",
+    description: "Un lieu de pause entre les cours — pour souffler, échanger, traîner un peu. Parce qu'un centre artistique vivant, c'est aussi un endroit où les liens se créent en dehors des salles.",
     image: "/espaces/accueil.jpg",
-    alt: "Espace accueil et repos",
+    alt: "Espace accueil",
   },
 ];
+
+const allOffers = [
+  { label: "Parcours Full Artist", tag: "Annuel · Cœur de l'offre", href: "/cours/full-artist" },
+  { label: "Comédie Musicale", tag: "Annuel · Cœur de l'offre", href: "/cours/comedie-musicale" },
+  { label: "Éveil musical", tag: "Dès 4 ans", href: "/cours/eveil-musical" },
+  { label: "Cours individuels", tag: "Sur mesure", href: "/cours/cours-individuels" },
+  { label: "Stages & workshops", tag: "Événements", href: "/stages" },
+  { label: "Location de salles & studio", tag: "Artistes & groupes", href: "/locations" },
+];
+
+// ─── PAGE ────────────────────────────────────────────────────────────────────
 
 export default function NotreEcolePage() {
   return (
     <main className="min-h-screen text-foreground">
-      {/* HERO FULL WIDTH */}
-      <section className="relative -mt-24 min-h-[82vh] overflow-hidden pt-24 lg:min-h-[78svh]">
+
+      {/* ── HERO ÉTENDU — titre gauche + facts droite superposés ── */}
+      <section className="relative -mt-24 min-h-[90vh] overflow-hidden pt-24 lg:min-h-[88svh]">
         <div className="absolute inset-0">
           <Image
             src="/espaces/tilia.jpg"
-            alt="Univers artistique CREA'STAR"
+            alt="Hall principal du centre artistique CREA'STAR"
             fill
             priority
             unoptimized
             className="object-cover object-center"
           />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,10,10,0.74)_0%,rgba(10,10,10,0.50)_34%,rgba(10,10,10,0.16)_68%,rgba(10,10,10,0.06)_100%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(185,151,83,0.10),transparent_24%),radial-gradient(circle_at_right_center,rgba(22,92,71,0.12),transparent_26%)]" />
+          {/* Gradient principal — gauche sombre pour le texte */}
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(6,6,6,0.88)_0%,rgba(6,6,6,0.62)_38%,rgba(6,6,6,0.30)_62%,rgba(6,6,6,0.50)_100%)]" />
+          {/* Gradient vertical — assombrit le bas pour lisibilité */}
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(6,6,6,0.18)_0%,transparent_30%,rgba(6,6,6,0.55)_72%,rgba(6,6,6,0.85)_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(185,151,83,0.08),transparent_28%)]" />
         </div>
 
-        <div className="relative z-10 flex min-h-[82svh] items-end lg:min-h-[78svh]">
-          <div className="site-shell-wide w-full px-6 pb-16 pt-36 md:px-10 lg:px-14 lg:pb-24 lg:pt-40">
-            <div className="max-w-4xl">
-              <Reveal>
-                <p className="text-sm uppercase tracking-[0.24em] text-white/70">
-                  À propos • Notre école
-                </p>
-              </Reveal>
+        {/* Contenu ancré en bas */}
+        <div className="absolute inset-x-0 bottom-0 z-10">
+          <div className="site-shell-wide px-6 pb-12 md:px-10 lg:px-14 lg:pb-16">
 
-              <Reveal delay={1}>
-                <h1 className="mt-6 text-4xl font-semibold leading-[1.03] tracking-tight text-white text-balance sm:text-5xl lg:text-6xl">
-                  Un lieu dédié à la création, à l’expression et à l’artiste complet
-                </h1>
-              </Reveal>
+            {/* Layout deux colonnes bas */}
+            <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:gap-16">
 
+              {/* Gauche — titre + accroche */}
+              <div>
+                <Reveal>
+                  <p className="text-xs uppercase tracking-[0.28em] text-white/54">
+                    À propos · Notre école
+                  </p>
+                </Reveal>
+
+                {/* Ligne dorée */}
+                <Reveal delay={1}>
+                  <div className="my-5 h-px w-12 bg-[rgb(185,151,83)]" />
+                </Reveal>
+
+                <Reveal delay={1}>
+                  <h1 className="text-4xl font-semibold leading-[1.04] tracking-tight text-white text-balance sm:text-5xl lg:text-6xl">
+                    Un lieu pensé pour ceux qui veulent créer,
+                    pas seulement apprendre
+                  </h1>
+                </Reveal>
+
+                <Reveal delay={2}>
+                  <p className="mt-5 max-w-xl text-sm leading-7 text-white/64 sm:text-base sm:leading-8">
+                    Crea'Star ouvre en 2028 dans le Brabant Wallon — un centre
+                    artistique musical où scène, studio, formation et création
+                    sont réunis sous un même toit.
+                  </p>
+                </Reveal>
+
+                <Reveal delay={3}>
+                  <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+                    <Link
+                      href="/inscriptions"
+                      className="inline-flex items-center justify-center rounded-full bg-white px-7 py-3.5 text-sm font-semibold text-black transition hover:bg-[rgb(var(--background-soft))]"
+                    >
+                      Inscriptions
+                    </Link>
+                  </div>
+                </Reveal>
+              </div>
+
+              {/* Droite — facts en grille glassmorphism */}
               <Reveal delay={2}>
-                <p className="mt-8 max-w-8xl text-base leading-8 text-white/78 sm:text-lg">
-                  Crea&apos;Star est un centre artistique musical pensé comme un lieu
-                  vivant, où les artistes apprennent, créent, expérimentent et
-                  grandissent ensemble dans une dynamique profondément humaine.
-                </p>
+                <div className="rounded-[24px] border border-white/12 bg-black/30 p-1 backdrop-blur-md mb-20">
+                  <div className="grid grid-cols-2 divide-x divide-white/10">
+
+                    {/* Col gauche */}
+                    <div className="divide-y divide-white/10">
+                      {[
+                        { label: "Ouverture", value: "2028" },
+                        { label: "Groupes", value: "≤ 15 élèves" },
+                        { label: "Disciplines", value: "6 au total" },
+                      ].map((fact) => (
+                        <div key={fact.label} className="px-5 py-4">
+                          <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">
+                            {fact.label}
+                          </p>
+                          <p className="mt-1.5 text-base font-semibold text-white">
+                            {fact.value}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Col droite */}
+                    <div className="divide-y divide-white/10">
+                      {[
+                        { label: "Lieu", value: "Waterloo" },
+                        { label: "Spectacle", value: "Public annuel" },
+                        { label: "Studio", value: "Inclus" },
+                      ].map((fact) => (
+                        <div key={fact.label} className="px-5 py-4">
+                          <p className="text-[10px] uppercase tracking-[0.18em] text-white/40">
+                            {fact.label}
+                          </p>
+                          <p className="mt-1.5 text-base font-semibold text-white">
+                            {fact.value}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                  </div>
+                </div>
               </Reveal>
+
             </div>
           </div>
         </div>
-
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-[linear-gradient(180deg,transparent,rgba(247,244,238,0.12))]" />
       </section>
 
-      {/* HISTOIRE + VISION */}
-      <section className="relative bg-[rgb(239,244,239)] text-foreground">
-        <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(22,92,71,0.12),transparent)]" />
-        <div className="absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(90deg,transparent,rgba(185,151,83,0.10),transparent)]" />
+      {/* ── VISION — timeline texte pure ── */}
+      <section className="relative bg-background overflow-hidden mt-2 mb-2">
+        <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(16,16,16,0.08),transparent)]" />
 
-        <div className="site-shell-wide px-6 py-20 md:px-10 lg:px-14 lg:py-24">
+        <div className="site-shell-wide px-6 py-20 md:px-10 lg:px-14 lg:py-28">
           <Reveal>
-            <div className="max-w-5xl">
-              <p className="text-3xl uppercase font-semibold tracking-[0.24em] text-primary/82">
-                Notre Histoire
+            <div className="mb-16 max-w-6xl">
+              <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
+                Notre vision
               </p>
+              <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl text-balance">
+                Pourquoi construire un centre Crea'Star?
+              </h2>
             </div>
           </Reveal>
 
-          <Reveal delay={1}>
-            <div className="mt-10 max-w-8xl space-y-6 text-base leading-8 text-black/68 sm:text-lg">
-              <p>
-                Crea&apos;Star a été créée en 2027 avec une intention simple mais forte :
-                dédier un lieu aux artistes, un lieu où l’on ne forme pas seulement par
-                la technique ou l’interprétation, mais avant tout par la création.
-              </p>
+          {/* Timeline texte — ligne verticale + blocs alternés */}
+          <div className="relative">
+            {/* Ligne verticale — desktop */}
+            <div className="absolute left-[2.25rem] top-0 hidden h-full w-px bg-[linear-gradient(180deg,transparent,rgba(22,92,71,0.20)_8%,rgba(22,92,71,0.20)_92%,transparent)] lg:block" />
 
-              <p>
-                L’idée de départ était profondément humaine : offrir un espace où
-                chacun puisse chercher, essayer, construire, se révéler et créer
-                librement, sans être enfermé dans une seule manière d’apprendre ou de
-                s’exprimer.
-              </p>
+            <div className="space-y-0 divide-y divide-black/6">
+              {visionSteps.map((step, index) => (
+                <Reveal key={step.number} delay={(index % 2) as 0 | 1}>
+                  <div className="grid gap-5 py-5 lg:grid-cols-[5rem_1fr_1fr] lg:gap-2 lg:py-7">
 
-              <p>
-                À travers cette vision, Crea&apos;Star accompagne l’émergence d’une
-                nouvelle génération d’artistes, plus pluridisciplinaires, plus
-                autonomes, plus ouverts à la collaboration et à la création
-                collective.
-              </p>
+                    {/* Numéro + point timeline */}
+                    <div className="flex items-start gap-4 lg:flex-col lg:gap-3">
+                      <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 lg:h-9 lg:w-9">
+                        <div className="h-2.5 w-2.5 rounded-full bg-primary" />
+                      </div>
+                      <span className="text-4xl font-semibold leading-none tracking-tight text-black/8 lg:text-5xl lg:pl-1">
+                        {step.number}
+                      </span>
+                    </div>
 
-              <p>
-                Nous avons voulu imaginer un centre vivant, où les artistes puissent
-                non seulement apprendre, mais aussi se rencontrer, travailler ensemble
-                et faire naître des projets dans un cadre inspirant, exigeant et
-                profondément bienveillant.
-              </p>
+                    {/* Titre */}
+                    <h3 className="text-xl font-semibold leading-snug tracking-tight sm:text-2xl lg:pt-1.5">
+                      {step.title}
+                    </h3>
+
+                    {/* Texte */}
+                    <p className="text-base leading-8 text-black/60 sm:text-lg lg:pt-1.5">
+                      {step.text}
+                    </p>
+
+                  </div>
+                </Reveal>
+              ))}
             </div>
-          </Reveal>
-
-          <Reveal delay={2}>
-            <div className="mt-16 grid gap-6 lg:grid-cols-3">
-              <div className="rounded-[28px] border border-black/6 bg-white/80 p-7 shadow-[0_10px_30px_rgba(16,16,16,0.05)]">
-                <p className="text-sm uppercase tracking-[0.22em] text-primary/76">
-                  Créer
-                </p>
-                <h3 className="mt-4 text-3xl font-semibold tracking-tight">
-                  Faire de la création le centre du parcours
-                </h3>
-                <p className="mt-4 text-sm leading-7 text-black/66 sm:text-base">
-                  Ici, l’apprentissage n’est pas séparé de l’élan artistique.
-                  La technique, la scène, l’écriture et l’expérimentation avancent ensemble.
-                </p>
-              </div>
-
-              <div className="rounded-[28px] border border-black/6 bg-white/80 p-7 shadow-[0_10px_30px_rgba(16,16,16,0.05)]">
-                <p className="text-sm uppercase tracking-[0.22em] text-primary/76">
-                  Relier
-                </p>
-                <h3 className="mt-4 text-3xl font-semibold tracking-tight">
-                  Créer un lieu de rencontre entre disciplines
-                </h3>
-                <p className="mt-4 text-sm leading-7 text-black/66 sm:text-base">
-                  Le corps, la voix, le jeu, la présence scénique et le studio dialoguent
-                  dans une approche plus ouverte, plus actuelle et plus complète.
-                </p>
-              </div>
-
-              <div className="rounded-[28px] border border-black/6 bg-white/80 p-7 shadow-[0_10px_30px_rgba(16,16,16,0.05)]">
-                <p className="text-sm uppercase tracking-[0.22em] text-primary/76">
-                  Faire émerger
-                </p>
-                <h3 className="mt-4 text-3xl font-semibold tracking-tight">
-                  Accompagner une identité artistique vivante
-                </h3>
-                <p className="mt-4 text-sm leading-7 text-black/66 sm:text-base">
-                  L’objectif n’est pas seulement d’enseigner, mais d’aider chacun à trouver
-                  sa voix, sa sensibilité, sa manière de créer et d’exister sur scène.
-                </p>
-              </div>
-            </div>
-          </Reveal>
+          </div>
         </div>
       </section>
 
-      {/* ESPACES */}
-      <section className="relative bg-background text-foreground">
-        <div className="site-shell px-6 py-20 md:px-8 lg:py-24">
+      {/* ── ESPACES — grille photo pure ── */}
+      <section className="relative bg-[rgb(239,244,239)]">
+        <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(22,92,71,0.10),transparent)]" />
+
+        <div className="site-shell-wide px-6 py-20 md:px-10 lg:px-14 lg:py-24">
           <Reveal>
-            <div className="max-w-8xl">
-              <p className="text-3xl uppercase font-semibold tracking-[0.24em] text-primary/82">
-                Les espaces du centre
+            <div className="mb-12 max-w-8xl">
+              <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
+                Les espaces
               </p>
+              <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl text-balance">
+                Tout ce dont un artiste a besoin, au même endroit
+              </h2>
               <p className="mt-6 text-base leading-8 text-black/64 sm:text-lg">
-                Crea&apos;Star a été pensé comme un lieu complet, avec différents espaces
-                dédiés au mouvement, à la scène, au travail individuel et à
-                l’enregistrement.
+                Scène, studio, salles de mouvement, espaces individuels et lieu de
+                vie — rien ne manque entre le premier cours et le soir du spectacle.
               </p>
             </div>
           </Reveal>
 
-          <div className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {spaces.map((space, index) => (
-              <Reveal key={space.title} delay={(index + 1) as 1 | 2 | 3}>
+              <Reveal key={space.title} delay={(index % 3) as 0 | 1 | 2}>
                 <article className="group overflow-hidden rounded-[26px] border border-black/6 bg-white/80 shadow-[0_10px_30px_rgba(16,16,16,0.05)] transition hover:-translate-y-1 hover:border-primary/18">
                   <div className="relative aspect-[4/3] w-full overflow-hidden">
                     <Image
@@ -203,14 +275,13 @@ export default function NotreEcolePage() {
                       fill
                       unoptimized
                       className="object-cover transition duration-700 group-hover:scale-[1.03]"
-                      sizes="(min-width: 1024px) 33vw, 100vw"
+                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-[rgba(247,244,238,0.54)] via-[rgba(247,244,238,0.08)] to-transparent" />
                   </div>
-
                   <div className="p-6">
                     <h3 className="text-xl font-semibold">{space.title}</h3>
-                    <p className="mt-3 text-sm leading-7 text-black/66">
+                    <p className="mt-3 text-sm leading-7 text-black/62">
                       {space.description}
                     </p>
                   </div>
@@ -221,64 +292,60 @@ export default function NotreEcolePage() {
         </div>
       </section>
 
-      {/* SIGNATURE FINALE */}
-      <section className="relative px-6 py-12 md:px-10 lg:px-14 lg:py-16">
-        <div className="site-shell-wide">
+      {/* ── TOUTE L'OFFRE — liste éditoriale ── */}
+      <section className="relative bg-background">
+        <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(16,16,16,0.08),transparent)]" />
+
+        <div className="site-shell-wide px-6 py-20 md:px-10 lg:px-14 lg:py-24">
           <Reveal>
-            <div className="relative overflow-hidden rounded-[34px] border border-black/6 bg-[linear-gradient(135deg,rgb(255,253,249)_0%,rgb(241,247,242)_100%)] shadow-[0_24px_70px_rgba(16,16,16,0.08)]">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(185,151,83,0.10),transparent_26%),radial-gradient(circle_at_right_center,rgba(22,92,71,0.10),transparent_28%)]" />
-
-              <div className="relative grid gap-10 px-8 py-10 sm:px-10 lg:grid-cols-[1.1fr_0.9fr] lg:px-14 lg:py-14">
-                <div>
-                  <p className="text-l uppercase tracking-[0.24em] text-primary/78">
-                    L’esprit du lieu
-                  </p>
-
-                  <h2 className="mt-5 max-w-5xl text-3xl font-semibold leading-tight tracking-tight sm:text-5xl text-balance">
-                    Plus qu’un centre, un cadre de création pensé comme une expérience
-                  </h2>
-
-                  <p className="mt-6 max-w-3xl text-base leading-8 text-black/66 sm:text-lg">
-                    Crea&apos;Star réunit dans un même lieu la pédagogie, la scène,
-                    l’expérimentation, l’écoute et l’élan collectif. Chaque espace a été
-                    imaginé pour nourrir une pratique artistique plus libre, plus incarnée
-                    et plus complète.
-                  </p>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-                  <div className="rounded-[24px] border border-black/6 bg-white/76 p-5 backdrop-blur-sm">
-                    <p className="text-sm uppercase tracking-[0.18em] text-primary/74">
-                      Atmosphère
-                    </p>
-                    <p className="mt-3 text-base font-medium leading-7 text-black/78">
-                      Inspirante, chaleureuse et exigeante
-                    </p>
-                  </div>
-
-                  <div className="rounded-[24px] border border-black/6 bg-white/76 p-5 backdrop-blur-sm">
-                    <p className="text-sm uppercase tracking-[0.18em] text-primary/74">
-                      Usage
-                    </p>
-                    <p className="mt-3 text-base font-medium leading-7 text-black/78">
-                      Apprendre, répéter, créer, enregistrer
-                    </p>
-                  </div>
-
-                  <div className="rounded-[24px] border border-black/6 bg-white/76 p-5 backdrop-blur-sm">
-                    <p className="text-sm uppercase tracking-[0.18em] text-primary/74">
-                      Intention
-                    </p>
-                    <p className="mt-3 text-base font-medium leading-7 text-black/78">
-                      Faire émerger des artistes complets
-                    </p>
-                  </div>
-                </div>
+            <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
+                  Notre offre
+                </p>
+                <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl text-balance">
+                  Un centre, plusieurs façons d'en faire partie
+                </h2>
               </div>
+              <Link
+                href="/inscriptions"
+                className="shrink-0 inline-flex items-center gap-2 text-sm font-medium text-primary transition hover:gap-3"
+              >
+                Voir les inscriptions <span aria-hidden>→</span>
+              </Link>
             </div>
           </Reveal>
+
+          <div className="divide-y divide-black/8 border-t border-black/8 mb-2">
+            {allOffers.map((offer, index) => (
+              <Reveal key={offer.label} delay={(index % 3) as 0 | 1 | 2}>
+                <Link
+                  href={offer.href}
+                  className="group flex items-baseline justify-between gap-6 py-5 transition hover:text-primary"
+                >
+                  <div className="flex items-baseline gap-5 min-w-0">
+                    <span className="shrink-0 text-xs text-black/28 tabular-nums">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span className="text-xl font-semibold leading-snug tracking-tight sm:text-2xl">
+                      {offer.label}
+                    </span>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-4">
+                    <span className="hidden text-xs uppercase tracking-[0.16em] text-black/34 sm:block">
+                      {offer.tag}
+                    </span>
+                    <span className="text-black/22 transition duration-200 group-hover:translate-x-1 group-hover:text-primary">
+                      →
+                    </span>
+                  </div>
+                </Link>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
+
     </main>
   );
 }
