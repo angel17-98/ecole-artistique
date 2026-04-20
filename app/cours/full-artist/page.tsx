@@ -175,7 +175,7 @@ export default function FullArtistPage() {
         <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(22,92,71,0.12),transparent)]" />
         <div className="absolute inset-x-0 bottom-0 h-px bg-[linear-gradient(90deg,transparent,rgba(185,151,83,0.10),transparent)]" />
 
-        <div className="site-shell-wide px-6 py-20 md:px-10 lg:px-14 lg:py-24">
+        <div className="site-shell-wide px-6 py-10 md:px-10 lg:px-14 lg:py-15">
           <div className="grid gap-14 lg:grid-cols-2 lg:items-center lg:gap-20">
             <Reveal>
               <div>
@@ -227,7 +227,7 @@ export default function FullArtistPage() {
       <section className="relative bg-background">
         <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(16,16,16,0.08),transparent)]" />
 
-        <div className="site-shell-wide px-6 py-20 md:px-10 lg:px-14 lg:py-24">
+        <div className="site-shell-wide px-6 py-10 md:px-10 lg:px-14 lg:py-15">
           <Reveal>
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
@@ -262,7 +262,7 @@ export default function FullArtistPage() {
       <section className="relative bg-[rgb(239,244,239)]">
         <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(22,92,71,0.10),transparent)]" />
 
-        <div className="site-shell-wide px-6 py-20 md:px-10 lg:px-14 lg:py-24">
+        <div className="site-shell-wide px-6 py-10 md:px-10 lg:px-14 lg:py-15">
           <Reveal>
             <div className="max-w-8xl">
               <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
@@ -302,7 +302,7 @@ export default function FullArtistPage() {
       <section className="relative bg-background">
         <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(16,16,16,0.08),transparent)]" />
 
-        <div className="site-shell-wide px-6 py-20 md:px-10 lg:px-14 lg:py-24">
+        <div className="site-shell-wide px-6 py-10 md:px-10 lg:px-14 lg:py-15">
           <Reveal>
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
@@ -351,7 +351,7 @@ export default function FullArtistPage() {
       <section className="relative bg-[rgb(239,244,239)]">
         <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(22,92,71,0.10),transparent)]" />
 
-        <div className="site-shell-wide px-6 py-20 md:px-10 lg:px-14 lg:py-24">
+        <div className="site-shell-wide px-6 py-10 md:px-10 lg:px-14 lg:py-15">
           <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-start lg:gap-20">
             <Reveal>
               <div>
@@ -432,7 +432,7 @@ export default function FullArtistPage() {
       <section className="relative bg-background">
         <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(16,16,16,0.08),transparent)]" />
 
-        <div className="site-shell-wide px-6 py-20 md:px-10 lg:px-14 lg:py-24">
+        <div className="site-shell-wide px-6 py-10 md:px-10 lg:px-14 lg:py-15">
           <Reveal>
             <div className="mx-auto max-w-3xl text-center">
               <p className="text-sm uppercase tracking-[0.24em] text-primary/82">
