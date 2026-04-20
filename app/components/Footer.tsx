@@ -45,6 +45,11 @@ export default function Footer() {
                   </Link>
                 </li>
                 <li>
+                  <Link href="/contact" className="transition hover:text-white">
+                    Contact
+                  </Link>
+                </li>
+                <li>
                   <Link href="/faq" className="transition hover:text-white">
                     FAQ
                   </Link>
@@ -76,6 +81,11 @@ export default function Footer() {
                 <li>
                   <Link href="/cours/cours-individuels" className="transition hover:text-white">
                     Cours individuels
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/stages" className="transition hover:text-white">
+                    Stages & Workshops
                   </Link>
                 </li>
                 <li>
