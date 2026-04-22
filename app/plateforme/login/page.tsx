@@ -9,6 +9,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/plateforme/dashboard";
+  const confirmed = searchParams.get("confirmed");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,6 +33,20 @@ function LoginForm() {
     router.push(redirect);
     router.refresh();
   };
+
+  {confirmed && (
+    <div className="rounded-[14px] bg-[rgb(239,244,239)] border border-[rgb(22,92,71)]/15 px-4 py-4 mb-6 flex items-start gap-3">
+      <span className="text-[rgb(22,92,71)] mt-0.5">✓</span>
+      <div>
+        <p className="text-sm font-semibold text-[rgb(22,92,71)]">
+          Email confirmé !
+        </p>
+        <p className="text-xs text-[rgb(22,92,71)]/70 mt-0.5">
+          Ton compte est activé. Tu peux maintenant te connecter.
+        </p>
+      </div>
+    </div>
+  )}
 
   return (
     <form onSubmit={handleLogin} className="space-y-5">
