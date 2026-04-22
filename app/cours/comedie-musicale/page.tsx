@@ -393,7 +393,7 @@ export default function ComedieMusicale() {
             <Reveal delay={1}>
               <div className="space-y-3 lg:mt-[4.5rem]">
                 {[
-                  { label: "Âge d'entrée", value: "Dès [âge à confirmer]" },
+                  { label: "Âge d'entrée", value: "Dès 8 ans" },
                   { label: "Taille des groupes", value: "10 à 15 élèves max." },
                   { label: "Rythme", value: "2h / semaine minimum" },
                   { label: "Durée du parcours", value: "1 à 4 ans" },

@@ -127,7 +127,7 @@ const carouselOffers = [
     number: "06",
     tag: "Artistes & groupes",
     title: "Location\nEspaces",
-    text: "Salle de danse, scène polyvalente, salles individuelles et studio d'enregistrement disponibles à la location.",
+    text: "Salle de danse, salle de spectacle avec scène et studio d'enregistrement disponibles à la location.",
     bg: "rgb(228,236,228)",
     titleColor: "rgb(16,16,16)",
     tagColor: "rgba(16,16,16,0.38)",
@@ -228,7 +228,7 @@ export default function HomePage() {
 
             {/* Eyebrow */}
             <p className="cs-eyebrow text-[10px] uppercase tracking-[0.24em] text-white/54 sm:text-xs sm:tracking-[0.28em]">
-              Centre de formation artistique musical · Brabant Wallon
+              Ecole artistique de création musicale & scénique · Brabant Wallon
             </p>
 
             {/* Ligne dorée */}
@@ -260,7 +260,7 @@ export default function HomePage() {
                   href="/a-propos/notre-ecole"
                   className="inline-flex items-center justify-center rounded-full border border-white/60 bg-white/50 px-6 py-3 text-sm font-medium text-white backdrop-blur-sm transition hover:bg-white/40 sm:px-8 sm:py-4"
                 >
-                  Découvrir le centre
+                  Découvrir l'école
                 </Link>
               </div>
             </div>
@@ -271,7 +271,7 @@ export default function HomePage() {
               <span>Scène & studio</span><span>·</span>
               <span>Stages & événements</span><span>·</span>
               <span>Location d'espaces</span><span>·</span>
-              <span>Waterloo, Brabant Wallon</span>
+              <span>Braine l'Alleud, Brabant Wallon</span>
             </div>
           </div>
         </div>
@@ -293,10 +293,10 @@ export default function HomePage() {
                   Présentation
                 </p>
                 <h2 className="mt-4 text-2xl font-semibold leading-tight tracking-tight sm:text-3xl lg:text-5xl text-balance">
-                  Un centre dédié à l'artiste complet
+                  Une école dédié à l'artiste complet
                 </h2>
                 <p className="mt-5 text-sm leading-7 text-black/68 sm:text-base sm:leading-8">
-                  Crea'Star est un centre artistique musical implanté dans le Brabant Wallon,
+                  Crea'Star est une école artistique de création musicale et scénique implanté dans le Brabant Wallon,
                   dédié à la formation d'artistes qui créent autant qu'ils interprètent.
                   Le cœur de l'offre, ce sont deux parcours annuels pluridisciplinaires
                   où chaque élève construit un projet personnel ou collectif qui prend vie sur scène.

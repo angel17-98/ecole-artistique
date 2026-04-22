@@ -14,13 +14,13 @@ const milestones: {
   {
     date: "Décembre 2025",
     title: "Naissance du projet",
-    description: "Angélie et Mélissa formalisent l'idée de Crea'Star — un centre artistique musical complet, ancré dans le Brabant Wallon, qui réunit scène, studio et formation sous un même toit.",
+    description: "Angélie et Mélissa formalisent l'idée de Crea'Star — une école artistique de création musicale complète, ancré dans le Brabant Wallon, qui réunit scène, studio et formation sous un même toit.",
     status: "done",
   },
   {
     date: "Mars 2026",
     title: "Construction du premier centre Crea'Star",
-    description: "L'infrastructure Crea'Star est pensée pour être complète avec tout sous le même toit. L'architecte établi les premiers plan pour la construction du premier centre Crea'Star",
+    description: "L'infrastructure Crea'Star est pensée pour être complète avec tout sous le même toit. L'architecte établi les premiers plan pour la construction de la première école Crea'Star",
     status: "current",
   },
   {
@@ -43,7 +43,7 @@ const milestones: {
   },
   {
     date: "Été 2028",
-    title: "Aménagement & finalisation du centre",
+    title: "Aménagement & finalisation de l'école",
     description: "Les espaces sont aménagés — scène, studio, salles de danse et de coaching. Tout est prêt pour accueillir les premiers élèves.",
     status: "upcoming",
   },
@@ -75,10 +75,10 @@ const articles = [
     featured: false,
   },
   {
-    slug: "espaces-du-centre",
+    slug: "espaces-de-ecole",
     date: "Septembre 2025",
-    category: "Le centre",
-    title: "Comment on a pensé les espaces du centre — de la salle de danse au studio",
+    category: "L'école",
+    title: "Comment on a pensé les espaces de l'école — de la salle de danse au studio",
     excerpt: "Scène, studio, salles individuelles, espace de vie. Chaque espace a été pensé pour que l'artiste n'ait jamais à choisir entre deux endroits.",
     readTime: "6 min",
     featured: false,
@@ -273,7 +273,7 @@ export default function ActualitesPage() {
             <div className="mt-10 rounded-[18px] border border-primary/12 bg-white/60 px-6 py-5">
               <p className="text-sm leading-6 text-black/56">
                 <span className="font-semibold text-primary">D'autres articles à venir.</span>{" "}
-                On publie régulièrement sur le projet, la pédagogie et la construction du centre.{" "}
+                On publie régulièrement sur le projet, la pédagogie et la construction de l'école.{" "}
                 <Link href="/contact" className="font-medium text-primary underline underline-offset-2 hover:no-underline">
                   Une question ou une suggestion de sujet ? Écrivez-nous.
                 </Link>

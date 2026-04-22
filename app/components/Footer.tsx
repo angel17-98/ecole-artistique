@@ -103,8 +103,8 @@ export default function Footer() {
             </p>
 
             <div className="mt-4 space-y-1 leading-7">
-              <p>Chaussée de Bruxelles, 258</p>
-              <p>1410 Waterloo</p>
+              <p>Grand'Route, 550</p>
+              <p>1428 Braine l'Alleud</p>
               <p className="pt-2">+32 (0) 471 01 61 81</p>
             </div>
           </div>

@@ -29,7 +29,7 @@ const categories = [
         a: "10 à 15 élèves maximum par groupe, sans exception. Ce n'est pas un argument marketing — c'est une condition. Au-delà de 15, le suivi individuel disparaît. Chaque élève est connu, challengé et accompagné nommément.",
       },
       {
-        q: "Peut-on intégrer le centre en cours d'année ?",
+        q: "Peut-on intégrer l'école  en cours d'année ?",
         a: "En principe non. Les parcours annuels démarrent en septembre et construisent une progression cohérente du premier cours jusqu'au spectacle de fin d'année. Intégrer un groupe en cours de route fragiliserait à la fois l'élève et la dynamique collective. Des exceptions peuvent être étudiées au cas par cas.",
       },
     ],
@@ -84,7 +84,7 @@ const categories = [
       },
       {
         q: "Crea'Star est-il reconnu ou agréé officiellement ?",
-        a: "Crea'Star est un centre de formation artistique privé. Il ne délivre pas de diplôme homologué par la Fédération Wallonie-Bruxelles. Ce n'est pas notre objectif — notre objectif est de former des artistes complets et confiants, capables de créer leur propre univers. Ce que les élèves retirent de l'expérience Crea'Star, c'est une progression réelle, une présence scénique et un spectacle dont ils sont fiers.",
+        a: "Crea'Star est une école artistique privée. Elle ne délivre pas de diplôme homologué par la Fédération Wallonie-Bruxelles. Ce n'est pas notre objectif — notre objectif est de former des artistes complets et confiants, capables de créer leur propre univers. Ce que les élèves retirent de l'expérience Crea'Star, c'est une progression réelle, une présence scénique et un spectacle dont ils sont fiers.",
       },
     ],
   },
@@ -103,7 +103,7 @@ const categories = [
       },
       {
         q: "Qu'est-ce que le statut Premium ?",
-        a: "Toute inscription à un parcours annuel inclut automatiquement le statut Premium. Il donne accès à des réductions sur la location des salles et du studio (30%), sur les cours individuels (15%) et sur les inscriptions d'autres membres de la famille (10%). C'est une façon de récompenser l'engagement des élèves qui font de Crea'Star leur centre artistique principal.",
+        a: "Toute inscription à un parcours annuel inclut automatiquement le statut Premium. Il donne accès à des réductions sur la location des salles et du studio (30%), sur les cours individuels (15%) et sur les inscriptions d'autres membres de la famille (10%). C'est une façon de récompenser l'engagement des élèves qui font de Crea'Star leur enseignement artistique principal.",
       },
       {
         q: "Comment fonctionne la pré-inscription ?",
@@ -112,13 +112,13 @@ const categories = [
     ],
   },
   {
-    id: "centre",
-    label: "Le centre",
+    id: "école",
+    label: "L'école",
     icon: "◎",
     questions: [
       {
         q: "Où est situé Crea'Star ?",
-        a: "Le centre est situé dans le Brabant Wallon, à Waterloo. L'adresse exacte et les accès seront communiqués à l'approche de l'ouverture en 2028.",
+        a: "L'école est situé dans le Brabant Wallon, à Braine l'Alleud. L'adresse exacte et les accès seront communiqués à l'approche de l'ouverture en 2028.",
       },
       {
         q: "Peut-on louer les salles et le studio sans être élève ?",
@@ -126,7 +126,7 @@ const categories = [
       },
       {
         q: "Y a-t-il un parking ou comment venir ?",
-        a: "Les informations pratiques d'accès seront communiquées avec l'adresse définitive du centre en 2027-2028.",
+        a: "Les informations pratiques d'accès seront communiquées avec l'adresse définitive de l'école en 2027-2028.",
       },
     ],
   },
@@ -203,7 +203,7 @@ export default function FAQPage() {
               Les questions qu'on nous pose le plus
             </h1>
             <p className="mt-5 max-w-8xl text-sm leading-7 text-black/56 sm:text-base sm:leading-8">
-              Candidature, parcours, tarifs, organisation du centre — tout ce que tu veux
+              Candidature, parcours, tarifs, organisation de l'école — tout ce que tu veux
               savoir avant de te lancer. Si ta question n'est pas là, écris-nous.
             </p>
           </Reveal>
@@ -367,7 +367,7 @@ export default function FAQPage() {
                 On répond à tout.
               </h2>
               <p className="mt-3 max-w-5xl text-sm leading-7 text-white/65">
-                Candidature, tarifs, organisation, visite du centre — si tu veux en savoir plus avant de te décider, c'est le bon endroit.
+                Candidature, tarifs, organisation, visite de l'école — si tu veux en savoir plus avant de te décider, c'est le bon endroit.
               </p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">

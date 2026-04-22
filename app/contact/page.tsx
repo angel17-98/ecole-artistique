@@ -18,9 +18,9 @@ const subjects = [
 ];
 
 const headerInfos = [
-  { label: "Adresse", value: "Chaussée de Bruxelles, 258", sub: "1410 Waterloo" },
-  { label: "Téléphone", value: "+32 (0) 471 01 61 81", sub: "Lun–Ven, 9h–18h" },
-  { label: "Délai de réponse", value: "48h en semaine", sub: "Candidatures : 2 semaines" },
+  { label: "Adresse", value: "Grand'Route, 550", sub: "1428 Braine l'Alleud" },
+  { label: "Téléphone", value: "+32 (0) 471 01 61 81", sub: "Lun–Ven, 18h–20h" },
+  { label: "Délai de réponse", value: "48h en semaine", sub: "Candidatures : 1" },
   { label: "Comment écrire", value: "Via le formulaire", sub: "↓ Juste en dessous" },
 ];
 
@@ -284,7 +284,7 @@ export default function ContactPage() {
 
                   {/* Footer formulaire */}
                   <div className="flex items-center justify-between border-t border-black/6 px-6 py-5 sm:px-8">
-                    <p className="max-w-[180px] text-xs leading-5 text-black/36">
+                    <p className="max-w-3xl text-xs leading-5 text-black/36">
                       Tes données ne sont jamais partagées avec des tiers.
                     </p>
                     <button

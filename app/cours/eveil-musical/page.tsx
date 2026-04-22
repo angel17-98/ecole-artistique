@@ -286,7 +286,7 @@ export default function EvelMusicalPage() {
                   </p>
                   <p className="mt-2 text-sm leading-6 text-black/62">
                     Âge, contenu des séances, disponibilités, tarifs — on répond à tout
-                    via le formulaire de contact ou par téléphone.
+                    via le formulaire de contact.
                   </p>
                   <Link
                     href="/contact"

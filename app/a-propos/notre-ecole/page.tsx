@@ -177,7 +177,7 @@ export default function NotreEcolePage() {
                 </Reveal>
                 <Reveal delay={2}>
                   <p className="mt-5 max-w-xl text-sm leading-7 text-white/62 sm:text-base sm:leading-8">
-                    Crea'Star ouvre en 2028 dans le Brabant Wallon — un centre artistique musical où scène, studio, formation et création sont réunis sous un même toit.
+                    Crea'Star ouvre en 2028 dans le Brabant Wallon — un école artistique de création musicale où scène, studio, formation et création sont réunis sous un même toit.
                   </p>
                 </Reveal>
                 <Reveal delay={3}>
@@ -218,7 +218,7 @@ export default function NotreEcolePage() {
                       {[
                         { label: "Scène finale", value: "1×/an" },
                         { label: "Studio", value: "Inclus" },
-                        { label: "Lieu", value: "Brabant Wallon" },
+                        { label: "Lieu", value: "Braine l'Alleud" },
                       ].map((s) => (
                         <div key={s.label} className="px-5 py-4">
                           <p className="text-[10px] uppercase tracking-[0.22em] text-white/50">{s.label}</p>
