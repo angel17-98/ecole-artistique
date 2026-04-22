@@ -684,7 +684,7 @@ export default function CoursIndividuelsPage() {
                 <div className="mt-12 flex flex-col gap-3 sm:flex-row">
                   <Link
                     href="/login"
-                    className="inline-flex items-center justify-center rounded-full bg-[rgb(22,92,71)] px-7 py-3.5 text-sm font-semibold text-white transition hover:bg-[rgb(15,75,57)]"
+                    className="inline-flex items-center justify-center rounded-full bg-[rgb(22,92,71)] px-7 py-3.5 text-sm font-semibold !text-white transition hover:bg-[rgb(15,75,57)]"
                   >
                     Créer mon compte élève →
                   </Link>
