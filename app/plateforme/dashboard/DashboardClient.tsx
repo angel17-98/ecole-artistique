@@ -17,6 +17,7 @@ const navItems = [
   { href: "/plateforme/planning", label: "Planning", icon: "◈" },
   { href: "/plateforme/dossier", label: "Mon dossier", icon: "◉" },
   { href: "/plateforme/medias", label: "Médias", icon: "◆" },
+  { href: "/plateforme/mon-compte", label: "Mon compte", icon: "◎" },
 ];
 
 // ─── CARTE FIDÉLITÉ ──────────────────────────────────────────
@@ -64,7 +65,7 @@ function CarteFidelite({ carte, label, icon, href }: {
       <div className="mt-auto">
         <Link
           href={href}
-          className={`flex items-center justify-center gap-1.5 w-full bg-primary rounded-full py-2.5 text-xs !text-white font-semibold transition ${
+          className={`flex items-center justify-center bg-primary/40 gap-1.5 w-full rounded-full py-2.5 text-xs font-semibold transition ${
             isFull
               ? "bg-[rgb(185,151,83)] text-white hover:bg-[rgb(165,131,63)]"
               : "border border-[rgb(22,92,71)]/20 text-[rgb(22,92,71)] hover:bg-[rgb(22,92,71)]/5"
@@ -93,7 +94,7 @@ function Sidebar({ active }: { active: string }) {
               href={item.href}
               className={`flex items-center gap-3 rounded-[14px] px-3 py-2.5 text-sm font-medium transition ${
                 isActive
-                  ? "bg-[rgb(22,92,71)] text-white"
+                  ? "bg-[rgb(22,92,71)] !text-white"
                   : "text-black/60 hover:bg-black/4 hover:text-black"
               }`}
             >
@@ -111,17 +112,16 @@ function Sidebar({ active }: { active: string }) {
 
 // ─── BOTTOM NAV MOBILE ───────────────────────────────────────
 function BottomNav({ active }: { active: string }) {
-  const mobileItems = navItems.slice(0, 5);
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-black/6 shadow-[0_-4px_20px_rgba(16,16,16,0.06)]">
       <div className="flex items-stretch">
-        {mobileItems.map((item) => {
+        {navItems.map((item) => {
           const isActive = active === item.href;
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium transition ${
+              className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium transition relative ${
                 isActive ? "text-[rgb(22,92,71)]" : "text-black/40"
               }`}
             >
@@ -319,17 +319,17 @@ export default function DashboardClient({ profile, foyer, eleves, fidelite }: Pr
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <CarteFidelite
-                carte={carteCours}
-                label="Cours individuels"
-                icon="◎"
-                href="/plateforme/cours-individuels"
+                  carte={carteCours}
+                  label="Cours individuels"
+                  icon="◎"
+                  href="/plateforme/cours-individuels"
                 />
                 <CarteFidelite
-                carte={carteLocation}
-                label="Location de salles"
-                icon="◈"
-                href="/plateforme/locations"
-                />              
+                  carte={carteLocation}
+                  label="Location de salles"
+                  icon="◈"
+                  href="/plateforme/locations"
+                />
               </div>
             </div>
 
