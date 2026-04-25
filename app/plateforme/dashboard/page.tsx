@@ -24,12 +24,41 @@ export default async function DashboardPage() {
     .select("*")
     .eq("foyer_id", foyer?.id ?? "");
 
+  // ── Vraies notifications depuis la base ──────────────────────────────────
+  const { data: notifications } = await supabase
+    .from("notifications")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  // ── Messages non lus dans les discussions ────────────────────────────────
+  // Compter les convs avec messages non lus
+  const { data: convs } = await supabase
+    .from("conversations")
+    .select("id")
+    .contains("participants", [user.id]);
+
+  let unreadDiscussions = 0;
+  if (convs && convs.length > 0) {
+    for (const conv of convs) {
+      const { count } = await supabase
+        .from("messages")
+        .select("id", { count: "exact", head: true })
+        .eq("conversation_id", conv.id)
+        .not("lu_par", "cs", `{${user.id}}`);
+      unreadDiscussions += count ?? 0;
+    }
+  }
+
   return (
     <DashboardClient
       profile={profile}
       foyer={foyer}
       eleves={foyer?.eleves || []}
       fidelite={fidelite || []}
+      initialNotifications={notifications || []}
+      unreadDiscussions={unreadDiscussions}
     />
   );
 }

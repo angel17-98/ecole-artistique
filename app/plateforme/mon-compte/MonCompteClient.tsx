@@ -4,15 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/plateforme/supabase/client";
 import { useRouter } from "next/navigation";
+import PlatformShell, { ShellProfile, ShellEleve } from "@/app/components/plateforme/PlatformShell";
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
-interface Profile {
-  id: string;
-  role: string;
-  prenom: string | null;
-  nom: string | null;
-  telephone: string | null;
-}
 interface Eleve {
   id: string;
   prenom: string;
@@ -29,66 +23,34 @@ interface Foyer {
   ville: string | null;
 }
 interface Props {
-  profile: Profile;
+  profile: ShellProfile & { telephone?: string | null };
   foyer: Foyer;
   eleves: Eleve[];
   email: string;
 }
 
-// ─── NAV ITEMS ───────────────────────────────────────────────────────────────
-const navItems = [
-  { href: "/plateforme/dashboard", label: "Accueil", icon: "⌂" },
-  { href: "/plateforme/planning", label: "Planning", icon: "◈" },
-  { href: "/plateforme/dossier", label: "Mon dossier", icon: "◉" },
-  { href: "/plateforme/medias", label: "Médias", icon: "◆" },
-  { href: "/plateforme/mon-compte", label: "Mon compte", icon: "◎" },
-];
-
 // ─── MODALE DE CONFIRMATION GÉNÉRIQUE ────────────────────────────────────────
 function ModalConfirmation({
-  titre,
-  message,
-  labelConfirm,
-  danger,
-  loading,
-  onConfirm,
-  onCancel,
+  titre, message, labelConfirm, danger, loading, onConfirm, onCancel,
 }: {
-  titre: string;
-  message: string;
-  labelConfirm: string;
-  danger?: boolean;
-  loading: boolean;
-  onConfirm: () => void;
-  onCancel: () => void;
+  titre: string; message: string; labelConfirm: string;
+  danger?: boolean; loading: boolean; onConfirm: () => void; onCancel: () => void;
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-5">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-        onClick={onCancel}
-      />
-      {/* Panneau */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
       <div className="relative w-full max-w-sm rounded-[24px] bg-white shadow-[0_24px_80px_rgba(0,0,0,0.20)] p-6">
-        {/* Icône */}
-        <div className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full ${
-          danger ? "bg-red-50" : "bg-[rgb(239,244,239)]"
-        }`}>
+        <div className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full ${danger ? "bg-red-50" : "bg-[rgb(239,244,239)]"}`}>
           <span className="text-xl">{danger ? "⚠️" : "❓"}</span>
         </div>
-
         <h2 className="text-center text-base font-semibold text-black mb-2">{titre}</h2>
         <p className="text-center text-sm text-black/55 leading-6 mb-6">{message}</p>
-
         <div className="flex flex-col gap-2">
           <button
             onClick={onConfirm}
             disabled={loading}
             className={`w-full rounded-full py-3 text-sm font-semibold text-white transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${
-              danger
-                ? "bg-red-500 hover:bg-red-600"
-                : "bg-[rgb(22,92,71)] hover:bg-[rgb(18,75,58)]"
+              danger ? "bg-red-500 hover:bg-red-600" : "bg-[rgb(22,92,71)] hover:bg-[rgb(18,75,58)]"
             }`}
           >
             {loading ? "En cours…" : labelConfirm}
@@ -103,68 +65,6 @@ function ModalConfirmation({
         </div>
       </div>
     </div>
-  );
-}
-
-// ─── SIDEBAR ─────────────────────────────────────────────────────────────────
-function Sidebar({ active }: { active: string }) {
-  return (
-    <aside className="hidden lg:flex flex-col w-56 xl:w-64 shrink-0">
-      <nav className="sticky top-28 space-y-1">
-        <p className="px-3 mb-3 text-[10px] font-semibold uppercase tracking-[0.20em] text-black/30">
-          Navigation
-        </p>
-        {navItems.map((item) => {
-          const isActive = active === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 rounded-[14px] px-3 py-2.5 text-sm font-medium transition ${
-                isActive
-                  ? "bg-[rgb(22,92,71)] text-white"
-                  : "text-black/60 hover:bg-black/4 hover:text-black"
-              }`}
-            >
-              <span className={`text-base ${isActive ? "text-white" : "text-[rgb(22,92,71)]"}`}>
-                {item.icon}
-              </span>
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
-    </aside>
-  );
-}
-
-// ─── BOTTOM NAV MOBILE ────────────────────────────────────────────────────────
-function BottomNav({ active }: { active: string }) {
-  return (
-    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-black/6 shadow-[0_-4px_20px_rgba(16,16,16,0.06)]">
-      <div className="flex items-stretch">
-        {navItems.map((item) => {
-          const isActive = active === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex-1 flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium transition relative ${
-                isActive ? "text-[rgb(22,92,71)]" : "text-black/40"
-              }`}
-            >
-              <span className={`text-lg leading-none ${isActive ? "text-[rgb(22,92,71)]" : "text-black/30"}`}>
-                {item.icon}
-              </span>
-              <span className="leading-none">{item.label}</span>
-              {isActive && (
-                <span className="absolute bottom-0 w-8 h-0.5 rounded-full bg-[rgb(22,92,71)]" />
-              )}
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
   );
 }
 
@@ -221,36 +121,55 @@ function SectionFoyer({ foyer }: { foyer: Foyer }) {
 
   return (
     <div className="rounded-[20px] border border-black/6 bg-white p-6 shadow-[0_2px_12px_rgba(16,16,16,0.04)]">
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-5">
         <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-[rgb(239,244,239)] text-base">🏠</div>
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.20em] text-black/30">Informations</p>
           <p className="text-sm font-semibold text-black">Mon foyer</p>
         </div>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        {[
-          { label: "Nom de famille", value: nom, set: setNom, placeholder: "Dupont", type: "text" },
-          { label: "Téléphone", value: telephone, set: setTelephone, placeholder: "+32 470 00 00 00", type: "tel" },
-          { label: "Ville", value: ville, set: setVille, placeholder: "Bruxelles", type: "text" },
-          { label: "Adresse", value: adresse, set: setAdresse, placeholder: "Rue de l'exemple 12", type: "text", optional: true },
-        ].map(({ label, value, set, placeholder, type, optional }) => (
-          <div key={label}>
-            <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-black/40 mb-2">
-              {label}{optional && <span className="normal-case tracking-normal font-normal text-black/25 ml-1">(optionnel)</span>}
-            </label>
-            <input type={type} value={value} onChange={(e) => set(e.target.value)} placeholder={placeholder}
-              className="w-full rounded-[14px] border border-black/10 bg-[rgb(247,250,247)] px-4 py-3 text-sm text-black placeholder:text-black/25 focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition" />
+      <div className="space-y-3">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-black/40 mb-1.5">Nom du foyer</label>
+            <input
+              type="text" value={nom} onChange={e => setNom(e.target.value)}
+              className="w-full rounded-[12px] border border-black/10 bg-[rgb(247,250,247)] px-3.5 py-2.5 text-sm text-black focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition"
+            />
           </div>
-        ))}
-      </div>
-      {error && <div className="mt-4 rounded-[12px] bg-red-50 border border-red-100 px-4 py-3"><p className="text-sm text-red-600">{error}</p></div>}
-      <div className="mt-5 flex items-center gap-3">
-        <button onClick={handleSave} disabled={!dirty || saving}
-          className="rounded-full bg-[rgb(22,92,71)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[rgb(18,75,58)] active:scale-[0.98] disabled:opacity-30 disabled:cursor-not-allowed">
-          {saving ? "Sauvegarde…" : "Sauvegarder"}
-        </button>
-        {success && <span className="text-sm text-[rgb(22,92,71)] font-medium">✓ Modifications enregistrées</span>}
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-black/40 mb-1.5">Téléphone</label>
+            <input
+              type="tel" value={telephone} onChange={e => setTelephone(e.target.value)}
+              className="w-full rounded-[12px] border border-black/10 bg-[rgb(247,250,247)] px-3.5 py-2.5 text-sm text-black focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-black/40 mb-1.5">Adresse</label>
+          <input
+            type="text" value={adresse} onChange={e => setAdresse(e.target.value)}
+            className="w-full rounded-[12px] border border-black/10 bg-[rgb(247,250,247)] px-3.5 py-2.5 text-sm text-black focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-black/40 mb-1.5">Ville</label>
+          <input
+            type="text" value={ville} onChange={e => setVille(e.target.value)}
+            className="w-full rounded-[12px] border border-black/10 bg-[rgb(247,250,247)] px-3.5 py-2.5 text-sm text-black focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition"
+          />
+        </div>
+        {error && <p className="text-xs text-red-500">{error}</p>}
+        <div className="flex items-center gap-3 pt-1">
+          <button
+            onClick={handleSave}
+            disabled={!dirty || saving}
+            className="rounded-full bg-[rgb(22,92,71)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[rgb(18,75,58)] disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            {saving ? "Sauvegarde…" : "Sauvegarder"}
+          </button>
+          {success && <span className="text-sm text-[rgb(22,92,71)] font-medium">✓ Modifications enregistrées</span>}
+        </div>
       </div>
     </div>
   );
@@ -258,16 +177,9 @@ function SectionFoyer({ foyer }: { foyer: Foyer }) {
 
 // ─── CARTE ÉLÈVE ──────────────────────────────────────────────────────────────
 function CarteEleve({
-  eleve,
-  isActive,
-  isSeul,
-  onSelect,
-  onUpdated,
-  onDeleted,
+  eleve, isActive, isSeul, onSelect, onUpdated, onDeleted,
 }: {
-  eleve: Eleve;
-  isActive: boolean;
-  isSeul: boolean; // s'il est le seul élève du foyer, on ne peut pas le supprimer
+  eleve: Eleve; isActive: boolean; isSeul: boolean;
   onSelect: () => void;
   onUpdated: (updated: Eleve) => void;
   onDeleted: (id: string) => void;
@@ -307,10 +219,7 @@ function CarteEleve({
       body: JSON.stringify({ eleveId: eleve.id }),
     });
     setDeleting(false);
-    if (res.ok) {
-      setConfirmDelete(false);
-      onDeleted(eleve.id);
-    }
+    if (res.ok) { setConfirmDelete(false); onDeleted(eleve.id); }
   };
 
   const age = eleve.date_naissance
@@ -319,7 +228,6 @@ function CarteEleve({
 
   return (
     <>
-      {/* Modale suppression élève */}
       {confirmDelete && (
         <ModalConfirmation
           titre={`Supprimer ${eleve.prenom} ?`}
@@ -333,11 +241,13 @@ function CarteEleve({
       )}
 
       <div className={`rounded-[20px] border-2 transition-all duration-200 ${
-        isActive ? "border-[rgb(22,92,71)] bg-white shadow-[0_4px_20px_rgba(22,92,71,0.10)]" : "border-black/6 bg-white shadow-[0_2px_12px_rgba(16,16,16,0.04)]"
+        isActive
+          ? "border-[rgb(22,92,71)] bg-white shadow-[0_4px_20px_rgba(22,92,71,0.10)]"
+          : "border-black/6 bg-white shadow-[0_2px_12px_rgba(16,16,16,0.04)]"
       }`}>
         <button onClick={onSelect} className="w-full flex items-center gap-4 p-5 text-left">
           <div className="relative">
-            <Avatar prenom={eleve.prenom} nom={eleve.nom} size="lg" />
+            <Avatar prenom={eleve.prenom} nom={eleve.nom} size="md" />
             {isActive && (
               <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[rgb(22,92,71)] text-white text-[10px] font-bold shadow-sm">✓</span>
             )}
@@ -366,7 +276,6 @@ function CarteEleve({
                 <button onClick={() => setEditing(true)} className="text-xs font-medium text-[rgb(22,92,71)] hover:underline">
                   ✏️ Modifier les informations
                 </button>
-                {/* Suppression désactivée si élève unique */}
                 {!isSeul ? (
                   <button
                     onClick={() => setConfirmDelete(true)}
@@ -383,27 +292,37 @@ function CarteEleve({
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-black/40 mb-1.5">Prénom</label>
-                    <input type="text" value={prenom} onChange={(e) => setPrenom(e.target.value)}
-                      className="w-full rounded-[12px] border border-black/10 bg-[rgb(247,250,247)] px-3.5 py-2.5 text-sm text-black focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition" />
+                    <input
+                      type="text" value={prenom} onChange={e => setPrenom(e.target.value)}
+                      className="w-full rounded-[12px] border border-black/10 bg-[rgb(247,250,247)] px-3.5 py-2.5 text-sm text-black focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition"
+                    />
                   </div>
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-black/40 mb-1.5">Nom</label>
-                    <input type="text" value={nom} onChange={(e) => setNom(e.target.value)}
-                      className="w-full rounded-[12px] border border-black/10 bg-[rgb(247,250,247)] px-3.5 py-2.5 text-sm text-black focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition" />
+                    <input
+                      type="text" value={nom} onChange={e => setNom(e.target.value)}
+                      className="w-full rounded-[12px] border border-black/10 bg-[rgb(247,250,247)] px-3.5 py-2.5 text-sm text-black focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition"
+                    />
                   </div>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-black/40 mb-1.5">Date de naissance</label>
-                  <input type="date" value={dateNaissance} onChange={(e) => setDateNaissance(e.target.value)}
-                    className="w-full rounded-[12px] border border-black/10 bg-[rgb(247,250,247)] px-3.5 py-2.5 text-sm text-black focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition" />
+                  <input
+                    type="date" value={dateNaissance} onChange={e => setDateNaissance(e.target.value)}
+                    className="w-full rounded-[12px] border border-black/10 bg-[rgb(247,250,247)] px-3.5 py-2.5 text-sm text-black focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition"
+                  />
                 </div>
                 <div className="flex gap-2 pt-1">
-                  <button onClick={handleSave} disabled={saving}
-                    className="rounded-full bg-[rgb(22,92,71)] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[rgb(18,75,58)] disabled:opacity-50">
-                    {saving ? "Sauvegarde…" : "Enregistrer"}
+                  <button
+                    onClick={handleSave} disabled={saving}
+                    className="rounded-full bg-[rgb(22,92,71)] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[rgb(18,75,58)] disabled:opacity-50"
+                  >
+                    {saving ? "Sauvegarde…" : "Sauvegarder"}
                   </button>
-                  <button onClick={() => { setEditing(false); setPrenom(eleve.prenom); setNom(eleve.nom); setDateNaissance(eleve.date_naissance ?? ""); }}
-                    className="rounded-full border border-black/10 px-4 py-2 text-xs font-medium text-black/50 transition hover:bg-black/4">
+                  <button
+                    onClick={() => { setEditing(false); setPrenom(eleve.prenom); setNom(eleve.nom); setDateNaissance(eleve.date_naissance ?? ""); }}
+                    className="rounded-full border border-black/10 px-4 py-2 text-xs font-medium text-black/50 transition hover:bg-black/4"
+                  >
                     Annuler
                   </button>
                 </div>
@@ -416,7 +335,7 @@ function CarteEleve({
   );
 }
 
-// ─── AJOUTER ÉLÈVE ────────────────────────────────────────────────────────────
+// ─── AJOUTER UN ÉLÈVE ─────────────────────────────────────────────────────────
 function AjouterEleve({ foyerId, onAdded }: { foyerId: string; onAdded: (e: Eleve) => void }) {
   const [open, setOpen] = useState(false);
   const [prenom, setPrenom] = useState("");
@@ -432,54 +351,67 @@ function AjouterEleve({ foyerId, onAdded }: { foyerId: string; onAdded: (e: Elev
     const { data, error: err } = await supabase
       .from("eleves")
       .insert({ foyer_id: foyerId, prenom: prenom.trim(), nom: nom.trim(), date_naissance: dateNaissance || null, statut_premium: false })
-      .select().single();
+      .select()
+      .single();
     setSaving(false);
-    if (err || !data) { setError("Erreur : " + (err?.message ?? "inconnue")); return; }
+    if (err) { setError("Erreur lors de l'ajout."); return; }
     onAdded(data as Eleve);
-    setPrenom(""); setNom(""); setDateNaissance(""); setOpen(false);
+    setOpen(false); setPrenom(""); setNom(""); setDateNaissance("");
   };
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)}
-        className="w-full flex items-center gap-3 rounded-[20px] border-2 border-dashed border-black/10 bg-transparent px-5 py-4 text-sm font-medium text-black/40 transition hover:border-[rgb(22,92,71)]/30 hover:text-[rgb(22,92,71)] hover:bg-[rgb(239,244,239)]/50 group">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 border-dashed border-black/15 text-lg text-black/25 transition group-hover:border-[rgb(22,92,71)]/40 group-hover:text-[rgb(22,92,71)]">+</span>
-        <span>Ajouter un élève au foyer</span>
+      <button
+        onClick={() => setOpen(true)}
+        className="flex items-center justify-center gap-2 w-full rounded-[20px] border-2 border-dashed border-black/10 py-4 text-sm font-medium text-black/40 transition hover:border-[rgb(22,92,71)]/30 hover:text-[rgb(22,92,71)]"
+      >
+        <span className="text-lg">+</span>
+        Ajouter un élève au foyer
       </button>
     );
   }
 
   return (
-    <div className="rounded-[20px] border-2 border-[rgb(22,92,71)]/20 bg-[rgb(239,244,239)]/40 p-5">
-      <p className="text-sm font-semibold text-black mb-4">Nouvel élève</p>
+    <div className="rounded-[20px] border-2 border-[rgb(22,92,71)]/30 bg-white p-5 shadow-[0_2px_12px_rgba(22,92,71,0.08)]">
+      <p className="text-sm font-semibold text-black mb-4">Nouveau profil élève</p>
       <div className="space-y-3">
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
             <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-black/40 mb-1.5">Prénom *</label>
-            <input type="text" value={prenom} onChange={(e) => setPrenom(e.target.value)} placeholder="Emma"
-              className="w-full rounded-[12px] border border-black/10 bg-white px-3.5 py-2.5 text-sm text-black placeholder:text-black/25 focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition" />
+            <input
+              type="text" value={prenom} onChange={e => setPrenom(e.target.value)} placeholder="Emma"
+              className="w-full rounded-[12px] border border-black/10 bg-white px-3.5 py-2.5 text-sm text-black placeholder:text-black/25 focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition"
+            />
           </div>
           <div>
             <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-black/40 mb-1.5">Nom *</label>
-            <input type="text" value={nom} onChange={(e) => setNom(e.target.value)} placeholder="Dupont"
-              className="w-full rounded-[12px] border border-black/10 bg-white px-3.5 py-2.5 text-sm text-black placeholder:text-black/25 focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition" />
+            <input
+              type="text" value={nom} onChange={e => setNom(e.target.value)} placeholder="Dupont"
+              className="w-full rounded-[12px] border border-black/10 bg-white px-3.5 py-2.5 text-sm text-black placeholder:text-black/25 focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition"
+            />
           </div>
         </div>
         <div>
           <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-black/40 mb-1.5">
             Date de naissance <span className="normal-case tracking-normal font-normal text-black/25">(optionnel)</span>
           </label>
-          <input type="date" value={dateNaissance} onChange={(e) => setDateNaissance(e.target.value)}
-            className="w-full rounded-[12px] border border-black/10 bg-white px-3.5 py-2.5 text-sm text-black focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition" />
+          <input
+            type="date" value={dateNaissance} onChange={e => setDateNaissance(e.target.value)}
+            className="w-full rounded-[12px] border border-black/10 bg-white px-3.5 py-2.5 text-sm text-black focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition"
+          />
         </div>
         {error && <p className="text-xs text-red-500">{error}</p>}
         <div className="flex gap-2 pt-1">
-          <button onClick={handleAdd} disabled={!prenom.trim() || !nom.trim() || saving}
-            className="rounded-full bg-[rgb(22,92,71)] px-5 py-2.5 text-xs font-semibold text-white transition hover:bg-[rgb(18,75,58)] disabled:opacity-30 disabled:cursor-not-allowed">
+          <button
+            onClick={handleAdd} disabled={!prenom.trim() || !nom.trim() || saving}
+            className="rounded-full bg-[rgb(22,92,71)] px-5 py-2.5 text-xs font-semibold text-white transition hover:bg-[rgb(18,75,58)] disabled:opacity-30 disabled:cursor-not-allowed"
+          >
             {saving ? "Ajout…" : "Ajouter l'élève"}
           </button>
-          <button onClick={() => { setOpen(false); setPrenom(""); setNom(""); setDateNaissance(""); }}
-            className="rounded-full border border-black/10 px-5 py-2.5 text-xs font-medium text-black/50 transition hover:bg-black/4">
+          <button
+            onClick={() => { setOpen(false); setPrenom(""); setNom(""); setDateNaissance(""); }}
+            className="rounded-full border border-black/10 px-5 py-2.5 text-xs font-medium text-black/50 transition hover:bg-black/4"
+          >
             Annuler
           </button>
         </div>
@@ -488,7 +420,7 @@ function AjouterEleve({ foyerId, onAdded }: { foyerId: string; onAdded: (e: Elev
   );
 }
 
-// ─── SECTION SÉCURITÉ ─────────────────────────────────────────────────────────
+// ─── SECTION SÉCURITÉ ────────────────────────────────────────────────────────
 function SectionSecurite() {
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
@@ -530,17 +462,21 @@ function SectionSecurite() {
       <div className="space-y-4 max-w-sm">
         <div>
           <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-black/40 mb-2">Mot de passe actuel</label>
-          <input type="password" value={current} onChange={(e) => setCurrent(e.target.value)} placeholder="••••••••"
-            className="w-full rounded-[14px] border border-black/10 bg-[rgb(247,250,247)] px-4 py-3 text-sm text-black placeholder:text-black/25 focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition" />
+          <input
+            type="password" value={current} onChange={e => setCurrent(e.target.value)} placeholder="••••••••"
+            className="w-full rounded-[14px] border border-black/10 bg-[rgb(247,250,247)] px-4 py-3 text-sm text-black placeholder:text-black/25 focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition"
+          />
         </div>
         <div>
           <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-black/40 mb-2">Nouveau mot de passe</label>
-          <input type="password" value={next} onChange={(e) => setNext(e.target.value)} placeholder="••••••••"
-            className="w-full rounded-[14px] border border-black/10 bg-[rgb(247,250,247)] px-4 py-3 text-sm text-black placeholder:text-black/25 focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition" />
+          <input
+            type="password" value={next} onChange={e => setNext(e.target.value)} placeholder="••••••••"
+            className="w-full rounded-[14px] border border-black/10 bg-[rgb(247,250,247)] px-4 py-3 text-sm text-black placeholder:text-black/25 focus:border-[rgb(22,92,71)] focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/10 transition"
+          />
           {next.length > 0 && (
             <div className="mt-2 flex items-center gap-2">
               <div className="flex gap-1 flex-1">
-                {[1, 2, 3].map((i) => (
+                {[1, 2, 3].map(i => (
                   <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${i <= passwordStrength ? strengthColors[passwordStrength] : "bg-black/8"}`} />
                 ))}
               </div>
@@ -550,17 +486,21 @@ function SectionSecurite() {
         </div>
         <div>
           <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-black/40 mb-2">Confirmer</label>
-          <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="••••••••"
+          <input
+            type="password" value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="••••••••"
             className={`w-full rounded-[14px] border px-4 py-3 text-sm text-black placeholder:text-black/25 focus:outline-none focus:ring-2 transition ${
               confirm && next !== confirm
                 ? "border-red-200 bg-red-50 focus:border-red-300 focus:ring-red-100"
                 : "border-black/10 bg-[rgb(247,250,247)] focus:border-[rgb(22,92,71)] focus:ring-[rgb(22,92,71)]/10"
-            }`} />
+            }`}
+          />
         </div>
         {error && <p className="text-sm text-red-500">{error}</p>}
         <div className="flex items-center gap-3 pt-1">
-          <button onClick={handleChange} disabled={!current || !next || !confirm || saving}
-            className="rounded-full bg-[rgb(22,92,71)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[rgb(18,75,58)] disabled:opacity-30 disabled:cursor-not-allowed">
+          <button
+            onClick={handleChange} disabled={!current || !next || !confirm || saving}
+            className="rounded-full bg-[rgb(22,92,71)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[rgb(18,75,58)] disabled:opacity-30 disabled:cursor-not-allowed"
+          >
             {saving ? "Mise à jour…" : "Modifier le mot de passe"}
           </button>
           {success && <span className="text-sm text-[rgb(22,92,71)] font-medium">✓ Mis à jour</span>}
@@ -570,7 +510,7 @@ function SectionSecurite() {
   );
 }
 
-// ─── SECTION ZONE DANGER — SUPPRESSION COMPTE ─────────────────────────────────
+// ─── SECTION ZONE DANGER ──────────────────────────────────────────────────────
 function SectionSupprimerCompte() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -580,7 +520,6 @@ function SectionSupprimerCompte() {
     setDeleting(true);
     const res = await fetch("/api/plateforme/delete-account", { method: "DELETE" });
     if (res.ok) {
-      // Déconnexion côté client puis redirection
       const supabase = createClient();
       await supabase.auth.signOut();
       router.push("/?compte=supprime");
@@ -603,7 +542,6 @@ function SectionSupprimerCompte() {
           onCancel={() => setConfirmDelete(false)}
         />
       )}
-
       <div className="rounded-[20px] border border-red-100 bg-white p-6 shadow-[0_2px_12px_rgba(16,16,16,0.04)]">
         <div className="flex items-center gap-3 mb-4">
           <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-red-50 text-base">🗑️</div>
@@ -613,7 +551,7 @@ function SectionSupprimerCompte() {
           </div>
         </div>
         <p className="text-sm text-black/50 leading-6 mb-5">
-          La suppression de votre compte est définitive et irréversible. Tous vos profils élèves, 
+          La suppression de votre compte est définitive et irréversible. Tous vos profils élèves,
           votre historique et vos cartes fidélité seront effacés.
         </p>
         <button
@@ -631,125 +569,124 @@ function SectionSupprimerCompte() {
 export default function MonCompteClient({ profile, foyer, eleves: initialEleves, email }: Props) {
   const [eleves, setEleves] = useState<Eleve[]>(initialEleves);
   const [activeEleveId, setActiveEleveId] = useState<string>(initialEleves[0]?.id ?? "");
-  const active = "/plateforme/mon-compte";
 
   const handleEleveAdded = (nouvelEleve: Eleve) => {
-    setEleves((prev) => [...prev, nouvelEleve]);
+    setEleves(prev => [...prev, nouvelEleve]);
     setActiveEleveId(nouvelEleve.id);
   };
 
   const handleEleveUpdated = (updated: Eleve) => {
-    setEleves((prev) => prev.map((e) => (e.id === updated.id ? updated : e)));
+    setEleves(prev => prev.map(e => e.id === updated.id ? updated : e));
   };
 
   const handleEleveDeleted = (id: string) => {
-    const remaining = eleves.filter((e) => e.id !== id);
+    const remaining = eleves.filter(e => e.id !== id);
     setEleves(remaining);
-    // Si l'élève supprimé était actif, sélectionner le premier restant
     if (activeEleveId === id && remaining.length > 0) {
       setActiveEleveId(remaining[0].id);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[rgb(247,249,247)]">
-      <div className="max-w-6xl mx-auto px-5 sm:px-8 pt-6 pb-28 lg:pb-10">
-        <div className="flex gap-8 xl:gap-12">
-          <Sidebar active={active} />
+    <PlatformShell profile={profile} eleves={eleves}>
+      <div className="space-y-5">
 
-          <main className="flex-1 min-w-0 space-y-5">
-
-            {/* ── EN-TÊTE ── */}
-            <div className="rounded-[20px] border border-black/6 bg-white px-5 py-4 shadow-[0_2px_12px_rgba(16,16,16,0.04)]">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.20em] text-black/30">Foyer {foyer?.nom_famille}</p>
-                  <p className="mt-0.5 text-base font-semibold text-black">Mon compte</p>
-                </div>
-                <span className="text-xs text-black/35 hidden sm:block">{email}</span>
-              </div>
+        {/* ── EN-TÊTE ── */}
+        <div className="rounded-[20px] border border-black/6 bg-white px-5 py-4 shadow-[0_2px_12px_rgba(16,16,16,0.04)]">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.20em] text-black/30">Foyer {foyer?.nom_famille}</p>
+              <p className="mt-0.5 text-base font-semibold text-black">Mon compte</p>
             </div>
-
-            {/* ── ÉLÈVES ── */}
-            <div className="rounded-[20px] border border-black/6 bg-white p-5 shadow-[0_2px_12px_rgba(16,16,16,0.04)]">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-[rgb(239,244,239)] text-base">🎓</div>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.20em] text-black/30">Élèves</p>
-                  <p className="text-sm font-semibold text-black">
-                    {eleves.length === 1 ? "Profil élève du foyer" : `${eleves.length} élèves dans ce foyer`}
-                  </p>
-                </div>
-              </div>
-
-              {/* Chips switch rapide */}
-              {eleves.length > 1 && (
-                <div className="flex gap-2 flex-wrap mb-4 p-3 rounded-[16px] bg-[rgb(247,249,247)]">
-                  {eleves.map((e) => {
-                    const isChipActive = e.id === activeEleveId;
-                    return (
-                      <button key={e.id} onClick={() => setActiveEleveId(e.id)}
-                        className={`flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-medium transition-all duration-150 ${
-                          isChipActive
-                            ? "bg-[rgb(22,92,71)] text-white shadow-sm"
-                            : "bg-white border border-black/10 text-black/60 hover:border-[rgb(22,92,71)]/30 hover:text-[rgb(22,92,71)]"
-                        }`}>
-                        <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${isChipActive ? "bg-white/20" : "bg-black/6"}`}>
-                          {e.prenom[0]}{e.nom[0]}
-                        </span>
-                        {e.prenom}
-                        {e.statut_premium && <span className={`text-[9px] ${isChipActive ? "text-white/70" : "text-[rgb(22,92,71)]"}`}>★</span>}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              <div className="space-y-3">
-                {eleves.map((e) => (
-                  <CarteEleve
-                    key={e.id}
-                    eleve={e}
-                    isActive={e.id === activeEleveId}
-                    isSeul={eleves.length === 1}
-                    onSelect={() => setActiveEleveId(e.id)}
-                    onUpdated={handleEleveUpdated}
-                    onDeleted={handleEleveDeleted}
-                  />
-                ))}
-                <AjouterEleve foyerId={foyer.id} onAdded={handleEleveAdded} />
-              </div>
-            </div>
-
-            {/* ── FOYER ── */}
-            <SectionFoyer foyer={foyer} />
-
-            {/* ── EMAIL ── */}
-            <div className="rounded-[20px] border border-black/6 bg-white p-6 shadow-[0_2px_12px_rgba(16,16,16,0.04)]">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-[rgb(239,244,239)] text-base">✉️</div>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.20em] text-black/30">Connexion</p>
-                  <p className="text-sm font-semibold text-black">Adresse email</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 rounded-[14px] bg-[rgb(247,249,247)] border border-black/6 px-4 py-3">
-                <span className="text-sm text-black/70 flex-1">{email}</span>
-                <span className="text-xs text-black/30">Non modifiable</span>
-              </div>
-              <p className="mt-2 text-xs text-black/35 pl-1">Pour modifier l'email, contactez la direction.</p>
-            </div>
-
-            {/* ── MOT DE PASSE ── */}
-            <SectionSecurite />
-
-            {/* ── ZONE DANGER ── */}
-            <SectionSupprimerCompte />
-
-          </main>
+            <span className="text-xs text-black/35 hidden sm:block">{email}</span>
+          </div>
         </div>
+
+        {/* ── ÉLÈVES ── */}
+        <div className="rounded-[20px] border border-black/6 bg-white p-5 shadow-[0_2px_12px_rgba(16,16,16,0.04)]">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-[rgb(239,244,239)] text-base">🎓</div>
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.20em] text-black/30">Élèves</p>
+              <p className="text-sm font-semibold text-black">
+                {eleves.length === 1 ? "Profil élève du foyer" : `${eleves.length} élèves dans ce foyer`}
+              </p>
+            </div>
+          </div>
+
+          {/* Chips switch rapide */}
+          {eleves.length > 1 && (
+            <div className="flex gap-2 flex-wrap mb-4 p-3 rounded-[16px] bg-[rgb(247,249,247)]">
+              {eleves.map(e => {
+                const isChipActive = e.id === activeEleveId;
+                return (
+                  <button
+                    key={e.id}
+                    onClick={() => setActiveEleveId(e.id)}
+                    className={`flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-medium transition-all duration-150 ${
+                      isChipActive
+                        ? "bg-[rgb(22,92,71)] text-white shadow-sm"
+                        : "bg-white border border-black/10 text-black/60 hover:border-[rgb(22,92,71)]/30 hover:text-[rgb(22,92,71)]"
+                    }`}
+                  >
+                    <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${isChipActive ? "bg-white/20" : "bg-black/6"}`}>
+                      {e.prenom[0]}{e.nom[0]}
+                    </span>
+                    {e.prenom}
+                    {e.statut_premium && <span className={`text-[9px] ${isChipActive ? "text-white/70" : "text-[rgb(22,92,71)]"}`}>★</span>}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="space-y-3">
+            {eleves.map(e => (
+              <CarteEleve
+                key={e.id}
+                eleve={e}
+                isActive={e.id === activeEleveId}
+                isSeul={eleves.length === 1}
+                onSelect={() => setActiveEleveId(e.id)}
+                onUpdated={handleEleveUpdated}
+                onDeleted={handleEleveDeleted}
+              />
+            ))}
+            <AjouterEleve foyerId={foyer.id} onAdded={handleEleveAdded} />
+          </div>
+        </div>
+
+        {/* ── FOYER ── */}
+        <SectionFoyer foyer={foyer} />
+
+        {/* ── EMAIL ── */}
+        <div className="rounded-[20px] border border-black/6 bg-white p-6 shadow-[0_2px_12px_rgba(16,16,16,0.04)]">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-[rgb(239,244,239)] text-base">✉️</div>
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.20em] text-black/30">Connexion</p>
+              <p className="text-sm font-semibold text-black">Adresse email</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 rounded-[14px] bg-[rgb(247,249,247)] border border-black/6 px-4 py-3">
+            <span className="text-sm text-black/70 flex-1">{email}</span>
+            <span className="text-xs text-black/30">Non modifiable en ligne</span>
+          </div>
+          <p className="mt-2 text-xs text-black/35 pl-1">
+            Pour modifier votre adresse email, {" "}
+            <Link href="/contact" className="text-[rgb(22,92,71)] hover:underline font-medium">
+              contactez la direction
+            </Link>.
+          </p>
+        </div>
+
+        {/* ── MOT DE PASSE ── */}
+        <SectionSecurite />
+
+        {/* ── ZONE DANGER ── */}
+        <SectionSupprimerCompte />
+
       </div>
-      <BottomNav active={active} />
-    </div>
+    </PlatformShell>
   );
 }
