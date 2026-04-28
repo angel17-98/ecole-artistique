@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/plateforme/supabase/client";
+import { Home, CalendarDays, FolderOpen, UserCircle, MessageCircle, Image, Bell, Zap, Clock, GraduationCap, BookOpen, Star, DoorOpen, Users } from "lucide-react";
 
 // ─── TYPES EXPORTÉS ──────────────────────────────────────────────────────────
 export interface ShellProfile {
@@ -41,15 +42,10 @@ interface PlatformShellProps {
 
 // ─── NAV ITEMS ───────────────────────────────────────────────────────────────
 const navItems = [
-  { href: "/plateforme/dashboard",  label: "Accueil",  icon: "⌂" },
-  { href: "/plateforme/planning",   label: "Planning", icon: "◈" },
-  { href: "/plateforme/dossier",    label: "Dossier",  icon: "◉" },
-  { href: "/plateforme/mon-compte", label: "Compte",   icon: "◎" },
-];
-
-const sidebarExtra = [
-  { href: "/plateforme/messages", label: "Messages", icon: "✉" },
-  { href: "/plateforme/medias",   label: "Médias",   icon: "◆" },
+  { href: "/plateforme/dashboard", label: "Accueil", icon: <Home size={18} /> },
+  { href: "/plateforme/planning",  label: "Planning", icon: <CalendarDays size={18} /> },
+  { href: "/plateforme/dossier",   label: "Dossier",  icon: <FolderOpen size={18} /> },
+  { href: "/plateforme/mon-compte",label: "Compte",   icon: <UserCircle size={18} /> },
 ];
 
 // ─── EXPORTS UTILITAIRES ─────────────────────────────────────────────────────
@@ -264,15 +260,6 @@ function PlatformHeader({
             💬
             <CountBadge count={unreadDiscussions} />
           </Link>
-
-          {/* Avatar / déconnexion */}
-          <button
-            onClick={handleLogout}
-            title="Se déconnecter"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-[rgb(22,92,71)]/10 text-xs font-bold text-[rgb(22,92,71)] transition hover:bg-[rgb(22,92,71)]/20"
-          >
-            {profile.prenom?.[0]?.toUpperCase() ?? "?"}
-          </button>
         </div>
       </div>
     </header>
@@ -281,7 +268,7 @@ function PlatformHeader({
 
 // ─── SIDEBAR DESKTOP ─────────────────────────────────────────────────────────
 function Sidebar({ active }: { active: string }) {
-  const allItems = [...navItems, ...sidebarExtra];
+  const allItems = [...navItems];
   return (
     <aside className="hidden lg:flex flex-col w-56 xl:w-64 shrink-0">
       <nav className="sticky top-20 space-y-1 pt-2">
@@ -293,7 +280,7 @@ function Sidebar({ active }: { active: string }) {
               key={item.href}
               href={item.href}
               className={`flex items-center gap-3 rounded-[14px] px-3 py-2.5 text-sm font-medium transition ${
-                isActive ? "bg-[rgb(22,92,71)] text-white" : "text-black/60 hover:bg-black/4 hover:text-black"
+                isActive ? "bg-[rgb(22,92,71)] !text-white" : "text-black/60 hover:bg-black/4 hover:text-black"
               }`}
             >
               <span className={`text-base ${isActive ? "text-white" : "text-[rgb(22,92,71)]"}`}>{item.icon}</span>
