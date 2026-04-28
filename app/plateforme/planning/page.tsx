@@ -23,7 +23,20 @@ export default async function PlanningPage() {
   const activeEleve = eleves[0];
 
   // Récupérer les cours de l'élève actif (via inscriptions → parcours → cours)
-  let cours = [];
+  type CoursItem = {
+    id: string;
+    discipline: string;
+    date_heure_debut: string;
+    date_heure_fin: string;
+    prof_prenom?: string;
+    prof_nom?: string;
+    salle?: string;
+    statut: "planifie" | "annule" | "effectue";
+    parcours_nom?: string;
+  };
+
+  let cours: CoursItem[] = [];
+  
   if (activeEleve?.statut_premium && activeEleve?.id) {
     const { data: inscriptions } = await supabase
       .from("inscriptions")
