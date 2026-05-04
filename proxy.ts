@@ -78,8 +78,22 @@ export async function proxy(req: NextRequest) {
   }
 
   if (isPublicRoute && user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    console.log("PROXY role:", profile?.role, "error:", error?.message);
+
     const dashboardUrl = req.nextUrl.clone();
-    dashboardUrl.pathname = "/plateforme/dashboard";
+
+    if (profile?.role === "direction") {
+      dashboardUrl.pathname = "/plateforme/direction/profs";
+    } else {
+      dashboardUrl.pathname = "/plateforme/dashboard";
+    }
+
     return NextResponse.redirect(dashboardUrl);
   }
 

@@ -30,7 +30,19 @@ function LoginForm() {
       return;
     }
 
-    router.push(redirect);
+    // Vérifier le rôle pour rediriger au bon endroit
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", (await supabase.auth.getUser()).data.user?.id ?? "")
+      .single();
+
+    if (profile?.role === "direction") {
+      router.push("/plateforme/direction");
+    } else {
+      router.push(redirect);
+    }
+    
     router.refresh();
   };
 

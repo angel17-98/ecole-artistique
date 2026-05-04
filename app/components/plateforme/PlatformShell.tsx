@@ -196,6 +196,7 @@ function PlatformHeader({
   const [recusOpen, setRecusOpen] = useState(false);
   const recusRef = useRef<HTMLDivElement>(null);
   const unreadRecus = notifs.filter(n => !n.lu).length;
+  const homeHref = profile.role === "direction" ? "/plateforme/direction" : "/plateforme/dashboard";
   const isPremium = eleves.some(e => e.statut_premium);
   const router = useRouter();
   const supabase = createClient();
@@ -220,10 +221,12 @@ function PlatformHeader({
       <div className="max-w-6xl mx-auto px-5 sm:px-8 h-14 flex items-center justify-between gap-4">
 
         {/* Logo */}
-        <Link href="/plateforme/dashboard" className="flex items-center gap-2.5 shrink-0">
+        <Link href={homeHref} className="flex items-center gap-2.5 shrink-0">
           <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[rgb(22,92,71)]">CREA'STAR</span>
           <span className="hidden sm:block text-black/20 text-xs">|</span>
-          <span className="hidden sm:block text-[10px] text-black/40 uppercase tracking-[0.14em]">Espace élève</span>
+          <span className="hidden sm:block text-[10px] text-black/40 uppercase tracking-[0.14em]">
+            {profile.role === "direction" ? "Espace direction" : "Espace élève"}
+          </span>        
         </Link>
 
         {/* Cluster droite */}
