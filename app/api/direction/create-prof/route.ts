@@ -3,13 +3,14 @@ import { createClient } from "@/lib/plateforme/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
-// Client admin — uniquement côté serveur, jamais exposé au frontend
-const supabaseAdmin = createAdminClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export async function POST(req: Request) {
+  // Client admin — uniquement côté serveur, jamais exposé au frontend
+  const supabaseAdmin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
   // 1. Vérifier que c'est bien la direction qui appelle
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
