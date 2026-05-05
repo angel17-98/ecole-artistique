@@ -84,8 +84,6 @@ export async function proxy(req: NextRequest) {
       .eq("id", user.id)
       .single();
 
-    console.log("PROXY role:", profile?.role, "error:", error?.message);
-
     const dashboardUrl = req.nextUrl.clone();
 
     if (profile?.role === "direction") {
