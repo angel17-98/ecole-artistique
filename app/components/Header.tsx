@@ -110,22 +110,51 @@ function MobileGroup({
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const router = useRouter();
 
-  // ── Auth state ──────────────────────────────────────────
+  // ── Auth state + récupération du rôle ──────────────────
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+
+    async function fetchUserAndRole(userId: string) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", userId)
+        .single();
+      setUserRole(profile?.role ?? null);
+    }
+
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      if (data.user) fetchUserAndRole(data.user.id);
     });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      const u = session?.user ?? null;
+      setUser(u);
+      if (u) {
+        fetchUserAndRole(u.id);
+      } else {
+        setUserRole(null);
+      }
+    });
+
     return () => listener.subscription.unsubscribe();
   }, []);
+
+  // ── Href "Mon espace" selon le rôle ────────────────────
+  const monEspaceHref =
+    userRole === "direction"
+      ? "/plateforme/direction"
+      : "/plateforme/dashboard";
 
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
     setUser(null);
+    setUserRole(null);
     setMobileOpen(false);
     router.push("/");
     router.refresh();
@@ -178,7 +207,7 @@ export default function Header() {
               {user ? (
                 <>
                   <Link
-                    href="/plateforme/dashboard"
+                    href={monEspaceHref}
                     className="hidden md:inline-flex items-center justify-center rounded-full border border-white/50 bg-white/40 px-5 py-2.5 text-sm font-medium text-black transition duration-200 hover:bg-white/30 hover:text-white"
                   >
                     Mon espace
@@ -216,54 +245,41 @@ export default function Header() {
 
       {/* ── MENU MOBILE ── */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-[999] lg:hidden">
-          <button
-            aria-label="Fermer le menu"
-            className="absolute inset-0 bg-black/60 backdrop-blur-[3px]"
+        <div className="fixed inset-0 z-40 flex flex-col">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setMobileOpen(false)}
           />
 
-          <aside className="absolute right-0 top-0 h-[100dvh] w-[92%] max-w-sm overflow-y-auto overscroll-contain border-l border-white/10 bg-[linear-gradient(180deg,rgba(7,10,9,0.99)_0%,rgba(10,18,14,0.99)_100%)] p-5 shadow-[-20px_0_60px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+          {/* Drawer */}
+          <aside className="relative ml-auto flex h-full w-full max-w-sm flex-col overflow-y-auto bg-[rgb(10,10,10)] px-5 pb-10 pt-28 shadow-2xl">
+            <div className="space-y-3">
+              <MobileGroup
+                title="À propos"
+                items={aboutItems}
+                onNavigate={() => setMobileOpen(false)}
+              />
+              <MobileGroup
+                title="Nos cours"
+                items={courseItems}
+                onNavigate={() => setMobileOpen(false)}
+              />
+              <MobileGroup
+                title="Explorer"
+                items={[
+                  { href: "/stages", label: "Stages & Workshops" },
+                  { href: "/inscriptions", label: "Inscriptions" },
+                  { href: "/locations", label: "Réservation studio / salles" },
+                ]}
+                onNavigate={() => setMobileOpen(false)}
+              />
 
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs uppercase tracking-[0.24em] text-white/52">Navigation</p>
-                <p className="mt-1 text-sm text-white/84">CREA&apos;STAR</p>
-              </div>
-              <button
-                type="button"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/10 text-sm text-white transition hover:bg-white/16"
-                onClick={() => setMobileOpen(false)}
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="mt-8 space-y-5 pb-8 text-white/72">
-              <MobileGroup title="À propos" items={aboutItems} onNavigate={() => setMobileOpen(false)} />
-              <MobileGroup title="Nos cours" items={courseItems} onNavigate={() => setMobileOpen(false)} />
-
-              <div className="rounded-[24px] border border-white/10 bg-white/[0.06] p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/72">Autres</p>
-                <div className="mt-3 space-y-1">
-                  <Link href="/stages" onClick={() => setMobileOpen(false)} className="block rounded-[18px] px-3 py-3 text-sm font-medium text-white/82 transition duration-200 hover:bg-white/8 hover:text-white">
-                    Nos stages
-                  </Link>
-                  <Link href="/inscriptions" onClick={() => setMobileOpen(false)} className="block rounded-[18px] px-3 py-3 text-sm font-medium text-white/82 transition duration-200 hover:bg-white/8 hover:text-white">
-                    Inscriptions
-                  </Link>
-                  <Link href="/locations" onClick={() => setMobileOpen(false)} className="block rounded-[18px] px-3 py-3 text-sm font-medium text-white/82 transition duration-200 hover:bg-white/8 hover:text-white">
-                    Réservation studio / salles
-                  </Link>
-                </div>
-              </div>
-
-              {/* ── Auth mobile ── */}
-              <div className="border-t border-white/10 pt-5">
+              <div className="pt-2">
                 {user ? (
                   <div className="space-y-2">
                     <Link
-                      href="/plateforme/dashboard"
+                      href={monEspaceHref}
                       onClick={() => setMobileOpen(false)}
                       className="flex items-center justify-center gap-2 rounded-full bg-[rgb(22,92,71)] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[rgb(18,75,58)]"
                     >

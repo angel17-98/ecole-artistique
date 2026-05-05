@@ -95,6 +95,8 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(dashboardUrl);
   }
 
+  // ── Injecter le pathname pour que app/layout.tsx puisse masquer Header/Footer
+  supabaseResponse.headers.set("x-pathname", pathname);
   return supabaseResponse;
 }
 

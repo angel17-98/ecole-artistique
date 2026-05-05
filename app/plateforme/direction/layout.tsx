@@ -20,5 +20,13 @@ export default async function DirectionLayout({
 
   if (profile?.role !== "direction") redirect("/plateforme");
 
-  return <>{children}</>;
+  // Le pt-24 du layout global pousse le contenu de 96px sous le header.
+  // Le hero gère lui-même son paddingTop: 88px pour que le fond vert
+  // remonte visuellement sous le header sans cacher le contenu.
+  // On compense ici avec -mt-24 pour que le hero parte du bon endroit.
+  return (
+    <div className="-mt-24">
+      {children}
+    </div>
+  );
 }

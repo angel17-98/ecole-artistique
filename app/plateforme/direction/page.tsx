@@ -8,15 +8,15 @@ export default async function DirectionDashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/plateforme/login");
 
+  // ⚠️ Ajout de photo_url dans le select pour le hero personnalisé
   const { data: profile } = await supabase
     .from("profiles")
-    .select("*")
+    .select("id, role, prenom, nom, telephone, is_active, photo_url")
     .eq("id", user.id)
     .single();
 
   if (profile?.role !== "direction") redirect("/plateforme");
 
-  // ── Stats globales ────────────────────────────────────────────────
   const [
     { count: totalCandidatures },
     { count: candidaturesAttente },
@@ -37,7 +37,6 @@ export default async function DirectionDashboardPage() {
     supabase.from("candidatures").select("*").eq("statut", "en_attente").order("created_at", { ascending: true }),
   ]);
 
-  // Calcul messages non lus
   const messagesNonLus = (messagesData ?? []).reduce((acc: number, conv: any) => {
     const nonLus = (conv.messages ?? []).filter(
       (m: any) => !m.lu_par?.includes(user.id) && m.sender_id !== user.id
