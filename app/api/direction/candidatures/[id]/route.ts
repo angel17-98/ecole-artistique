@@ -289,9 +289,8 @@ export async function PATCH(
     await sendEmail({
       from: process.env.RESEND_FROM_EMAIL!,
       to: candidature.email,
-      replyTo: "info@creastar.be",
-      subject: emailObjet,
       replyTo: process.env.RESEND_TO_EMAIL!,
+      subject: emailObjet,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: rgb(22,92,71); padding: 32px; border-radius: 16px 16px 0 0;">
