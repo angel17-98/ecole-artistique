@@ -16,7 +16,7 @@ export default async function CandidatureDetailPage({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, prenom, nom")
     .eq("id", user.id)
     .single();
 
