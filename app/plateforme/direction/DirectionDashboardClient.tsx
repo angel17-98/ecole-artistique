@@ -102,7 +102,6 @@ function Sidebar({ stats, profile, photoSrc }: { stats: Stats; profile: any; pho
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push("/plateforme/login");
@@ -115,7 +114,7 @@ function Sidebar({ stats, profile, photoSrc }: { stats: Stats; profile: any; pho
         background: "rgb(8, 20, 14)",
         borderRight: "1px solid rgba(255,255,255,0.05)",
         top: "88px",
-        bottom: "0",
+        bottom: 0,
       }}
     >
       {/* Logo CS */}
@@ -257,8 +256,7 @@ export default function DirectionDashboardClient({
   ].filter(Boolean) as { label: string; href: string; color: string }[];
 
   return (
-    <div className="min-h-screen flex" style={{ background: "rgb(239,244,239)", paddingLeft: "72px" }}>
-      <Sidebar stats={stats} profile={profile} photoSrc={photoSrc} />
+    <div className="min-h-screen flex flex-col" style={{ background: "rgb(239,244,239)" }}>
 
       <div className="flex-1 flex flex-col min-w-0">
 

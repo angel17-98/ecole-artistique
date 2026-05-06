@@ -1,6 +1,19 @@
 // app/plateforme/direction/layout.tsx
 import { createClient } from "@/lib/plateforme/supabase/server";
 import { redirect } from "next/navigation";
+import DirectionSidebar from "./DirectionSidebar";
+
+function getProfilePhoto(prenom: string | null, photoUrl: string | null): string | null {
+  if (photoUrl) return photoUrl;
+  if (!prenom) return null;
+  const map: Record<string, string> = {
+    "Angélie": "/equipe/lisman-angelie.jpg",
+    "Angelie": "/equipe/lisman-angelie.jpg",
+    "Mélissa": "/equipe/delvaux-melissa.jpg",
+    "Melissa": "/equipe/delvaux-melissa.jpg",
+  };
+  return map[prenom] ?? null;
+}
 
 export default async function DirectionLayout({
   children,
@@ -9,23 +22,21 @@ export default async function DirectionLayout({
 }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-
   if (!user) redirect("/plateforme/login");
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, prenom, nom, photo_url")
     .eq("id", user.id)
     .single();
 
   if (profile?.role !== "direction") redirect("/plateforme");
 
-  // Le pt-24 du layout global pousse le contenu de 96px sous le header.
-  // Le hero gère lui-même son paddingTop: 88px pour que le fond vert
-  // remonte visuellement sous le header sans cacher le contenu.
-  // On compense ici avec -mt-24 pour que le hero parte du bon endroit.
+  const photoSrc = getProfilePhoto(profile?.prenom ?? null, profile?.photo_url ?? null);
+
   return (
-    <div className="-mt-24">
+    <div className="-mt-24 min-h-screen" style={{ paddingLeft: "72px" }}>
+      <DirectionSidebar profile={profile} photoSrc={photoSrc} />
       {children}
     </div>
   );
