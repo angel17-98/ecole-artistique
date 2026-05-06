@@ -31,11 +31,12 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  // ─── Auth plateforme ───────────────────────────────────────
+  // ─── Routes non-plateforme : on passe ─────────────────────
   if (!pathname.startsWith("/plateforme")) {
     return NextResponse.next();
   }
 
+  // ─── Auth plateforme ───────────────────────────────────────
   let supabaseResponse = NextResponse.next({ request: req });
 
   const supabase = createServerClient(
@@ -85,21 +86,14 @@ export async function proxy(req: NextRequest) {
       .single();
 
     const dashboardUrl = req.nextUrl.clone();
-
-    if (profile?.role === "direction") {
-      dashboardUrl.pathname = "/plateforme/direction/profs";
-    } else {
-      dashboardUrl.pathname = "/plateforme/dashboard";
-    }
+    dashboardUrl.pathname = profile?.role === "direction"
+      ? "/plateforme/direction/profs"
+      : "/plateforme/dashboard";
 
     return NextResponse.redirect(dashboardUrl);
   }
 
-  // ── Injecter le pathname pour que app/layout.tsx puisse masquer Header/Footer
+  // ── Injecter le pathname pour masquer Header/Footer ────────
   supabaseResponse.headers.set("x-pathname", pathname);
   return supabaseResponse;
 }
-
-export const config = {
-  matcher: ["/((?!_next/static|_next/image).*)"],
-};
