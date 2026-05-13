@@ -3,48 +3,44 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   FileText, Clock, CheckCircle2, XCircle, AlertCircle,
-  Hourglass, ChevronRight, Search, Filter, Calendar,
-  User, MapPin, Music, ArrowUpDown
+  Hourglass, ChevronRight, Search, ArrowUpDown
 } from "lucide-react";
 
-// Statuts affichés dans les filtres — regroupés logiquement
+// ── 4 FILTRES UNIQUEMENT ──────────────────────────────────────────────────────
 const STATUTS = [
-  { id: "tous",               label: "Toutes" },
-  { id: "en_attente",         label: "En attente" },
-  { id: "info_complementaire",label: "Info demandée" },
-  { id: "validee",            label: "Profil validé" },
-  { id: "liste_attente",      label: "Liste d'attente" },
-  { id: "place_proposee",     label: "Place proposée" },
-  { id: "inscrit",            label: "Inscrits" },
-  { id: "refusee",            label: "Refusées" },
+  { id: "tous",        label: "Toutes"      },
+  { id: "a_traiter",  label: "À traiter"   }, // en_attente + info_complementaire
+  { id: "acceptable", label: "Acceptables" }, // validee + acceptee
+  { id: "refusee",    label: "Refusées"    },
 ];
 
-// Pour le comptage, "acceptee" compte dans "validee" (legacy)
 function matchFiltre(candidature: any, filtre: string): boolean {
-  if (filtre === "tous") return true;
-  if (filtre === "validee") return ["validee", "acceptee"].includes(candidature.statut);
+  if (filtre === "tous")        return true;
+  if (filtre === "a_traiter")  return ["en_attente", "info_complementaire"].includes(candidature.statut);
+  if (filtre === "acceptable") return ["validee", "acceptee"].includes(candidature.statut);
   return candidature.statut === filtre;
 }
 
 const PARCOURS_LABELS: Record<string, string> = {
-  "full-artist": "Full Artist",
+  "full-artist":      "Full Artist",
   "comedie-musicale": "Comédie musicale",
-  "eveil-musical": "Éveil musical",
+  "eveil-musical":    "Éveil musical",
 };
 
 function statutConfig(statut: string) {
   switch (statut) {
-    case "en_attente":          return { label: "En attente",      bg: "bg-amber-50",  text: "text-amber-700",  border: "border-amber-200",  icon: <Clock size={11} /> };
+    case "en_attente":          return { label: "En attente",      bg: "bg-amber-50",   text: "text-amber-700",   border: "border-amber-200",   icon: <Clock size={11} /> };
+    case "info_complementaire": return { label: "Info demandée",   bg: "bg-purple-50",  text: "text-purple-700",  border: "border-purple-200",  icon: <AlertCircle size={11} /> };
     case "validee":
-    case "acceptee":            return { label: "Profil validé",   bg: "bg-green-50",  text: "text-green-700",  border: "border-green-200",  icon: <CheckCircle2 size={11} /> };
-    case "place_proposee":      return { label: "Place proposée",  bg: "bg-emerald-50",text: "text-emerald-700",border: "border-emerald-200",icon: <CheckCircle2 size={11} /> };
-    case "inscrit":             return { label: "Inscrit",         bg: "bg-green-100", text: "text-green-800",  border: "border-green-300",  icon: <CheckCircle2 size={11} /> };
-    case "refusee":             return { label: "Refusée",         bg: "bg-red-50",    text: "text-red-600",    border: "border-red-200",    icon: <XCircle size={11} /> };
-    case "liste_attente":       return { label: "Liste d'attente", bg: "bg-blue-50",   text: "text-blue-700",   border: "border-blue-200",   icon: <Hourglass size={11} /> };
-    case "info_complementaire": return { label: "Info demandée",   bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200", icon: <AlertCircle size={11} /> };
+    case "acceptee":            return { label: "Acceptable",      bg: "bg-green-50",   text: "text-green-700",   border: "border-green-200",   icon: <CheckCircle2 size={11} /> };
+    case "liste_attente":       return { label: "Liste d'attente", bg: "bg-blue-50",    text: "text-blue-700",    border: "border-blue-200",    icon: <Hourglass size={11} /> };
+    case "place_proposee":      return { label: "Place proposée",  bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200", icon: <CheckCircle2 size={11} /> };
+    case "sans_reponse":
+    case "expiree":             return { label: "Sans réponse",    bg: "bg-gray-50",    text: "text-gray-500",    border: "border-gray-200",    icon: <Clock size={11} /> };
+    case "inscrit":             return { label: "Inscrit",         bg: "bg-green-100",  text: "text-green-800",   border: "border-green-300",   icon: <CheckCircle2 size={11} /> };
+    case "refusee":             return { label: "Refusée",         bg: "bg-red-50",     text: "text-red-600",     border: "border-red-200",     icon: <XCircle size={11} /> };
     default: return { label: statut, bg: "bg-gray-50", text: "text-gray-600", border: "border-gray-200", icon: null };
   }
 }
@@ -56,24 +52,15 @@ function joursDepuis(dateStr: string) {
   return `Il y a ${diff}j`;
 }
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("fr-BE", {
-    day: "numeric", month: "short", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
-  });
-}
-
 export default function CandidaturesListClient({
-  candidatures, groupes,
+  candidatures,
 }: {
   candidatures: any[];
-  groupes: any[];
 }) {
-  const [filtre, setFiltre] = useState("en_attente");
-  const [search, setSearch] = useState("");
+  const [filtre, setFiltre]             = useState("a_traiter");
+  const [search, setSearch]             = useState("");
   const [parcoursFilt, setParcoursFilt] = useState("tous");
-  const [tri, setTri] = useState<"asc" | "desc">("asc");
-  const router = useRouter();
+  const [tri, setTri]                   = useState<"asc" | "desc">("asc");
 
   const filtered = candidatures
     .filter(c => {
@@ -93,7 +80,6 @@ export default function CandidaturesListClient({
     .sort((a, b) => {
       const da = new Date(a.created_at).getTime();
       const db = new Date(b.created_at).getTime();
-      // Tri forcé : "asc" = plus ancien d'abord (ordre d'arrivée)
       return tri === "asc" ? da - db : db - da;
     });
 
@@ -102,37 +88,37 @@ export default function CandidaturesListClient({
     return acc;
   }, {} as Record<string, number>);
 
-  const enAttente = candidatures.filter(c => c.statut === "en_attente").length;
+  const aTraiter = candidatures.filter(c =>
+    ["en_attente", "info_complementaire"].includes(c.statut)
+  ).length;
 
   return (
     <div className="min-h-screen" style={{ background: "rgb(239,244,239)" }}>
 
-      {/* ── HEADER PAGE ── */}
+      {/* ── HEADER ── */}
       <div className="px-10 lg:px-14 pb-6" style={{ paddingTop: "calc(88px + 24px)" }}>
         <div className="flex items-start justify-between">
           <div>
             <p className="text-[9px] font-bold uppercase tracking-[0.3em] mb-2" style={{ color: "rgb(185,151,83)" }}>
               Direction · Candidatures
             </p>
-            <h1 className="text-3xl font-semibold" style={{ color: "rgb(8,20,14)" }}>
-              Candidatures
-            </h1>
+            <h1 className="text-3xl font-semibold" style={{ color: "rgb(8,20,14)" }}>Candidatures</h1>
             <p className="text-sm mt-1" style={{ color: "rgba(0,0,0,0.4)" }}>
               {candidatures.length} candidature{candidatures.length > 1 ? "s" : ""} · triées par ordre d'arrivée
             </p>
           </div>
-          {enAttente > 0 && (
+          {aTraiter > 0 && (
             <div className="flex items-center gap-2 px-4 py-2.5 rounded-[14px]"
               style={{ background: "rgba(185,151,83,0.12)", border: "1px solid rgba(185,151,83,0.25)" }}>
               <Clock size={14} style={{ color: "rgb(185,151,83)" }} />
               <span className="text-sm font-semibold" style={{ color: "rgb(185,151,83)" }}>
-                {enAttente} en attente de traitement
+                {aTraiter} à traiter
               </span>
             </div>
           )}
         </div>
 
-        {/* ── FILTRES STATUT ── */}
+        {/* ── 4 FILTRES ── */}
         <div className="flex items-center gap-2 mt-6 flex-wrap">
           {STATUTS.map(s => (
             <button
@@ -141,15 +127,15 @@ export default function CandidaturesListClient({
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold transition-all"
               style={{
                 background: filtre === s.id ? "rgb(22,92,71)" : "white",
-                color: filtre === s.id ? "white" : "rgba(0,0,0,0.5)",
-                border: filtre === s.id ? "1px solid rgb(22,92,71)" : "1px solid rgba(0,0,0,0.08)",
+                color:      filtre === s.id ? "white" : "rgba(0,0,0,0.5)",
+                border:     filtre === s.id ? "1px solid rgb(22,92,71)" : "1px solid rgba(0,0,0,0.08)",
               }}
             >
               {s.label}
               <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold"
                 style={{
                   background: filtre === s.id ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.06)",
-                  color: filtre === s.id ? "white" : "rgba(0,0,0,0.4)",
+                  color:      filtre === s.id ? "white" : "rgba(0,0,0,0.4)",
                 }}>
                 {counts[s.id]}
               </span>
@@ -157,7 +143,7 @@ export default function CandidaturesListClient({
           ))}
         </div>
 
-        {/* ── BARRE DE RECHERCHE + FILTRES ── */}
+        {/* ── RECHERCHE + PARCOURS + TRI ── */}
         <div className="flex items-center gap-3 mt-4 flex-wrap">
           <div className="relative flex-1 min-w-[200px] max-w-sm">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "rgba(0,0,0,0.3)" }} />
@@ -167,11 +153,7 @@ export default function CandidaturesListClient({
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="w-full pl-9 pr-4 py-2.5 rounded-[12px] text-sm outline-none"
-              style={{
-                background: "white",
-                border: "1px solid rgba(0,0,0,0.08)",
-                color: "black",
-              }}
+              style={{ background: "white", border: "1px solid rgba(0,0,0,0.08)", color: "black" }}
             />
           </div>
 
@@ -242,13 +224,11 @@ export default function CandidaturesListClient({
                     background: isUrgent ? "rgba(254,243,199,0.3)" : "transparent",
                   }}
                 >
-                  {/* Numéro ordre d'arrivée */}
                   <span className="text-[11px] font-bold tabular-nums"
                     style={{ color: isUrgent ? "rgb(185,151,83)" : "rgba(0,0,0,0.2)" }}>
                     {String(idx + 1).padStart(2, "0")}
                   </span>
 
-                  {/* Candidat */}
                   <div className="flex items-center gap-3">
                     {isUrgent && (
                       <div className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0"
@@ -259,21 +239,15 @@ export default function CandidaturesListClient({
                       {c.prenom?.[0]}{c.nom?.[0]}
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-black leading-tight">
-                        {c.prenom} {c.nom}
-                      </p>
-                      <p className="text-[11px]" style={{ color: "rgba(0,0,0,0.4)" }}>
-                        {c.email}
-                      </p>
+                      <p className="text-sm font-semibold text-black leading-tight">{c.prenom} {c.nom}</p>
+                      <p className="text-[11px]" style={{ color: "rgba(0,0,0,0.4)" }}>{c.email}</p>
                     </div>
                   </div>
 
-                  {/* Parcours */}
                   <span className="text-[11px] font-medium" style={{ color: "rgba(0,0,0,0.6)" }}>
                     {PARCOURS_LABELS[c.parcours] ?? c.parcours}
                   </span>
 
-                  {/* Statut */}
                   <div>
                     <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold border ${st.bg} ${st.text} ${st.border}`}>
                       {st.icon}
@@ -281,18 +255,15 @@ export default function CandidaturesListClient({
                     </span>
                   </div>
 
-                  {/* Date */}
                   <span className="text-[11px]" style={{ color: "rgba(0,0,0,0.4)" }}>
                     {new Date(c.created_at).toLocaleDateString("fr-BE", { day: "numeric", month: "short" })}
                   </span>
 
-                  {/* Délai */}
-                  <span className={`text-[11px] font-semibold ${isUrgent ? "text-amber-600" : ""}`}
-                    style={{ color: isUrgent ? undefined : "rgba(0,0,0,0.35)" }}>
+                  <span className="text-[11px] font-semibold"
+                    style={{ color: isUrgent ? "rgb(185,151,83)" : "rgba(0,0,0,0.35)" }}>
                     {joursDepuis(c.created_at)}
                   </span>
 
-                  {/* Arrow */}
                   <ChevronRight size={15} className="text-black/20 group-hover:text-black/50 transition-colors" />
                 </Link>
               );
