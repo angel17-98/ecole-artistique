@@ -3,10 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-  Users, CheckCircle2, ExternalLink,
-  Plus, X, ChevronRight, Send, ArrowLeft,
-} from "lucide-react";
+import { CheckCircle2, X, Send, ArrowLeft, ExternalLink, Users, Calendar, Clock } from "lucide-react";
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 interface Groupe {
@@ -15,6 +12,10 @@ interface Groupe {
   parcours: string;
   places_max: number;
   annee_scolaire: string;
+  note?: string | null;
+  jour_semaine?: string | null;
+  heure_debut?: string | null;
+  heure_fin?: string | null;
 }
 
 interface Candidature {
@@ -56,42 +57,133 @@ function initiales(prenom: string, nom: string) {
   return `${prenom[0] ?? ""}${nom[0] ?? ""}`.toUpperCase();
 }
 
-function joursRestants(expireAt: string | null | undefined): number | null {
+function joursRestants(expireAt?: string | null): number | null {
   if (!expireAt) return null;
   const diff = new Date(expireAt).getTime() - Date.now();
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }
 
-function StatutDot({ statut, expireAt }: { statut?: string; expireAt?: string | null }) {
+function statutLabel(statut?: string, expireAt?: string | null) {
   const j = joursRestants(expireAt);
   if (statut === "inscrit")
-    return <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "rgb(99,153,34)" }} />;
+    return { label: "Inscrit", bg: "rgba(22,92,71,0.1)", color: "rgb(22,92,71)", dot: "rgb(99,153,34)" };
   if (statut === "place_proposee")
-    return <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: j !== null && j <= 1 ? "rgb(226,75,74)" : "rgb(186,117,23)" }} />;
-  return <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: "rgb(24,95,165)" }} />;
+    return { label: j !== null ? `J-${j}` : "En attente", bg: "rgba(185,151,83,0.12)", color: "rgb(146,95,14)", dot: j !== null && j <= 1 ? "rgb(220,38,38)" : "rgb(186,117,23)" };
+  return { label: "À proposer", bg: "rgba(24,95,165,0.08)", color: "rgb(24,95,165)", dot: "rgb(24,95,165)" };
+}
+
+function formatHeure(h?: string | null) {
+  if (!h) return "";
+  return h.slice(0, 5);
+}
+
+// ── NOTE GROUPE — éditable inline ─────────────────────────────────────────────
+function NoteGroupe({ groupeId, noteInitiale }: { groupeId: string; noteInitiale?: string | null }) {
+  const [note, setNote]       = useState(noteInitiale ?? "");
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving]   = useState(false);
+  const [saved, setSaved]     = useState(false);
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await fetch(`/api/direction/groupes/${groupeId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ note }),
+      });
+      setSaved(true);
+      setEditing(false);
+      setTimeout(() => setSaved(false), 2000);
+    } catch {}
+    finally { setSaving(false); }
+  };
+
+  if (editing) {
+    return (
+      <div style={{ display: "flex", gap: 6, alignItems: "center", padding: "6px 10px" }}>
+        <input
+          autoFocus
+          value={note}
+          onChange={e => setNote(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") save(); if (e.key === "Escape") setEditing(false); }}
+          placeholder="Ex: Profils confirmés, mixte chant/danse..."
+          style={{
+            flex: 1, fontSize: 12, padding: "5px 8px",
+            borderRadius: 8, border: "1px solid rgba(22,92,71,0.3)",
+            background: "white", outline: "none", color: "rgba(0,0,0,0.7)",
+          }}
+        />
+        <button onClick={save} disabled={saving} style={{
+          padding: "5px 10px", borderRadius: 8, border: "none",
+          background: "rgb(22,92,71)", color: "white",
+          fontSize: 11, fontWeight: 600, cursor: "pointer",
+        }}>
+          {saving ? "…" : "OK"}
+        </button>
+        <button onClick={() => setEditing(false)} style={{
+          padding: "5px 8px", borderRadius: 8,
+          border: "1px solid rgba(0,0,0,0.1)", background: "white",
+          fontSize: 11, cursor: "pointer", color: "rgba(0,0,0,0.5)",
+        }}>
+          ✕
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <button onClick={() => setEditing(true)} style={{
+      display: "flex", alignItems: "center", gap: 6,
+      padding: "6px 10px", width: "100%", textAlign: "left",
+      background: "transparent", border: "none", cursor: "pointer",
+    }}>
+      <i className="ti ti-pencil" aria-hidden="true" style={{ fontSize: 12, color: "rgba(0,0,0,0.25)", flexShrink: 0 }} />
+      <span style={{ fontSize: 12, color: note ? "rgba(0,0,0,0.6)" : "rgba(0,0,0,0.3)", fontStyle: note ? "normal" : "italic" }}>
+        {saved ? "✓ Enregistré" : note || "Ajouter une note sur ce groupe…"}
+      </span>
+    </button>
+  );
+}
+
+// ── PLANNING GROUPE — affichage ou lien vers création ─────────────────────────
+function PlanningGroupe({ groupe }: { groupe: Groupe }) {
+  const aPlanning = groupe.jour_semaine && groupe.heure_debut;
+
+  return (
+    <Link
+      href={`/plateforme/direction/planning?groupe=${groupe.id}`}
+      style={{
+        display: "flex", alignItems: "center", gap: 6,
+        padding: "6px 10px", textDecoration: "none",
+      }}>
+      <Calendar size={13} style={{ color: aPlanning ? "rgb(22,92,71)" : "rgba(0,0,0,0.25)", flexShrink: 0 }} />
+      {aPlanning ? (
+        <span style={{ fontSize: 12, color: "rgb(22,92,71)", fontWeight: 500 }}>
+          {groupe.jour_semaine} · {formatHeure(groupe.heure_debut)}–{formatHeure(groupe.heure_fin)}
+        </span>
+      ) : (
+        <span style={{ fontSize: 12, color: "rgba(0,0,0,0.35)", fontStyle: "italic" }}>
+          Planning à définir
+          <span style={{ marginLeft: 6, fontSize: 11, color: "rgb(22,92,71)", fontStyle: "normal", fontWeight: 600 }}>+ Créer</span>
+        </span>
+      )}
+    </Link>
+  );
 }
 
 // ── MINI FICHE ────────────────────────────────────────────────────────────────
-// mode "aplacer"   → candidat de la zone tampon, groupePreselectionne optionnel
-// mode "place"     → candidat déjà dans un groupe, actions changer/retirer/proposer
 function MiniFiche({
-  candidature,
-  mode,
-  groupePreselectionne,
-  groupes,
-  parcours,
-  loadingAction,
-  onClose,
-  onAssigner,
-  onChangerGroupe,
-  onRetirerDuGroupe,
-  onProposerPlace,
+  candidature, mode, groupePreselectionne, groupes, parcours,
+  elevesParGroupe, loadingAction, onClose, onAssigner,
+  onChangerGroupe, onRetirerDuGroupe, onProposerPlace,
 }: {
   candidature: Candidature;
   mode: "aplacer" | "place";
   groupePreselectionne: string;
   groupes: Groupe[];
   parcours: string;
+  elevesParGroupe: (id: string) => Candidature[];
   loadingAction: string | null;
   onClose: () => void;
   onAssigner: (groupeId: string) => void;
@@ -101,315 +193,335 @@ function MiniFiche({
 }) {
   const [groupeChoisi, setGroupeChoisi] = useState(groupePreselectionne);
   const [vuChanger, setVuChanger]       = useState(false);
-
   const groupesDispo   = groupes.filter(g => g.parcours === parcours);
   const groupeActuelId = candidature.groupe_inscription_id;
-  const j              = joursRestants(candidature.place_expire_at);
   const isLoading      = loadingAction === candidature.id;
+  const j              = joursRestants(candidature.place_expire_at);
 
   return (
-    <div className="rounded-[20px] overflow-hidden"
-      style={{ border: "1px solid rgba(0,0,0,0.08)", boxShadow: "0 8px 40px rgba(0,0,0,0.10)" }}>
-
+    <div style={{
+      border: "1px solid rgba(0,0,0,0.08)", borderRadius: 20,
+      overflow: "hidden", background: "white",
+      boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
+    }}>
       {/* Header vert */}
-      <div className="flex items-center justify-between px-5 py-4"
-        style={{ background: "rgb(12,50,38)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0"
-            style={{ background: "rgba(185,151,83,0.2)", color: "rgb(185,151,83)" }}>
+      <div style={{
+        padding: "14px 18px", display: "flex", alignItems: "center", justifyContent: "space-between",
+        borderBottom: "1px solid rgba(0,0,0,0.07)", background: "rgb(12,50,38)",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{
+            width: 38, height: 38, borderRadius: "50%",
+            background: "rgba(185,151,83,0.2)", color: "rgb(185,151,83)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 13, fontWeight: 500, flexShrink: 0,
+          }}>
             {initiales(candidature.prenom, candidature.nom)}
           </div>
           <div>
-            <p className="text-sm font-semibold text-white">{candidature.prenom} {candidature.nom}</p>
-            <p className="text-[11px]" style={{ color: "rgba(255,255,255,0.45)" }}>
+            <p style={{ fontSize: 14, fontWeight: 500, color: "white" }}>
+              {candidature.prenom} {candidature.nom}
+            </p>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>
               {candidature.age} ans · {candidature.ville} · {candidature.email}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           <Link href={`/plateforme/direction/candidatures/${candidature.id}`}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-medium"
-            style={{ background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.65)" }}>
+            style={{
+              display: "flex", alignItems: "center", gap: 4, fontSize: 11,
+              padding: "5px 10px", borderRadius: 100,
+              border: "1px solid rgba(255,255,255,0.15)",
+              color: "rgba(255,255,255,0.6)", textDecoration: "none",
+            }}>
             <ExternalLink size={11} /> Fiche complète
           </Link>
-          <button onClick={onClose}
-            className="w-7 h-7 rounded-full flex items-center justify-center"
-            style={{ background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.45)" }}>
-            <X size={14} />
+          <button onClick={onClose} style={{
+            width: 28, height: 28, borderRadius: "50%",
+            border: "1px solid rgba(255,255,255,0.15)", background: "transparent",
+            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+            color: "rgba(255,255,255,0.5)",
+          }}>
+            <X size={13} />
           </button>
         </div>
       </div>
 
       {/* Corps */}
-      <div style={{ background: "white" }}>
-        <div className="grid grid-cols-2 gap-0">
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
 
-          {/* Évaluations */}
-          <div className="p-5" style={{ borderRight: "1px solid rgba(0,0,0,0.06)" }}>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] mb-3"
-              style={{ color: "rgba(0,0,0,0.35)" }}>Auto-évaluation</p>
-            <div className="space-y-2.5">
-              {DISCIPLINES.map(d => {
-                const val = (candidature as any)[d.key] ?? 0;
-                return (
-                  <div key={d.key} className="flex items-center gap-3">
-                    <span className="text-[11px] w-16 flex-shrink-0" style={{ color: "rgba(0,0,0,0.5)" }}>{d.label}</span>
-                    <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(0,0,0,0.06)" }}>
-                      <div className="h-full rounded-full" style={{
-                        width: `${(val / 5) * 100}%`,
-                        background: val >= 4 ? "rgb(22,92,71)" : val >= 3 ? "rgb(185,151,83)" : "rgb(180,80,80)",
-                      }} />
-                    </div>
-                    <span className="text-[10px] w-6 text-right flex-shrink-0" style={{ color: "rgba(0,0,0,0.35)" }}>{val}/5</span>
+        {/* Évaluations */}
+        <div style={{ padding: "16px 18px", borderRight: "1px solid rgba(0,0,0,0.06)" }}>
+          <p style={{ fontSize: 10, fontWeight: 600, color: "rgba(0,0,0,0.35)", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 12 }}>
+            Auto-évaluation
+          </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+            {DISCIPLINES.map(d => {
+              const val = (candidature as any)[d.key] ?? 0;
+              return (
+                <div key={d.key} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span style={{ fontSize: 11, color: "rgba(0,0,0,0.5)", width: 64, flexShrink: 0 }}>{d.label}</span>
+                  <div style={{ flex: 1, height: 4, borderRadius: 100, background: "rgba(0,0,0,0.07)", overflow: "hidden" }}>
+                    <div style={{
+                      height: "100%", borderRadius: 100, width: `${(val / 5) * 100}%`,
+                      background: val >= 4 ? "rgb(22,92,71)" : val >= 3 ? "rgb(185,151,83)" : "rgb(220,38,38)",
+                    }} />
                   </div>
-                );
-              })}
-            </div>
+                  <span style={{ fontSize: 11, color: "rgba(0,0,0,0.35)", width: 24, textAlign: "right", flexShrink: 0 }}>{val}/5</span>
+                </div>
+              );
+            })}
           </div>
+        </div>
 
-          {/* Actions selon le mode */}
-          <div className="p-5">
+        {/* Actions */}
+        <div style={{ padding: "16px 18px" }}>
 
-            {/* ── MODE À PLACER ── */}
-            {mode === "aplacer" && (
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] mb-3"
-                  style={{ color: "rgba(0,0,0,0.35)" }}>Assigner à un groupe</p>
-                <div className="space-y-2 mb-4">
-                  {groupesDispo.map(g => (
-                    <label key={g.id}
-                      className="flex items-center gap-2.5 cursor-pointer p-2 rounded-[10px] transition-all"
-                      style={{
-                        background: groupeChoisi === g.id ? "rgb(239,244,239)" : "transparent",
-                        border: groupeChoisi === g.id ? "1px solid rgba(22,92,71,0.2)" : "1px solid transparent",
-                      }}>
-                      <input type="radio" name="groupe-choix" value={g.id}
+          {/* MODE À PLACER */}
+          {mode === "aplacer" && (
+            <>
+              <p style={{ fontSize: 10, fontWeight: 600, color: "rgba(0,0,0,0.35)", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 12 }}>
+                Assigner à un groupe
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 14 }}>
+                {groupesDispo.map(g => {
+                  const places = elevesParGroupe(g.id).length;
+                  const libres = g.places_max - places;
+                  return (
+                    <label key={g.id} style={{
+                      display: "flex", alignItems: "center", gap: 8,
+                      padding: "8px 12px", borderRadius: 12, cursor: libres <= 0 ? "not-allowed" : "pointer",
+                      background: groupeChoisi === g.id ? "rgb(239,244,239)" : "rgb(248,250,248)",
+                      border: `1px solid ${groupeChoisi === g.id ? "rgba(22,92,71,0.25)" : "rgba(0,0,0,0.07)"}`,
+                      opacity: libres <= 0 ? 0.4 : 1,
+                    }}>
+                      <input type="radio" name="groupe-aplacer" value={g.id}
                         checked={groupeChoisi === g.id}
-                        onChange={() => setGroupeChoisi(g.id)}
-                        className="accent-[rgb(22,92,71)]" />
-                      <span className="text-sm font-medium" style={{ color: "rgba(0,0,0,0.7)" }}>{g.nom}</span>
-                      <span className="text-[11px] ml-auto" style={{ color: "rgba(0,0,0,0.35)" }}>
-                        {g.places_max} places
+                        disabled={libres <= 0}
+                        onChange={() => setGroupeChoisi(g.id)} />
+                      <span style={{ fontSize: 13, color: "rgba(0,0,0,0.75)", flex: 1 }}>{g.nom}</span>
+                      {/* ← CORRIGÉ : places réelles restantes */}
+                      <span style={{ fontSize: 11, color: libres <= 0 ? "rgb(220,38,38)" : "rgba(0,0,0,0.35)" }}>
+                        {libres <= 0 ? "Complet" : `${libres} libre${libres > 1 ? "s" : ""}`}
                       </span>
                     </label>
-                  ))}
-                </div>
-                <button
-                  onClick={() => groupeChoisi && onAssigner(groupeChoisi)}
-                  disabled={!groupeChoisi || isLoading}
-                  className="w-full py-2.5 rounded-full text-sm font-semibold transition disabled:opacity-40"
-                  style={{ background: "rgb(22,92,71)", color: "white" }}>
-                  {isLoading ? "Assignation…" : groupeChoisi ? `Assigner au ${groupesDispo.find(g => g.id === groupeChoisi)?.nom ?? "groupe"}` : "Sélectionne un groupe"}
-                </button>
+                  );
+                })}
               </div>
-            )}
+              <button
+                onClick={() => groupeChoisi && onAssigner(groupeChoisi)}
+                disabled={!groupeChoisi || isLoading}
+                style={{
+                  width: "100%", padding: "10px 0", borderRadius: 100, border: "none",
+                  cursor: groupeChoisi ? "pointer" : "not-allowed",
+                  background: groupeChoisi ? "rgb(22,92,71)" : "rgba(0,0,0,0.06)",
+                  color: groupeChoisi ? "white" : "rgba(0,0,0,0.3)",
+                  fontSize: 13, fontWeight: 600,
+                }}>
+                {isLoading ? "Assignation…"
+                  : groupeChoisi ? `Assigner au ${groupesDispo.find(g => g.id === groupeChoisi)?.nom ?? "groupe"}`
+                  : "Sélectionne un groupe"}
+              </button>
+            </>
+          )}
 
-            {/* ── MODE DÉJÀ PLACÉ ── */}
-            {mode === "place" && !vuChanger && (
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] mb-3"
-                  style={{ color: "rgba(0,0,0,0.35)" }}>Actions</p>
-
-                {/* Statut actuel */}
-                <div className="rounded-[12px] px-3 py-2.5 mb-4"
-                  style={{
-                    background: candidature.statut === "inscrit"       ? "rgba(22,92,71,0.08)"
-                               : candidature.statut === "place_proposee" ? "rgba(186,117,23,0.08)"
-                               : "rgba(24,95,165,0.08)",
-                    border: `1px solid ${
-                      candidature.statut === "inscrit"       ? "rgba(22,92,71,0.15)"
-                    : candidature.statut === "place_proposee" ? "rgba(186,117,23,0.2)"
-                    : "rgba(24,95,165,0.15)"}`,
+          {/* MODE DÉJÀ PLACÉ */}
+          {mode === "place" && !vuChanger && (
+            <>
+              <p style={{ fontSize: 10, fontWeight: 600, color: "rgba(0,0,0,0.35)", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 12 }}>
+                Actions
+              </p>
+              <div style={{
+                padding: "8px 12px", borderRadius: 12, marginBottom: 12,
+                background: candidature.statut === "inscrit"        ? "rgba(22,92,71,0.08)"
+                          : candidature.statut === "place_proposee"  ? "rgba(185,151,83,0.1)"
+                          : "rgba(24,95,165,0.08)",
+                border: `1px solid ${
+                  candidature.statut === "inscrit"        ? "rgba(22,92,71,0.2)"
+                : candidature.statut === "place_proposee"  ? "rgba(185,151,83,0.25)"
+                : "rgba(24,95,165,0.2)"}`,
+              }}>
+                <p style={{ fontSize: 12, fontWeight: 600,
+                  color: candidature.statut === "inscrit"        ? "rgb(22,92,71)"
+                       : candidature.statut === "place_proposee"  ? "rgb(146,95,14)"
+                       : "rgb(24,95,165)",
+                }}>
+                  {candidature.statut === "inscrit"        ? "✓ Inscrit confirmé"
+                 : candidature.statut === "place_proposee" ? `Place proposée${j !== null ? ` · ${j === 0 ? "expire aujourd'hui" : `J-${j}`}` : ""}`
+                 :                                           "Placé — proposition à envoyer"}
+                </p>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                {candidature.statut !== "place_proposee" && candidature.statut !== "inscrit" && (
+                  <button onClick={onProposerPlace} disabled={isLoading} style={{
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                    padding: "10px 0", borderRadius: 100, border: "none", cursor: "pointer",
+                    background: "rgb(22,92,71)", color: "white", fontSize: 13, fontWeight: 600,
                   }}>
-                  <p className="text-xs font-semibold"
-                    style={{
-                      color: candidature.statut === "inscrit"       ? "rgb(22,92,71)"
-                           : candidature.statut === "place_proposee" ? "rgb(186,117,23)"
-                           : "rgb(24,95,165)",
-                    }}>
-                    {candidature.statut === "inscrit"        ? "✓ Inscrit confirmé"
-                   : candidature.statut === "place_proposee" ? `Place proposée${j !== null ? ` · J-${j}` : ""}`
-                   :                                           "Placé — proposition à envoyer"}
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  {/* Proposer une place — uniquement si pas encore proposé ni inscrit */}
-                  {candidature.statut !== "place_proposee" && candidature.statut !== "inscrit" && (
-                    <button
-                      onClick={onProposerPlace}
-                      disabled={isLoading}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full text-sm font-semibold transition disabled:opacity-40"
-                      style={{ background: "rgb(22,92,71)", color: "white" }}>
-                      <Send size={13} />
-                      {isLoading ? "Envoi…" : "Proposer une place"}
-                    </button>
-                  )}
-
-                  {/* Changer de groupe — si pas inscrit */}
-                  {candidature.statut !== "inscrit" && (
-                    <button
-                      onClick={() => setVuChanger(true)}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full text-sm font-medium transition"
-                      style={{ background: "rgb(239,244,239)", color: "rgb(22,92,71)", border: "1px solid rgba(22,92,71,0.15)" }}>
-                      Changer de groupe
-                    </button>
-                  )}
-
-                  {/* Retirer du groupe — retour zone tampon */}
-                  {candidature.statut !== "inscrit" && (
-                    <button
-                      onClick={onRetirerDuGroupe}
-                      disabled={isLoading}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-full text-sm font-medium transition disabled:opacity-40"
-                      style={{ background: "rgba(220,38,38,0.06)", color: "rgb(180,50,50)", border: "1px solid rgba(220,38,38,0.15)" }}>
-                      <ArrowLeft size={13} />
-                      Retirer du groupe
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* ── MODE CHANGER DE GROUPE ── */}
-            {mode === "place" && vuChanger && (
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <button onClick={() => setVuChanger(false)}
-                    className="text-[11px] font-medium hover:underline"
-                    style={{ color: "rgba(0,0,0,0.4)" }}>
-                    ← Retour
+                    <Send size={13} />
+                    {isLoading ? "Envoi…" : "Proposer une place"}
                   </button>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em]"
-                    style={{ color: "rgba(0,0,0,0.35)" }}>Changer de groupe</p>
-                </div>
-                <div className="space-y-2 mb-4">
-                  {groupesDispo.filter(g => g.id !== groupeActuelId).map(g => (
-                    <label key={g.id}
-                      className="flex items-center gap-2.5 cursor-pointer p-2 rounded-[10px] transition-all"
-                      style={{
-                        background: groupeChoisi === g.id ? "rgb(239,244,239)" : "transparent",
-                        border: groupeChoisi === g.id ? "1px solid rgba(22,92,71,0.2)" : "1px solid transparent",
-                      }}>
+                )}
+                {candidature.statut !== "inscrit" && (
+                  <button onClick={() => setVuChanger(true)} style={{
+                    padding: "10px 0", borderRadius: 100,
+                    border: "1px solid rgba(0,0,0,0.1)", background: "rgb(248,250,248)",
+                    color: "rgba(0,0,0,0.65)", fontSize: 13, cursor: "pointer",
+                  }}>
+                    Changer de groupe
+                  </button>
+                )}
+                {candidature.statut !== "inscrit" && (
+                  <button onClick={onRetirerDuGroupe} disabled={isLoading} style={{
+                    padding: "10px 0", borderRadius: 100,
+                    border: "1px solid rgba(220,38,38,0.2)", background: "rgba(220,38,38,0.06)",
+                    color: "rgb(200,40,40)", fontSize: 13, cursor: "pointer",
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                  }}>
+                    <ArrowLeft size={13} /> Retirer du groupe
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* MODE CHANGER DE GROUPE */}
+          {mode === "place" && vuChanger && (
+            <>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <button onClick={() => setVuChanger(false)} style={{
+                  background: "none", border: "none", cursor: "pointer",
+                  fontSize: 11, color: "rgba(0,0,0,0.4)", padding: 0,
+                }}>← Retour</button>
+                <p style={{ fontSize: 10, fontWeight: 600, color: "rgba(0,0,0,0.35)", textTransform: "uppercase", letterSpacing: "0.15em" }}>
+                  Changer de groupe
+                </p>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 }}>
+                {groupesDispo.filter(g => g.id !== groupeActuelId).map(g => {
+                  const libres = g.places_max - elevesParGroupe(g.id).length;
+                  return (
+                    <label key={g.id} style={{
+                      display: "flex", alignItems: "center", gap: 8,
+                      padding: "8px 12px", borderRadius: 12, cursor: libres <= 0 ? "not-allowed" : "pointer",
+                      background: groupeChoisi === g.id ? "rgb(239,244,239)" : "rgb(248,250,248)",
+                      border: `1px solid ${groupeChoisi === g.id ? "rgba(22,92,71,0.25)" : "rgba(0,0,0,0.07)"}`,
+                      opacity: libres <= 0 ? 0.4 : 1,
+                    }}>
                       <input type="radio" name="groupe-changer" value={g.id}
                         checked={groupeChoisi === g.id}
-                        onChange={() => setGroupeChoisi(g.id)}
-                        className="accent-[rgb(22,92,71)]" />
-                      <span className="text-sm font-medium" style={{ color: "rgba(0,0,0,0.7)" }}>{g.nom}</span>
-                      <span className="text-[11px] ml-auto" style={{ color: "rgba(0,0,0,0.35)" }}>
-                        {g.places_max} places
+                        disabled={libres <= 0}
+                        onChange={() => setGroupeChoisi(g.id)} />
+                      <span style={{ fontSize: 13, color: "rgba(0,0,0,0.75)", flex: 1 }}>{g.nom}</span>
+                      <span style={{ fontSize: 11, color: libres <= 0 ? "rgb(220,38,38)" : "rgba(0,0,0,0.35)" }}>
+                        {libres <= 0 ? "Complet" : `${libres} libre${libres > 1 ? "s" : ""}`}
                       </span>
                     </label>
-                  ))}
-                </div>
-                <button
-                  onClick={() => { if (groupeChoisi) { onChangerGroupe(groupeChoisi); setVuChanger(false); } }}
-                  disabled={!groupeChoisi || isLoading}
-                  className="w-full py-2.5 rounded-full text-sm font-semibold transition disabled:opacity-40"
-                  style={{ background: "rgb(22,92,71)", color: "white" }}>
-                  {isLoading ? "Déplacement…" : "Confirmer le changement"}
-                </button>
+                  );
+                })}
               </div>
-            )}
-          </div>
+              <button
+                onClick={() => { if (groupeChoisi) { onChangerGroupe(groupeChoisi); setVuChanger(false); } }}
+                disabled={!groupeChoisi || isLoading}
+                style={{
+                  width: "100%", padding: "10px 0", borderRadius: 100, border: "none",
+                  background: groupeChoisi ? "rgb(22,92,71)" : "rgba(0,0,0,0.06)",
+                  color: groupeChoisi ? "white" : "rgba(0,0,0,0.3)",
+                  fontSize: 13, fontWeight: 600, cursor: groupeChoisi ? "pointer" : "not-allowed",
+                }}>
+                {isLoading ? "Déplacement…" : "Confirmer le changement"}
+              </button>
+            </>
+          )}
         </div>
-
-        {/* Motivation */}
-        {candidature.pourquoi && (
-          <div className="px-5 py-4" style={{ borderTop: "1px solid rgba(0,0,0,0.06)", background: "rgb(248,250,248)" }}>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] mb-2"
-              style={{ color: "rgba(0,0,0,0.35)" }}>Motivation</p>
-            <p className="text-xs leading-5 line-clamp-3" style={{ color: "rgba(0,0,0,0.6)" }}>
-              {candidature.pourquoi}
-            </p>
-          </div>
-        )}
       </div>
-    </div>
-  );
-}
 
-// ── CHIP CANDIDAT (zone tampon) ───────────────────────────────────────────────
-function CandidatChip({ candidature, isSelected, onClick }: {
-  candidature: Candidature;
-  isSelected: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <div onClick={onClick} className="rounded-[14px] px-4 py-3 cursor-pointer transition-all"
-      style={{
-        background: isSelected ? "rgb(12,50,38)" : "white",
-        border: isSelected ? "1px solid rgb(185,151,83)" : "1px solid rgba(0,0,0,0.08)",
-        transform: isSelected ? "scale(1.01)" : "scale(1)",
-      }}>
-      <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-full flex items-center justify-center text-[11px] font-semibold flex-shrink-0"
-          style={{
-            background: isSelected ? "rgba(185,151,83,0.2)" : "rgb(239,244,239)",
-            color: isSelected ? "rgb(185,151,83)" : "rgb(22,92,71)",
+      {/* Motivation */}
+      {candidature.pourquoi && (
+        <div style={{ padding: "12px 18px", borderTop: "1px solid rgba(0,0,0,0.06)", background: "rgb(248,250,248)" }}>
+          <p style={{ fontSize: 10, fontWeight: 600, color: "rgba(0,0,0,0.35)", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 6 }}>
+            Motivation
+          </p>
+          <p style={{ fontSize: 12, color: "rgba(0,0,0,0.55)", lineHeight: 1.6,
+            display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
           }}>
-          {initiales(candidature.prenom, candidature.nom)}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold truncate"
-            style={{ color: isSelected ? "white" : "rgb(22,92,71)" }}>
-            {candidature.prenom} {candidature.nom}
-          </p>
-          <p className="text-[11px] truncate"
-            style={{ color: isSelected ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.4)" }}>
-            {candidature.age} ans · {candidature.ville}
+            {candidature.pourquoi}
           </p>
         </div>
-        <ChevronRight size={14} style={{ color: isSelected ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.2)", flexShrink: 0 }} />
-      </div>
+      )}
     </div>
   );
 }
 
-// ── ÉLÈVE PILL (dans un groupe) ───────────────────────────────────────────────
-function ElevePill({ candidature, onClick }: {
-  candidature: Candidature;
-  onClick: () => void;
+// ── CHIP CANDIDAT ─────────────────────────────────────────────────────────────
+function CandidatChip({ candidature, isSelected, onClick }: {
+  candidature: Candidature; isSelected: boolean; onClick: () => void;
 }) {
-  const j = joursRestants(candidature.place_expire_at);
   return (
-    <div onClick={onClick}
-      className="flex items-center gap-2 px-3 py-2 rounded-full cursor-pointer transition-all"
-      style={{ background: "rgb(248,250,248)", border: "1px solid rgba(0,0,0,0.07)" }}>
-      <div className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-semibold flex-shrink-0"
-        style={{
-          background: candidature.statut === "inscrit"        ? "rgb(239,244,239)"
-                    : candidature.statut === "place_proposee"  ? "rgb(254,243,199)"
-                    : "rgb(219,234,254)",
-          color:     candidature.statut === "inscrit"        ? "rgb(22,92,71)"
-                    : candidature.statut === "place_proposee"  ? "rgb(146,64,14)"
-                    : "rgb(29,78,216)",
-        }}>
+    <div onClick={onClick} style={{
+      display: "inline-flex", alignItems: "center", gap: 8,
+      padding: "7px 12px 7px 8px", borderRadius: 100, cursor: "pointer",
+      background: isSelected ? "rgb(12,50,38)" : "white",
+      border: `1px solid ${isSelected ? "rgb(185,151,83)" : "rgba(0,0,0,0.08)"}`,
+      transition: "all .12s",
+    }}>
+      <div style={{
+        width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
+        background: isSelected ? "rgba(185,151,83,0.2)" : "rgb(239,244,239)",
+        color: isSelected ? "rgb(185,151,83)" : "rgb(22,92,71)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 10, fontWeight: 600,
+      }}>
         {initiales(candidature.prenom, candidature.nom)}
       </div>
-      <span className="text-xs font-medium" style={{ color: "rgba(0,0,0,0.7)" }}>
-        {candidature.prenom} {candidature.nom}
-      </span>
-      {candidature.statut === "place_proposee" && j !== null && (
-        <span className="text-[10px] font-semibold" style={{ color: j <= 1 ? "rgb(220,38,38)" : "rgb(186,117,23)" }}>
-          J-{j}
-        </span>
-      )}
-      <StatutDot statut={candidature.statut} expireAt={candidature.place_expire_at} />
+      <div style={{ minWidth: 0 }}>
+        <p style={{ fontSize: 12, fontWeight: 600, color: isSelected ? "white" : "rgb(8,20,14)", whiteSpace: "nowrap" }}>
+          {candidature.prenom} {candidature.nom}
+        </p>
+        <p style={{ fontSize: 11, color: isSelected ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.4)", whiteSpace: "nowrap" }}>
+          {candidature.age} ans · {candidature.ville}
+        </p>
+      </div>
     </div>
   );
 }
 
-// ── CARTE GROUPE ──────────────────────────────────────────────────────────────
-function GroupeCard({ groupe, eleves, selectedId, onEleveClick, onAssignerDirect }: {
-  groupe: Groupe;
-  eleves: Candidature[];
-  selectedId: string | null;
+// ── PILL ÉLÈVE ────────────────────────────────────────────────────────────────
+function ElevePill({ candidature, onClick }: { candidature: Candidature; onClick: () => void }) {
+  const st = statutLabel(candidature.statut, candidature.place_expire_at);
+  return (
+    <div onClick={onClick} style={{
+      display: "inline-flex", alignItems: "center", gap: 6,
+      padding: "5px 10px 5px 6px", borderRadius: 100,
+      border: "1px solid rgba(0,0,0,0.07)", background: "white",
+      cursor: "pointer", margin: 3,
+    }}>
+      <div style={{
+        width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+        background: st.bg, color: st.color,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 9, fontWeight: 600,
+      }}>
+        {initiales(candidature.prenom, candidature.nom)}
+      </div>
+      <span style={{ fontSize: 12, color: "rgba(0,0,0,0.7)" }}>
+        {candidature.prenom} {candidature.nom}
+      </span>
+      {candidature.statut === "place_proposee" && (
+        <span style={{ fontSize: 10, fontWeight: 600, color: st.color }}>{st.label}</span>
+      )}
+      <div style={{ width: 7, height: 7, borderRadius: "50%", background: st.dot, flexShrink: 0 }} />
+    </div>
+  );
+}
+
+// ── COLONNE GROUPE ────────────────────────────────────────────────────────────
+function GroupeColonne({ groupe, eleves, selectedId, onEleveClick, onAssignerDirect }: {
+  groupe: Groupe; eleves: Candidature[]; selectedId: string | null;
   onEleveClick: (c: Candidature) => void;
-  onAssignerDirect: (groupeId: string) => void; // ← CORRIGÉ : passe directement l'id du groupe
+  onAssignerDirect: (groupeId: string) => void;
 }) {
-  const inscrits  = eleves.filter(e => e.statut === "inscrit").length;
-  const proposes  = eleves.filter(e => e.statut === "place_proposee").length;
   const places    = eleves.length;
   const libres    = groupe.places_max - places;
   const pct       = Math.round((places / groupe.places_max) * 100);
@@ -417,81 +529,82 @@ function GroupeCard({ groupe, eleves, selectedId, onEleveClick, onAssignerDirect
   const barColor  = isComplet ? "rgb(220,38,38)" : pct > 80 ? "rgb(186,117,23)" : "rgb(22,92,71)";
 
   return (
-    <div className="rounded-[20px] overflow-hidden"
-      style={{ background: "white", border: "1px solid rgba(0,0,0,0.07)", boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
+    <div style={{
+      border: "1px solid rgba(0,0,0,0.07)", borderRadius: 20,
+      overflow: "hidden", background: "white",
+      boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+      display: "flex", flexDirection: "column",
+    }}>
+      {/* Header */}
+      <div style={{ padding: "12px 14px 0", background: "rgb(248,250,248)", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+          <p style={{ fontSize: 14, fontWeight: 600, color: "rgb(8,20,14)" }}>{groupe.nom}</p>
+          <span style={{
+            fontSize: 11, fontWeight: 600, padding: "3px 9px", borderRadius: 100,
+            background: isComplet ? "rgba(220,38,38,0.08)" : pct > 80 ? "rgba(186,117,23,0.1)" : "rgba(22,92,71,0.08)",
+            color: isComplet ? "rgb(180,40,40)" : pct > 80 ? "rgb(146,85,14)" : "rgb(22,92,71)",
+          }}>
+            {places}/{groupe.places_max}
+          </span>
+        </div>
+        <div style={{ height: 3, borderRadius: 100, background: "rgba(0,0,0,0.07)", overflow: "hidden", marginBottom: 6 }}>
+          <div style={{ height: "100%", width: `${pct}%`, background: barColor, borderRadius: 100, transition: "width .3s" }} />
+        </div>
+        <p style={{ fontSize: 11, color: "rgba(0,0,0,0.4)", marginBottom: 8 }}>
+          {isComplet ? "Complet" : `${libres} place${libres > 1 ? "s" : ""} libre${libres > 1 ? "s" : ""}`}
+        </p>
 
-      {/* Header vert */}
-      <div className="px-5 pt-5 pb-4" style={{ background: "rgb(22,92,71)" }}>
-        <div className="flex items-start justify-between mb-3">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em]"
-              style={{ color: "rgba(255,255,255,0.5)" }}>Groupe</p>
-            <p className="text-xl font-semibold text-white mt-0.5">{groupe.nom}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-2xl font-semibold text-white">
-              {places}<span className="text-sm" style={{ color: "rgba(255,255,255,0.4)" }}>/{groupe.places_max}</span>
-            </p>
-            <p className="text-[10px]" style={{ color: isComplet ? "rgb(252,200,200)" : "rgba(255,255,255,0.45)" }}>
-              {isComplet ? "Complet" : `${libres} libre${libres > 1 ? "s" : ""}`}
-            </p>
-          </div>
+        {/* Planning */}
+        <div style={{ borderTop: "1px solid rgba(0,0,0,0.06)", marginLeft: -14, marginRight: -14 }}>
+          <PlanningGroupe groupe={groupe} />
         </div>
-        <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.15)" }}>
-          <div className="h-full rounded-full transition-all"
-            style={{ width: `${pct}%`, background: isComplet ? "rgb(252,165,165)" : "white" }} />
-        </div>
-        <div className="flex gap-4 mt-2.5">
-          <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.5)" }}>
-            <span style={{ color: "rgb(134,239,172)" }}>●</span> {inscrits} inscrits
-          </span>
-          <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.5)" }}>
-            <span style={{ color: "rgb(253,230,138)" }}>●</span> {proposes} en attente
-          </span>
-          <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.5)" }}>
-            <span style={{ color: "rgb(147,197,253)" }}>●</span> {places - inscrits - proposes} à proposer
-          </span>
+
+        {/* Note */}
+        <div style={{ borderTop: "1px solid rgba(0,0,0,0.06)", marginLeft: -14, marginRight: -14 }}>
+          <NoteGroupe groupeId={groupe.id} noteInitiale={groupe.note} />
         </div>
       </div>
 
-      {/* Liste élèves */}
-      <div className="p-4">
+      {/* Pills élèves */}
+      <div style={{ padding: "10px 8px", minHeight: 64, flex: 1 }}>
         {eleves.length === 0 ? (
-          <p className="text-xs text-center py-4" style={{ color: "rgba(0,0,0,0.3)" }}>
-            Aucun élève assigné
+          <p style={{ fontSize: 11, color: "rgba(0,0,0,0.3)", textAlign: "center", padding: "14px 0" }}>
+            Aucun élève
           </p>
         ) : (
-          <div className="flex flex-wrap gap-2 mb-3">
+          <div style={{ display: "flex", flexWrap: "wrap" }}>
             {eleves.map(e => (
               <ElevePill key={e.id} candidature={e} onClick={() => onEleveClick(e)} />
             ))}
           </div>
         )}
+      </div>
 
-        {/* Zone d'assignation — CORRIGÉE : appelle onAssignerDirect avec l'id du groupe */}
+      {/* Zone dépôt — CORRIGÉE : assigne directement */}
+      <div style={{ padding: "6px 10px 10px" }}>
         {!isComplet ? (
           <button
-            onClick={() => selectedId && onAssignerDirect(groupe.id)}
+            onClick={() => { if (selectedId) onAssignerDirect(groupe.id); }}
             disabled={!selectedId}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-[12px] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             style={{
-              background: selectedId ? "rgb(239,244,239)" : "rgb(248,250,248)",
-              border: selectedId ? "1px dashed rgb(22,92,71)" : "1px dashed rgba(0,0,0,0.15)",
+              width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              padding: "8px 0", borderRadius: 12,
+              border: selectedId ? "1px dashed rgba(22,92,71,0.4)" : "1px dashed rgba(0,0,0,0.15)",
+              background: selectedId ? "rgb(239,244,239)" : "transparent",
+              color: selectedId ? "rgb(22,92,71)" : "rgba(0,0,0,0.35)",
+              fontSize: 12, fontWeight: selectedId ? 600 : 400,
+              cursor: selectedId ? "pointer" : "not-allowed",
             }}>
-            <div className="w-7 h-7 rounded-[8px] flex items-center justify-center flex-shrink-0"
-              style={{ background: selectedId ? "rgba(22,92,71,0.1)" : "rgba(0,0,0,0.04)" }}>
-              <Plus size={14} style={{ color: selectedId ? "rgb(22,92,71)" : "rgba(0,0,0,0.25)" }} />
-            </div>
-            <span className="text-xs font-medium"
-              style={{ color: selectedId ? "rgb(22,92,71)" : "rgba(0,0,0,0.35)" }}>
-              {selectedId ? "Déposer ici" : "Sélectionne d'abord un candidat"}
-            </span>
+            <i className="ti ti-plus" aria-hidden="true" style={{ fontSize: 14 }} />
+            {selectedId ? "Déposer ici" : "Sélectionne un candidat"}
           </button>
         ) : (
-          <div className="flex items-center gap-2 px-4 py-3 rounded-[12px]"
-            style={{ background: "rgba(220,38,38,0.04)", border: "1px solid rgba(220,38,38,0.1)" }}>
-            <X size={13} style={{ color: "rgb(220,38,38)", flexShrink: 0 }} />
-            <span className="text-xs" style={{ color: "rgba(220,38,38,0.8)" }}>Groupe complet</span>
+          <div style={{
+            padding: "8px 0", borderRadius: 12, textAlign: "center",
+            border: "1px solid rgba(220,38,38,0.15)",
+            background: "rgba(220,38,38,0.05)", color: "rgb(200,40,40)", fontSize: 12,
+          }}>
+            Groupe complet
           </div>
         )}
       </div>
@@ -509,74 +622,56 @@ export default function GroupesClient({
   parametres: Record<string, string>;
 }) {
   const router = useRouter();
-  const [parcours, setParcours]               = useState("full-artist");
-  const [selectedId, setSelectedId]           = useState<string | null>(null);
-  const [ficheOuverte, setFicheOuverte]       = useState<Candidature | null>(null);
-  const [ficheMode, setFicheMode]             = useState<"aplacer" | "place">("aplacer");
-  const [groupePreselectionne, setGroupePreselectionne] = useState("");
-  const [loadingAction, setLoadingAction]     = useState<string | null>(null);
-  const [toast, setToast]                     = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [parcours, setParcours]           = useState("full-artist");
+  const [selectedId, setSelectedId]       = useState<string | null>(null);
+  const [ficheOuverte, setFicheOuverte]   = useState<Candidature | null>(null);
+  const [ficheMode, setFicheMode]         = useState<"aplacer" | "place">("aplacer");
+  const [groupePresel, setGroupePresel]   = useState("");
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
+  const [toast, setToast]                 = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
   const showToast = (msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3500);
   };
 
-  const closeFiche = () => {
-    setFicheOuverte(null);
-    setSelectedId(null);
-    setGroupePreselectionne("");
-  };
+  const closeFiche = () => { setFicheOuverte(null); setSelectedId(null); setGroupePresel(""); };
 
   const groupesParcours = groupes.filter(g => g.parcours === parcours);
   const aPlacerParcours = aPlacerRaw.filter(c => c.parcours === parcours);
-  const elevesParGroupe = (groupeId: string) =>
-    placesRaw.filter(c => c.groupe_inscription_id === groupeId && c.parcours === parcours);
+  const elevesParGroupe = (gId: string) =>
+    placesRaw.filter(c => c.groupe_inscription_id === gId && c.parcours === parcours);
 
-  // Sélectionner un candidat dans la zone tampon
   const handleSelectChip = (c: Candidature) => {
-    if (selectedId === c.id) {
-      closeFiche();
-    } else {
-      setSelectedId(c.id);
-      setFicheOuverte(c);
-      setFicheMode("aplacer");
-      setGroupePreselectionne("");
-    }
+    if (selectedId === c.id) { closeFiche(); return; }
+    setSelectedId(c.id);
+    setFicheOuverte(c);
+    setFicheMode("aplacer");
+    setGroupePresel("");
   };
 
-  // Cliquer sur un élève déjà dans un groupe
   const handleEleveClick = (c: Candidature) => {
     setFicheOuverte(c);
     setFicheMode("place");
     setSelectedId(null);
-    setGroupePreselectionne("");
+    setGroupePresel("");
   };
 
-  // ← CORRIGÉ : cliquer sur "Déposer ici" dans un groupe pré-sélectionne ce groupe
-  const handleAssignerDirect = (groupeId: string) => {
+  // ← CORRIGÉ : assigne directement sans passer par la mini-fiche
+  const handleAssignerDirect = async (groupeId: string) => {
     if (!selectedId) return;
     const candidat = aPlacerParcours.find(c => c.id === selectedId);
     if (!candidat) return;
-    setFicheOuverte(candidat);
-    setFicheMode("aplacer");
-    setGroupePreselectionne(groupeId); // ← le groupe est pré-coché dans la mini fiche
-  };
-
-  // API : assigner à un groupe
-  const handleAssigner = async (groupeId: string) => {
-    if (!ficheOuverte) return;
-    setLoadingAction(ficheOuverte.id);
+    setLoadingAction(selectedId);
     try {
-      const res = await fetch(`/api/direction/candidatures/${ficheOuverte.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+      const res = await fetch(`/api/direction/candidatures/${selectedId}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "assigner_groupe", groupeId }),
       });
       let data: any = {};
       try { const t = await res.text(); if (t) data = JSON.parse(t); } catch {}
       if (!res.ok) throw new Error(data.error ?? "Erreur");
-      showToast(`${ficheOuverte.prenom} assigné(e) au groupe ✓`);
+      showToast(`${candidat.prenom} assigné(e) au groupe ✓`);
       closeFiche();
       router.refresh();
     } catch (e: any) {
@@ -586,20 +681,17 @@ export default function GroupesClient({
     }
   };
 
-  // API : changer de groupe
-  const handleChangerGroupe = async (groupeId: string) => {
-    if (!ficheOuverte) return;
-    setLoadingAction(ficheOuverte.id);
+  const callApi = async (id: string, body: object, successMsg: string) => {
+    setLoadingAction(id);
     try {
-      const res = await fetch(`/api/direction/candidatures/${ficheOuverte.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "assigner_groupe", groupeId }),
+      const res = await fetch(`/api/direction/candidatures/${id}`, {
+        method: "PATCH", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
       });
       let data: any = {};
       try { const t = await res.text(); if (t) data = JSON.parse(t); } catch {}
       if (!res.ok) throw new Error(data.error ?? "Erreur");
-      showToast(`${ficheOuverte.prenom} déplacé(e) vers le nouveau groupe ✓`);
+      showToast(successMsg);
       closeFiche();
       router.refresh();
     } catch (e: any) {
@@ -609,57 +701,17 @@ export default function GroupesClient({
     }
   };
 
-  // API : retirer du groupe → remet en zone tampon (statut validee, groupe_inscription_id = null)
-  const handleRetirerDuGroupe = async () => {
-    if (!ficheOuverte) return;
-    setLoadingAction(ficheOuverte.id);
-    try {
-      const res = await fetch(`/api/direction/candidatures/${ficheOuverte.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "retirer_groupe" }),
-      });
-      let data: any = {};
-      try { const t = await res.text(); if (t) data = JSON.parse(t); } catch {}
-      if (!res.ok) throw new Error(data.error ?? "Erreur");
-      showToast(`${ficheOuverte.prenom} retiré(e) du groupe — retour en zone tampon`);
-      closeFiche();
-      router.refresh();
-    } catch (e: any) {
-      showToast(e.message, "error");
-    } finally {
-      setLoadingAction(null);
-    }
-  };
-
-  // API : proposer une place → envoie l'email et passe à place_proposee
-  const handleProposerPlace = async () => {
-    if (!ficheOuverte) return;
-    setLoadingAction(ficheOuverte.id);
-    try {
-      const delaiJours = parseInt(parametres.delai_reponse_candidat_jours ?? "5");
-      const res = await fetch(`/api/direction/candidatures/${ficheOuverte.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "proposer_place", delaiJours }),
-      });
-      let data: any = {};
-      try { const t = await res.text(); if (t) data = JSON.parse(t); } catch {}
-      if (!res.ok) throw new Error(data.error ?? "Erreur");
-      showToast(`Proposition envoyée à ${ficheOuverte.prenom} · ${delaiJours}j pour répondre ✓`);
-      closeFiche();
-      router.refresh();
-    } catch (e: any) {
-      showToast(e.message, "error");
-    } finally {
-      setLoadingAction(null);
-    }
+  const handleAssigner      = (gId: string) => callApi(ficheOuverte!.id, { action: "assigner_groupe", groupeId: gId }, `${ficheOuverte!.prenom} assigné(e) ✓`);
+  const handleChangerGroupe = (gId: string) => callApi(ficheOuverte!.id, { action: "assigner_groupe", groupeId: gId }, `${ficheOuverte!.prenom} déplacé(e) ✓`);
+  const handleRetirerDuGroupe = () => callApi(ficheOuverte!.id, { action: "retirer_groupe" }, `${ficheOuverte!.prenom} retiré(e) du groupe`);
+  const handleProposerPlace  = () => {
+    const delaiJours = parseInt(parametres.delai_reponse_candidat_jours ?? "5");
+    callApi(ficheOuverte!.id, { action: "proposer_place", delaiJours }, `Proposition envoyée à ${ficheOuverte!.prenom} · ${delaiJours}j ✓`);
   };
 
   return (
     <div className="min-h-screen" style={{ background: "rgb(239,244,239)" }}>
 
-      {/* Toast */}
       {toast && (
         <div className="fixed top-6 right-6 z-50 flex items-center gap-2 px-5 py-3 rounded-[14px] shadow-lg text-sm font-semibold"
           style={{ background: toast.type === "success" ? "rgb(22,92,71)" : "rgb(220,38,38)", color: "white" }}>
@@ -668,30 +720,28 @@ export default function GroupesClient({
         </div>
       )}
 
-      {/* ── HEADER ── */}
-      <div className="px-10 lg:px-14 pb-6" style={{ paddingTop: "calc(88px + 24px)" }}>
-        <div className="flex items-start justify-between gap-4 flex-wrap">
+      {/* Header */}
+      <div className="px-10 lg:px-14" style={{ paddingTop: "calc(88px + 24px)", paddingBottom: 24 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 24 }}>
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.3em] mb-2"
-              style={{ color: "rgb(185,151,83)" }}>Direction · Groupes</p>
-            <h1 className="text-3xl font-semibold" style={{ color: "rgb(22,92,71)" }}>
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgb(185,151,83)", marginBottom: 6 }}>
+              Direction · Groupes
+            </p>
+            <h1 style={{ fontSize: 30, fontWeight: 600, color: "rgb(8,20,14)", margin: 0 }}>
               Composition des groupes
             </h1>
-            <p className="text-sm mt-1" style={{ color: "rgba(0,0,0,0.4)" }}>
+            <p style={{ fontSize: 13, color: "rgba(0,0,0,0.45)", marginTop: 6 }}>
               Sélectionne un candidat · Dépose dans un groupe · Envoie la proposition manuellement
             </p>
           </div>
-
-          {/* Switch parcours */}
-          <div className="flex rounded-full p-1 gap-1" style={{ background: "rgb(22,92,71)" }}>
+          <div style={{ display: "flex", padding: 4, gap: 2, borderRadius: 100, background: "white", border: "1px solid rgba(0,0,0,0.08)" }}>
             {PARCOURS_LIST.map(p => (
-              <button key={p.id}
-                onClick={() => { setParcours(p.id); closeFiche(); }}
-                className="px-5 py-2 rounded-full text-sm font-medium transition-all"
-                style={{
-                  background: parcours === p.id ? "white" : "transparent",
-                  color:      parcours === p.id ? "rgb(22,92,71)" : "rgba(255,255,255,0.55)",
-                }}>
+              <button key={p.id} onClick={() => { setParcours(p.id); closeFiche(); }} style={{
+                padding: "8px 20px", borderRadius: 100, border: "none",
+                background: parcours === p.id ? "rgb(22,92,71)" : "transparent",
+                color: parcours === p.id ? "white" : "rgba(0,0,0,0.5)",
+                fontSize: 13, fontWeight: parcours === p.id ? 600 : 400, cursor: "pointer",
+              }}>
                 {p.label}
               </button>
             ))}
@@ -699,111 +749,115 @@ export default function GroupesClient({
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-3 mt-6">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
           {[
-            { label: "À placer",      val: aPlacerParcours.length,                                                                                        color: "rgb(185,151,83)" },
-            { label: "Places total",  val: groupesParcours.reduce((a, g) => a + g.places_max, 0),                                                         color: "rgba(0,0,0,0.6)" },
-            { label: "Déjà placés",   val: placesRaw.filter(c => c.parcours === parcours).length,                                                         color: "rgb(22,92,71)" },
-            { label: "Places libres", val: groupesParcours.reduce((a, g) => a + g.places_max, 0) - placesRaw.filter(c => c.parcours === parcours).length, color: "rgb(24,95,165)" },
+            { label: "À placer",      val: aPlacerParcours.length,                                                                                        accent: "rgb(22,92,71)" },
+            { label: "Places total",  val: groupesParcours.reduce((a, g) => a + g.places_max, 0),                                                         accent: "rgb(22,92,71)" },
+            { label: "Déjà placés",   val: placesRaw.filter(c => c.parcours === parcours).length,                                                         accent: "rgb(22,92,71)" },
+            { label: "Places libres", val: groupesParcours.reduce((a, g) => a + g.places_max, 0) - placesRaw.filter(c => c.parcours === parcours).length, accent: "rgb(22,92,71)" },
           ].map(s => (
-            <div key={s.label} className="rounded-[16px] px-5 py-4"
-              style={{ background: "white", border: "1px solid rgba(0,0,0,0.06)" }}>
-              <p className="text-3xl font-semibold" style={{ color: s.color }}>{s.val}</p>
-              <p className="text-xs mt-1" style={{ color: "rgba(0,0,0,0.4)" }}>{s.label}</p>
+            <div key={s.label} style={{
+              background: "white", border: "1px solid rgba(0,0,0,0.06)",
+              borderRadius: 16, padding: "14px 18px",
+            }}>
+              <p style={{ fontSize: 26, fontWeight: 600, color: s.accent, margin: 0 }}>{s.val}</p>
+              <p style={{ fontSize: 12, color: "rgba(0,0,0,0.45)", marginTop: 3 }}>{s.label}</p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* ── LAYOUT PRINCIPAL ── */}
-      <div className="px-10 lg:px-14 pb-10">
-        <div className="grid gap-6" style={{ gridTemplateColumns: "220px 1fr" }}>
+      {/* Kanban */}
+      <div className="px-10 lg:px-14" style={{ paddingBottom: 40 }}>
 
-          {/* Zone tampon */}
-          <div>
-            <div className="rounded-[20px] overflow-hidden sticky top-28"
-              style={{ background: "white", border: "1px solid rgba(0,0,0,0.07)", boxShadow: "0 2px 16px rgba(0,0,0,0.04)" }}>
-              <div className="px-4 py-4" style={{ borderBottom: "1px solid rgba(0,0,0,0.06)", background: "rgb(239,244,239)" }}>
-                <div className="flex items-center justify-between">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em]"
-                    style={{ color: "rgba(0,0,0,0.4)" }}>À placer</p>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                    style={{ background: "rgb(185,151,83)", color: "rgb(65,36,2)" }}>
-                    {aPlacerParcours.length}
-                  </span>
-                </div>
-                <p className="text-[11px] mt-1.5" style={{ color: "rgba(0,0,0,0.35)" }}>
-                  Clique pour sélectionner puis dépose dans un groupe
-                </p>
-              </div>
-              <div className="p-3 space-y-2">
-                {aPlacerParcours.length === 0 ? (
-                  <div className="py-8 text-center">
-                    <CheckCircle2 size={24} className="mx-auto mb-2" style={{ color: "rgba(0,0,0,0.15)" }} />
-                    <p className="text-xs" style={{ color: "rgba(0,0,0,0.35)" }}>
-                      Tous les candidats<br />sont placés
-                    </p>
-                  </div>
-                ) : (
-                  aPlacerParcours.map(c => (
-                    <CandidatChip
-                      key={c.id}
-                      candidature={c}
-                      isSelected={selectedId === c.id}
-                      onClick={() => handleSelectChip(c)}
-                    />
-                  ))
-                )}
-              </div>
+        {/* Zone tampon */}
+        <div style={{
+          background: "white", border: "1px solid rgba(0,0,0,0.07)",
+          borderRadius: 20, overflow: "hidden", marginBottom: 16,
+          boxShadow: "0 2px 12px rgba(0,0,0,0.04)",
+        }}>
+          <div style={{
+            padding: "10px 16px", borderBottom: "1px solid rgba(0,0,0,0.06)",
+            background: "rgb(248,250,248)",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <p style={{ fontSize: 11, fontWeight: 700, color: "rgba(0,0,0,0.4)", textTransform: "uppercase", letterSpacing: "0.15em" }}>
+                Candidats à placer
+              </p>
+              <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 100, background: "rgba(185,151,83,0.15)", color: "rgb(146,95,14)" }}>
+                {aPlacerParcours.length}
+              </span>
             </div>
+            <p style={{ fontSize: 11, color: "rgba(0,0,0,0.35)" }}>
+              Clique pour sélectionner · Dépose ensuite dans un groupe
+            </p>
           </div>
-
-          {/* Groupes */}
-          <div className="space-y-5">
-            {groupesParcours.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 rounded-[20px]"
-                style={{ background: "white", border: "1px solid rgba(0,0,0,0.07)" }}>
-                <Users size={32} style={{ color: "rgba(0,0,0,0.15)" }} className="mb-3" />
-                <p className="text-sm" style={{ color: "rgba(0,0,0,0.4)" }}>Aucun groupe créé pour ce parcours</p>
+          <div style={{ padding: "12px 14px" }}>
+            {aPlacerParcours.length === 0 ? (
+              <div style={{ padding: "18px 0", textAlign: "center" }}>
+                <CheckCircle2 size={20} style={{ color: "rgba(0,0,0,0.2)", margin: "0 auto 8px", display: "block" }} />
+                <p style={{ fontSize: 12, color: "rgba(0,0,0,0.35)" }}>Tous les candidats sont placés</p>
               </div>
             ) : (
-              groupesParcours.map(g => (
-                <GroupeCard
-                  key={g.id}
-                  groupe={g}
-                  eleves={elevesParGroupe(g.id)}
-                  selectedId={selectedId}
-                  onEleveClick={handleEleveClick}
-                  onAssignerDirect={handleAssignerDirect}
-                />
-              ))
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {aPlacerParcours.map(c => (
+                  <CandidatChip key={c.id} candidature={c} isSelected={selectedId === c.id} onClick={() => handleSelectChip(c)} />
+                ))}
+              </div>
             )}
-
-            {/* Légende */}
-            <div className="flex gap-6 flex-wrap px-1">
-              {[
-                { color: "rgb(99,153,34)",  label: "Inscrit confirmé" },
-                { color: "rgb(186,117,23)", label: "Place proposée — en attente de réponse" },
-                { color: "rgb(24,95,165)",  label: "Placé — proposition à envoyer" },
-              ].map(l => (
-                <div key={l.label} className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: l.color }} />
-                  <span className="text-[11px]" style={{ color: "rgba(0,0,0,0.4)" }}>{l.label}</span>
-                </div>
-              ))}
-            </div>
           </div>
+        </div>
+
+        {/* Colonnes groupes */}
+        {groupesParcours.length === 0 ? (
+          <div style={{
+            display: "flex", flexDirection: "column", alignItems: "center",
+            justifyContent: "center", padding: "60px 0", borderRadius: 20,
+            border: "1px solid rgba(0,0,0,0.07)", background: "white",
+          }}>
+            <Users size={28} style={{ color: "rgba(0,0,0,0.2)", marginBottom: 10 }} />
+            <p style={{ fontSize: 13, color: "rgba(0,0,0,0.4)" }}>Aucun groupe créé pour ce parcours</p>
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: `repeat(${groupesParcours.length}, minmax(0, 1fr))`, gap: 12 }}>
+            {groupesParcours.map(g => (
+              <GroupeColonne
+                key={g.id}
+                groupe={g}
+                eleves={elevesParGroupe(g.id)}
+                selectedId={selectedId}
+                onEleveClick={handleEleveClick}
+                onAssignerDirect={handleAssignerDirect}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Légende */}
+        <div style={{ display: "flex", gap: 20, marginTop: 14, flexWrap: "wrap" }}>
+          {[
+            { color: "rgb(99,153,34)",  label: "Inscrit confirmé" },
+            { color: "rgb(186,117,23)", label: "Place proposée — en attente" },
+            { color: "rgb(24,95,165)",  label: "Placé — proposition à envoyer" },
+          ].map(l => (
+            <div key={l.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ width: 7, height: 7, borderRadius: "50%", background: l.color, flexShrink: 0 }} />
+              <span style={{ fontSize: 11, color: "rgba(0,0,0,0.45)" }}>{l.label}</span>
+            </div>
+          ))}
         </div>
 
         {/* Mini fiche */}
         {ficheOuverte && (
-          <div className="mt-6">
+          <div style={{ marginTop: 20 }}>
             <MiniFiche
               candidature={ficheOuverte}
               mode={ficheMode}
-              groupePreselectionne={groupePreselectionne}
+              groupePreselectionne={groupePresel}
               groupes={groupes}
               parcours={parcours}
+              elevesParGroupe={elevesParGroupe}
               loadingAction={loadingAction}
               onClose={closeFiche}
               onAssigner={handleAssigner}

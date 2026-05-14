@@ -12,13 +12,11 @@ export default async function GroupesPage() {
     .from("profiles").select("role").eq("id", user.id).single();
   if (profile?.role !== "direction") redirect("/plateforme");
 
-  // Groupes d'inscription
   const { data: groupes } = await supabaseAdmin
     .from("groupes_inscription")
-    .select("*")
+    .select("id, nom, parcours, places_max, annee_scolaire, note, jour_semaine, heure_debut, heure_fin")
     .order("parcours").order("nom");
 
-  // Candidatures acceptables (validee/acceptee) sans groupe encore
   const { data: aPlacerRaw } = await supabaseAdmin
     .from("candidatures")
     .select("id, prenom, nom, email, age, ville, parcours, pourquoi, eval_chant, eval_danse, eval_theatre, eval_ecriture, eval_scenique, eval_studio, created_at")
@@ -26,14 +24,12 @@ export default async function GroupesPage() {
     .is("groupe_inscription_id", null)
     .order("created_at", { ascending: true });
 
-  // Candidatures déjà placées dans un groupe
   const { data: placesRaw } = await supabaseAdmin
     .from("candidatures")
     .select("id, prenom, nom, email, age, ville, parcours, statut, groupe_inscription_id, place_proposee_at, place_expire_at, eval_chant, eval_danse, eval_theatre, eval_ecriture, eval_scenique, eval_studio")
     .in("statut", ["validee", "acceptee", "place_proposee", "inscrit"])
     .not("groupe_inscription_id", "is", null);
 
-  // Paramètres
   const { data: params } = await supabaseAdmin
     .from("parametres")
     .select("cle, valeur")

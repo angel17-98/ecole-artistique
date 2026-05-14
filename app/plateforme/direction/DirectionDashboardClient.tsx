@@ -431,7 +431,7 @@ export default function DirectionDashboardClient({
                       ? `${stats.candidaturesAttente} en attente · action requise`
                       : `${stats.totalCandidatures} au total`,
                     accent: stats.candidaturesAttente > 0,
-                    dark: true,
+                    dark: stats.candidaturesAttente > 0,
                   },
                   {
                     href: "/plateforme/direction/eleves",

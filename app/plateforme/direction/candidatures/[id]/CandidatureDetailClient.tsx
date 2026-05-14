@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import {
   ArrowLeft, CheckCircle2, XCircle, Clock, Send, Mail,
   User, MapPin, Music, Phone, FileVideo, ExternalLink,
-  Hourglass, UserCheck, Calendar, AlertCircle,
+  Hourglass, UserCheck, Calendar, AlertCircle,X,
 } from "lucide-react";
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
@@ -664,11 +664,36 @@ export default function CandidatureDetailClient({
                             </button>
                           </div>
                         ) : (
-                          <div className="rounded-[10px] px-3 py-2.5"
+                        <div style={{ position: "relative" }}>
+                          <div className="rounded-[10px] px-3 py-2.5 group"
                             style={{ background: "rgb(248,250,248)", border: "1px solid rgba(0,0,0,0.06)" }}>
-                            <p className="text-sm leading-6" style={{ color: "rgba(0,0,0,0.7)", whiteSpace: "pre-wrap" }}>{n.contenu}</p>
+                            <p className="text-sm leading-6 pr-6" style={{ color: "rgba(0,0,0,0.7)", whiteSpace: "pre-wrap" }}>
+                              {n.contenu}
+                            </p>
+                            <button
+                              onClick={async () => {
+                                if (!confirm("Supprimer cette note ?")) return;
+                                const res = await fetch(`/api/direction/candidatures/${candidature.id}`, {
+                                  method: "PATCH",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ action: "supprimer_note", noteId: n.id }),
+                                });
+                                if (res.ok) setLocalNotesDiri(prev => prev.filter(x => x.id !== n.id));
+                              }}
+                              className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                              style={{
+                                width: 22, height: 22, borderRadius: "50%",
+                                background: "rgba(220,38,38,0.08)", border: "none",
+                                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                                color: "rgb(220,38,38)",
+                              }}
+                              title="Supprimer cette note"
+                            >
+                              <X size={11} />
+                            </button>
                           </div>
-                        )}
+                        </div>
+                      )}
                       </div>
                     </div>
                   );
