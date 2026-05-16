@@ -21,15 +21,9 @@ export default async function CandidaturesPage() {
     .select("*")
     .order("created_at", { ascending: true }); // ordre d'arrivée
 
-  const { data: groupes } = await supabase
-    .from("groupes")
-    .select("id, nom, parcours(nom), places_max, actif")
-    .eq("actif", true);
-
   return (
     <CandidaturesListClient
       candidatures={candidatures ?? []}
-      groupes={groupes ?? []}
     />
   );
 }
