@@ -5,14 +5,22 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   FileText, Clock, CheckCircle2, XCircle, AlertCircle,
-  Hourglass, ChevronRight, Search, ArrowUpDown
+  Hourglass, Search, ArrowUpDown
 } from "lucide-react";
+import AnneeScolaireSelector from "@/app/components/plateforme/AnneeScolaireSelector";
 
-// ── 4 FILTRES UNIQUEMENT ──────────────────────────────────────────────────────
+// ── TYPES ─────────────────────────────────────────────────────────────────────
+interface AnneeScolaire {
+  id: string;
+  libelle: string;
+  active: boolean;
+}
+
+// ── FILTRES ───────────────────────────────────────────────────────────────────
 const STATUTS = [
   { id: "tous",        label: "Toutes"      },
-  { id: "a_traiter",  label: "À traiter"   }, // en_attente + info_complementaire
-  { id: "acceptable", label: "Acceptables" }, // validee + acceptee
+  { id: "a_traiter",  label: "À traiter"   },
+  { id: "acceptable", label: "Acceptables" },
   { id: "refusee",    label: "Refusées"    },
 ];
 
@@ -52,17 +60,28 @@ function joursDepuis(dateStr: string) {
   return `Il y a ${diff}j`;
 }
 
+// ── COMPOSANT PRINCIPAL ───────────────────────────────────────────────────────
 export default function CandidaturesListClient({
   candidatures,
+  annees,
+  anneeActiveId: initialAnneeActiveId,
 }: {
   candidatures: any[];
+  annees: AnneeScolaire[];
+  anneeActiveId: string;
 }) {
-  const [filtre, setFiltre]             = useState("a_traiter");
-  const [search, setSearch]             = useState("");
+  const [filtre, setFiltre]           = useState("a_traiter");
+  const [search, setSearch]           = useState("");
   const [parcoursFilt, setParcoursFilt] = useState("tous");
-  const [tri, setTri]                   = useState<"asc" | "desc">("asc");
+  const [tri, setTri]                 = useState<"asc" | "desc">("asc");
+  const [anneeId, setAnneeId]         = useState(initialAnneeActiveId);
 
-  const filtered = candidatures
+  // ── Filtrage ──────────────────────────────────────────────────────────────
+  const candidaturesFiltreesAnnee = anneeId
+    ? candidatures.filter(c => c.annee_id === anneeId || !c.annee_id) // inclure les sans-année (legacy)
+    : candidatures;
+
+  const filtered = candidaturesFiltreesAnnee
     .filter(c => {
       if (!matchFiltre(c, filtre)) return false;
       if (parcoursFilt !== "tous" && c.parcours !== parcoursFilt) return false;
@@ -84,11 +103,11 @@ export default function CandidaturesListClient({
     });
 
   const counts = STATUTS.reduce((acc, s) => {
-    acc[s.id] = candidatures.filter(c => matchFiltre(c, s.id)).length;
+    acc[s.id] = candidaturesFiltreesAnnee.filter(c => matchFiltre(c, s.id)).length;
     return acc;
   }, {} as Record<string, number>);
 
-  const aTraiter = candidatures.filter(c =>
+  const aTraiter = candidaturesFiltreesAnnee.filter(c =>
     ["en_attente", "info_complementaire"].includes(c.statut)
   ).length;
 
@@ -97,14 +116,21 @@ export default function CandidaturesListClient({
 
       {/* ── HEADER ── */}
       <div className="px-10 lg:px-14 pb-6" style={{ paddingTop: "calc(88px + 24px)" }}>
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
             <p className="text-[9px] font-bold uppercase tracking-[0.3em] mb-2" style={{ color: "rgb(185,151,83)" }}>
               Direction · Candidatures
             </p>
-            <h1 className="text-3xl font-semibold" style={{ color: "rgb(8,20,14)" }}>Candidatures</h1>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-3xl font-semibold" style={{ color: "rgb(8,20,14)" }}>Candidatures</h1>
+              <AnneeScolaireSelector
+                annees={annees}
+                anneeActiveId={anneeId}
+                onChange={setAnneeId}
+              />
+            </div>
             <p className="text-sm mt-1" style={{ color: "rgba(0,0,0,0.4)" }}>
-              {candidatures.length} candidature{candidatures.length > 1 ? "s" : ""} · triées par ordre d'arrivée
+              {candidaturesFiltreesAnnee.length} candidature{candidaturesFiltreesAnnee.length > 1 ? "s" : ""} · triées par ordre d'arrivée
             </p>
           </div>
           {aTraiter > 0 && (
@@ -118,7 +144,7 @@ export default function CandidaturesListClient({
           )}
         </div>
 
-        {/* ── 4 FILTRES ── */}
+        {/* ── FILTRES STATUT ── */}
         <div className="flex items-center gap-2 mt-6 flex-wrap">
           {STATUTS.map(s => (
             <button
@@ -224,47 +250,52 @@ export default function CandidaturesListClient({
                     background: isUrgent ? "rgba(254,243,199,0.3)" : "transparent",
                   }}
                 >
+                  {/* # */}
                   <span className="text-[11px] font-bold tabular-nums"
-                    style={{ color: isUrgent ? "rgb(185,151,83)" : "rgba(0,0,0,0.2)" }}>
+                    style={{ color: isUrgent ? "rgb(185,151,83)" : "rgba(0,0,0,0.25)" }}>
                     {String(idx + 1).padStart(2, "0")}
                   </span>
 
-                  <div className="flex items-center gap-3">
-                    {isUrgent && (
-                      <div className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0"
-                        style={{ background: "rgb(185,151,83)" }} />
-                    )}
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold flex-shrink-0"
-                      style={{ background: "rgb(239,244,239)", color: "rgb(22,92,71)" }}>
-                      {c.prenom?.[0]}{c.nom?.[0]}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-black leading-tight">{c.prenom} {c.nom}</p>
-                      <p className="text-[11px]" style={{ color: "rgba(0,0,0,0.4)" }}>{c.email}</p>
-                    </div>
+                  {/* Candidat */}
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold truncate" style={{ color: "rgb(8,20,14)" }}>
+                      {c.prenom} {c.nom}
+                      {isUrgent && (
+                        <span className="ml-2 text-[10px] font-bold text-amber-600">⚠ urgent</span>
+                      )}
+                    </p>
+                    <p className="text-xs truncate" style={{ color: "rgba(0,0,0,0.4)" }}>{c.email}</p>
                   </div>
 
-                  <span className="text-[11px] font-medium" style={{ color: "rgba(0,0,0,0.6)" }}>
+                  {/* Parcours */}
+                  <span className="text-xs font-medium truncate" style={{ color: "rgba(0,0,0,0.55)" }}>
                     {PARCOURS_LABELS[c.parcours] ?? c.parcours}
                   </span>
 
+                  {/* Statut */}
                   <div>
-                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold border ${st.bg} ${st.text} ${st.border}`}>
+                    <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold border ${st.bg} ${st.text} ${st.border}`}>
                       {st.icon}
                       {st.label}
                     </span>
                   </div>
 
-                  <span className="text-[11px]" style={{ color: "rgba(0,0,0,0.4)" }}>
-                    {new Date(c.created_at).toLocaleDateString("fr-BE", { day: "numeric", month: "short" })}
-                  </span>
-
-                  <span className="text-[11px] font-semibold"
-                    style={{ color: isUrgent ? "rgb(185,151,83)" : "rgba(0,0,0,0.35)" }}>
+                  {/* Date */}
+                  <span className="text-xs" style={{ color: "rgba(0,0,0,0.4)" }}>
                     {joursDepuis(c.created_at)}
                   </span>
 
-                  <ChevronRight size={15} className="text-black/20 group-hover:text-black/50 transition-colors" />
+                  {/* Délai */}
+                  <span className="text-xs font-semibold tabular-nums"
+                    style={{ color: jours >= 5 ? "rgb(220,38,38)" : jours >= 3 ? "rgb(185,151,83)" : "rgba(0,0,0,0.3)" }}>
+                    {jours}j
+                  </span>
+
+                  {/* Flèche */}
+                  <div className="flex justify-end">
+                    <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ color: "rgb(22,92,71)" }}>→</span>
+                  </div>
                 </Link>
               );
             })}

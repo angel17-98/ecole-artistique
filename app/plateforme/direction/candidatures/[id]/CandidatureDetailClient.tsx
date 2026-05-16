@@ -224,9 +224,155 @@ function EmailModal({ candidature, onClose, onSent }: {
   );
 }
 
+interface GroupeAssigne {
+  id: string;
+  nom: string;
+  jour_semaine?: string | null;
+  heure_debut?: string | null;
+  heure_fin?: string | null;
+  places_max: number;
+  placesOccupees: number;
+}
+
+function BandeauGroupe({
+  statut,
+  groupe,
+}: {
+  statut: string;
+  groupe: GroupeAssigne | null;
+}) {
+  function formatHeure(h?: string | null) {
+    if (!h) return "";
+    return h.slice(0, 5);
+  }
+ 
+  // Pas de groupe assigné — candidature acceptable en attente d'assignation
+  if (!groupe && (statut === "validee" || statut === "acceptee")) {
+    return (
+      <div className="flex items-center gap-3 rounded-[14px] px-4 py-3"
+        style={{ background: "rgba(22,92,71,0.06)", border: "1px solid rgba(22,92,71,0.12)" }}>
+        <span className="text-base">🎯</span>
+        <p className="text-xs leading-5" style={{ color: "rgb(22,92,71)" }}>
+          Candidature acceptable — assigne une place dans le{" "}
+          <a href="/plateforme/direction/groupes"
+            className="font-bold underline underline-offset-2">
+            module Groupes →
+          </a>
+        </p>
+      </div>
+    );
+  }
+ 
+  // Groupe assigné — affichage dynamique selon statut
+  if (groupe) {
+    const libres = groupe.places_max - groupe.placesOccupees;
+    const pct = Math.round((groupe.placesOccupees / groupe.places_max) * 100);
+    const aPlanning = groupe.jour_semaine && groupe.heure_debut;
+ 
+    const config = {
+      place_proposee: {
+        bg: "rgba(185,151,83,0.08)",
+        border: "rgba(185,151,83,0.25)",
+        color: "rgb(146,95,14)",
+        dot: "rgb(186,117,23)",
+        label: "Place proposée — en attente de confirmation",
+        icon: "⏳",
+      },
+      inscrit: {
+        bg: "rgba(22,92,71,0.07)",
+        border: "rgba(22,92,71,0.18)",
+        color: "rgb(22,92,71)",
+        dot: "rgb(99,153,34)",
+        label: "Inscrit confirmé",
+        icon: "✓",
+      },
+      default: {
+        bg: "rgba(24,95,165,0.06)",
+        border: "rgba(24,95,165,0.18)",
+        color: "rgb(24,95,165)",
+        dot: "rgb(24,95,165)",
+        label: "Assigné — proposition non envoyée",
+        icon: "👥",
+      },
+    };
+ 
+    const c = config[statut as keyof typeof config] ?? config.default;
+ 
+    return (
+      <div
+        className="rounded-[14px] px-4 py-3"
+        style={{ background: c.bg, border: `1px solid ${c.border}` }}
+      >
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <div style={{
+              width: 7, height: 7, borderRadius: "50%",
+              background: c.dot, flexShrink: 0,
+            }} />
+            <span className="text-xs font-semibold" style={{ color: c.color }}>
+              {c.icon} {c.label}
+            </span>
+          </div>
+          <a
+            href="/plateforme/direction/groupes"
+            className="text-[10px] font-semibold underline underline-offset-2 opacity-60 hover:opacity-100 transition-opacity"
+            style={{ color: c.color }}
+          >
+            Voir les groupes →
+          </a>
+        </div>
+ 
+        {/* Infos groupe */}
+        <div className="mt-2.5 flex items-center gap-4 flex-wrap">
+          <span className="text-xs font-semibold" style={{ color: c.color }}>
+            {groupe.nom}
+          </span>
+ 
+          {aPlanning && (
+            <span className="text-xs" style={{ color: c.color, opacity: 0.75 }}>
+              {groupe.jour_semaine} · {formatHeure(groupe.heure_debut)}–{formatHeure(groupe.heure_fin)}
+            </span>
+          )}
+ 
+          {/* Barre de remplissage */}
+          <div className="flex items-center gap-2 ml-auto">
+            <div style={{
+              width: 64, height: 4, borderRadius: 100,
+              background: "rgba(0,0,0,0.08)", overflow: "hidden",
+            }}>
+              <div style={{
+                height: "100%",
+                width: `${pct}%`,
+                borderRadius: 100,
+                background: pct >= 100 ? "rgb(220,38,38)" : pct > 80 ? "rgb(186,117,23)" : c.dot,
+                transition: "width 0.3s",
+              }} />
+            </div>
+            <span className="text-[10px] font-semibold" style={{ color: c.color, opacity: 0.7 }}>
+              {groupe.placesOccupees}/{groupe.places_max}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+ 
+  // Inscrit sans groupe (ne devrait pas arriver, mais garde-fou)
+  if (statut === "inscrit") {
+    return (
+      <div className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold"
+        style={{ background: "rgba(22,92,71,0.08)", color: "rgb(22,92,71)" }}>
+        ✓ Élève inscrit — aucune action requise
+      </div>
+    );
+  }
+ 
+  return null;
+}
+
 // ── COMPOSANT PRINCIPAL ───────────────────────────────────────────────────────
 export default function CandidatureDetailClient({
-  candidature, hasAccount, rang, totalParcours, notesDiri,
+  candidature, hasAccount, rang, totalParcours, notesDiri, groupeAssigne,
   currentUserPrenom, currentUserNom,
 }: {
   candidature: any;
@@ -234,6 +380,7 @@ export default function CandidatureDetailClient({
   rang: number;
   totalParcours: number;
   notesDiri: NoteDiri[];
+  groupeAssigne: GroupeAssigne | null;
   currentUserPrenom: string;
   currentUserNom: string;
 }) {
@@ -474,26 +621,8 @@ export default function CandidatureDetailClient({
               </div>
             )}
 
-            {(currentStatut === "validee" || currentStatut === "acceptee") && (
-              <div className="flex items-center gap-3 rounded-[14px] px-4 py-3"
-                style={{ background: "rgba(22,92,71,0.06)", border: "1px solid rgba(22,92,71,0.12)" }}>
-                <span className="text-base">🎯</span>
-                <p className="text-xs leading-5" style={{ color: "rgb(22,92,71)" }}>
-                  Candidature acceptable — assigne une place dans le{" "}
-                  <Link href="/plateforme/direction/groupes"
-                    className="font-bold underline underline-offset-2">
-                    module Groupes →
-                  </Link>
-                </p>
-              </div>
-            )}
+            <BandeauGroupe statut={currentStatut} groupe={groupeAssigne} />
 
-            {currentStatut === "inscrit" && (
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold"
-                style={{ background: "rgba(22,92,71,0.08)", color: "rgb(22,92,71)" }}>
-                <CheckCircle2 size={15} /> Élève inscrit — aucune action requise
-              </div>
-            )}
           </div>
         </div>
       </div>

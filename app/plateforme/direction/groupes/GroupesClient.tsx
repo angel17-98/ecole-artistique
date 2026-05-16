@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, X, Send, ArrowLeft, ExternalLink, Users, Calendar, Clock } from "lucide-react";
+import { Plus, Pencil, Trash2, CheckCircle2, X, Send, ArrowLeft, ExternalLink, Users, Calendar, Clock } from "lucide-react";
+import AnneeScolaireSelector from "@/app/components/plateforme/AnneeScolaireSelector";
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 interface Groupe {
@@ -517,10 +518,12 @@ function ElevePill({ candidature, onClick }: { candidature: Candidature; onClick
 }
 
 // ── COLONNE GROUPE ────────────────────────────────────────────────────────────
-function GroupeColonne({ groupe, eleves, selectedId, onEleveClick, onAssignerDirect }: {
+function GroupeColonne({ groupe, eleves, selectedId, onEleveClick, onAssignerDirect,onEditer, onSupprimer, }: {
   groupe: Groupe; eleves: Candidature[]; selectedId: string | null;
   onEleveClick: (c: Candidature) => void;
   onAssignerDirect: (groupeId: string) => void;
+  onEditer: () => void;
+  onSupprimer: () => void;
 }) {
   const places    = eleves.length;
   const libres    = groupe.places_max - places;
@@ -539,6 +542,16 @@ function GroupeColonne({ groupe, eleves, selectedId, onEleveClick, onAssignerDir
       <div style={{ padding: "12px 14px 0", background: "rgb(248,250,248)", borderBottom: "1px solid rgba(0,0,0,0.06)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
           <p style={{ fontSize: 14, fontWeight: 600, color: "rgb(8,20,14)" }}>{groupe.nom}</p>
+          <div style={{ display: "flex", gap: 4 }}>
+            <button onClick={onEditer} title="Modifier"
+              style={{ padding: "3px 7px", borderRadius: 8, border: "1px solid rgba(0,0,0,0.1)", background: "white", cursor: "pointer", color: "rgba(0,0,0,0.45)", fontSize: 12 }}>
+              ✏
+            </button>
+            <button onClick={onSupprimer} title="Supprimer"
+              style={{ padding: "3px 7px", borderRadius: 8, border: "1px solid rgba(220,38,38,0.15)", background: "rgba(220,38,38,0.04)", cursor: "pointer", color: "rgb(220,38,38)", fontSize: 12 }}>
+              🗑
+            </button>
+          </div>
           <span style={{
             fontSize: 11, fontWeight: 600, padding: "3px 9px", borderRadius: 100,
             background: isComplet ? "rgba(220,38,38,0.08)" : pct > 80 ? "rgba(186,117,23,0.1)" : "rgba(22,92,71,0.08)",
@@ -613,13 +626,223 @@ function GroupeColonne({ groupe, eleves, selectedId, onEleveClick, onAssignerDir
 }
 
 // ── COMPOSANT PRINCIPAL ───────────────────────────────────────────────────────
+interface AnneeScolaire { id: string; libelle: string; active: boolean; }
+
+const JOURS = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+ 
+// ── MODALE CRÉER / MODIFIER ───────────────────────────────────────────────────
+function ModaleGroupe({
+  anneeId,
+  parcours,
+  groupe,
+  onClose,
+  onSaved,
+}: {
+  anneeId: string;
+  parcours: string;
+  groupe?: { id: string; nom: string; places_max: number; jour_semaine?: string | null; heure_debut?: string | null; heure_fin?: string | null };
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const isEdit = !!groupe;
+  const [nom, setNom]               = useState(groupe?.nom ?? "");
+  const [placesMax, setPlacesMax]   = useState(String(groupe?.places_max ?? "12"));
+  const [jour, setJour]             = useState(groupe?.jour_semaine ?? "");
+  const [debut, setDebut]           = useState(groupe?.heure_debut?.slice(0, 5) ?? "");
+  const [fin, setFin]               = useState(groupe?.heure_fin?.slice(0, 5) ?? "");
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState("");
+ 
+  const handleSubmit = async () => {
+    if (!nom.trim()) { setError("Le nom est obligatoire."); return; }
+    if (!placesMax || parseInt(placesMax) < 1) { setError("Places invalides."); return; }
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/direction/groupes", {
+        method: isEdit ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(isEdit
+          ? { id: groupe.id, nom, places_max: placesMax, jour_semaine: jour, heure_debut: debut, heure_fin: fin }
+          : { nom, parcours, places_max: placesMax, annee_id: anneeId, jour_semaine: jour, heure_debut: debut, heure_fin: fin }
+        ),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Erreur");
+      onSaved();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+ 
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)" }} onClick={onClose} />
+      <div style={{ position: "relative", width: "100%", maxWidth: 420, background: "white", borderRadius: 24, overflow: "hidden", boxShadow: "0 24px 80px rgba(0,0,0,0.2)" }}>
+ 
+        {/* Header */}
+        <div style={{ padding: "20px 24px", background: "rgb(12,50,38)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.2em", color: "rgba(255,255,255,0.5)", margin: "0 0 4px" }}>
+              {isEdit ? "Modifier le groupe" : "Nouveau groupe"}
+            </p>
+            <p style={{ fontSize: 15, fontWeight: 600, color: "white", margin: 0 }}>
+              {isEdit ? groupe.nom : `Parcours ${parcours === "full-artist" ? "Full Artist" : "Comédie Musicale"}`}
+            </p>
+          </div>
+          <button onClick={onClose} style={{ width: 32, height: 32, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.15)", background: "transparent", cursor: "pointer", color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            ✕
+          </button>
+        </div>
+ 
+        {/* Formulaire */}
+        <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 16 }}>
+ 
+          {/* Nom */}
+          <div>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "rgba(0,0,0,0.5)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 6 }}>
+              Nom du groupe *
+            </label>
+            <input
+              value={nom}
+              onChange={e => setNom(e.target.value)}
+              placeholder="ex : Groupe A · Full Artist"
+              style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "1px solid rgba(0,0,0,0.12)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+            />
+          </div>
+ 
+          {/* Places */}
+          <div>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "rgba(0,0,0,0.5)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 6 }}>
+              Places maximum *
+            </label>
+            <input
+              type="number"
+              min={1}
+              max={30}
+              value={placesMax}
+              onChange={e => setPlacesMax(e.target.value)}
+              style={{ width: "100%", padding: "10px 14px", borderRadius: 12, border: "1px solid rgba(0,0,0,0.12)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+            />
+          </div>
+ 
+          {/* Planning optionnel */}
+          <div>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "rgba(0,0,0,0.5)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 6 }}>
+              Planning (optionnel)
+            </label>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+              <select
+                value={jour}
+                onChange={e => setJour(e.target.value)}
+                style={{ padding: "10px 10px", borderRadius: 12, border: "1px solid rgba(0,0,0,0.12)", fontSize: 13, outline: "none", gridColumn: "1 / -1" }}
+              >
+                <option value="">Jour —</option>
+                {JOURS.map(j => <option key={j} value={j}>{j}</option>)}
+              </select>
+              <input type="time" value={debut} onChange={e => setDebut(e.target.value)}
+                style={{ padding: "10px 10px", borderRadius: 12, border: "1px solid rgba(0,0,0,0.12)", fontSize: 13, outline: "none" }} />
+              <span style={{ display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, color: "rgba(0,0,0,0.35)" }}>→</span>
+              <input type="time" value={fin} onChange={e => setFin(e.target.value)}
+                style={{ padding: "10px 10px", borderRadius: 12, border: "1px solid rgba(0,0,0,0.12)", fontSize: 13, outline: "none" }} />
+            </div>
+          </div>
+ 
+          {error && (
+            <p style={{ fontSize: 13, color: "rgb(220,38,38)", padding: "10px 14px", background: "rgba(220,38,38,0.06)", borderRadius: 10, margin: 0 }}>
+              {error}
+            </p>
+          )}
+ 
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            style={{ width: "100%", padding: "12px 0", borderRadius: 100, border: "none", background: loading ? "rgba(22,92,71,0.4)" : "rgb(22,92,71)", color: "white", fontSize: 14, fontWeight: 600, cursor: loading ? "not-allowed" : "pointer" }}
+          >
+            {loading ? "Enregistrement…" : isEdit ? "Enregistrer les modifications" : "Créer le groupe"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+ 
+// ── MODALE SUPPRESSION ────────────────────────────────────────────────────────
+function ModaleSupprimer({
+  groupe,
+  onClose,
+  onDeleted,
+}: {
+  groupe: { id: string; nom: string };
+  onClose: () => void;
+  onDeleted: () => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState("");
+ 
+  const handleDelete = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/direction/groupes", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: groupe.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Erreur");
+      onDeleted();
+    } catch (e: any) {
+      setError(e.message);
+      setLoading(false);
+    }
+  };
+ 
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", backdropFilter: "blur(4px)" }} onClick={onClose} />
+      <div style={{ position: "relative", width: "100%", maxWidth: 380, background: "white", borderRadius: 24, padding: 28, boxShadow: "0 24px 80px rgba(0,0,0,0.2)", textAlign: "center" }}>
+        <div style={{ width: 52, height: 52, borderRadius: "50%", background: "rgba(220,38,38,0.08)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 22 }}>
+          🗑️
+        </div>
+        <h2 style={{ fontSize: 17, fontWeight: 600, margin: "0 0 8px" }}>Supprimer ce groupe ?</h2>
+        <p style={{ fontSize: 13, color: "rgba(0,0,0,0.5)", margin: "0 0 6px", lineHeight: 1.6 }}>
+          <strong>{groupe.nom}</strong> sera définitivement supprimé.
+        </p>
+        <p style={{ fontSize: 12, color: "rgba(0,0,0,0.4)", margin: "0 0 20px", lineHeight: 1.6 }}>
+          Le groupe doit être vide (aucun élève assigné) pour pouvoir être supprimé.
+        </p>
+ 
+        {error && (
+          <p style={{ fontSize: 13, color: "rgb(220,38,38)", padding: "10px 14px", background: "rgba(220,38,38,0.06)", borderRadius: 10, marginBottom: 16, textAlign: "left" }}>
+            {error}
+          </p>
+        )}
+ 
+        <div style={{ display: "flex", gap: 10 }}>
+          <button onClick={onClose} style={{ flex: 1, padding: "11px 0", borderRadius: 100, border: "1px solid rgba(0,0,0,0.12)", background: "white", fontSize: 13, fontWeight: 500, cursor: "pointer", color: "rgba(0,0,0,0.6)" }}>
+            Annuler
+          </button>
+          <button onClick={handleDelete} disabled={loading} style={{ flex: 1, padding: "11px 0", borderRadius: 100, border: "none", background: loading ? "rgba(220,38,38,0.4)" : "rgb(220,38,38)", color: "white", fontSize: 13, fontWeight: 600, cursor: loading ? "not-allowed" : "pointer" }}>
+            {loading ? "Suppression…" : "Supprimer"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function GroupesClient({
-  groupes, aPlacerRaw, placesRaw, parametres,
+  groupes, aPlacerRaw, placesRaw, parametres, annees, anneeActiveId,
 }: {
   groupes: Groupe[];
   aPlacerRaw: Candidature[];
   placesRaw: Candidature[];
   parametres: Record<string, string>;
+  annees: AnneeScolaire[];
+  anneeActiveId: string;
 }) {
   const router = useRouter();
   const [parcours, setParcours]           = useState("full-artist");
@@ -629,6 +852,11 @@ export default function GroupesClient({
   const [groupePresel, setGroupePresel]   = useState("");
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [toast, setToast]                 = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [anneeId, setAnneeId]             = useState(anneeActiveId);
+  const [showCreer, setShowCreer]         = useState(false);
+  const [groupeAEditer, setGroupeAEditer] = useState<Groupe | null>(null);
+  const [groupeASuppr, setGroupeASuppr]   = useState<{ id: string; nom: string } | null>(null);
+
 
   const showToast = (msg: string, type: "success" | "error" = "success") => {
     setToast({ msg, type });
@@ -727,9 +955,16 @@ export default function GroupesClient({
             <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgb(185,151,83)", marginBottom: 6 }}>
               Direction · Groupes
             </p>
-            <h1 style={{ fontSize: 30, fontWeight: 600, color: "rgb(8,20,14)", margin: 0 }}>
-              Composition des groupes
-            </h1>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+              <h1 style={{ fontSize: 30, fontWeight: 600, color: "rgb(8,20,14)", margin: 0 }}>
+                Composition des groupes
+              </h1>
+              <AnneeScolaireSelector
+                annees={annees}
+                anneeActiveId={anneeId}
+                onChange={setAnneeId}
+              />
+            </div>
             <p style={{ fontSize: 13, color: "rgba(0,0,0,0.45)", marginTop: 6 }}>
               Sélectionne un candidat · Dépose dans un groupe · Envoie la proposition manuellement
             </p>
@@ -746,6 +981,15 @@ export default function GroupesClient({
               </button>
             ))}
           </div>
+          <button onClick={() => setShowCreer(true)} style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "9px 18px", borderRadius: 100, border: "none",
+              background: "rgb(22,92,71)", color: "white",
+              fontSize: 13, fontWeight: 600, cursor: "pointer",
+            }}
+          >
+            <Plus size={14} /> Créer un groupe
+          </button>
         </div>
 
         {/* Stats */}
@@ -829,6 +1073,8 @@ export default function GroupesClient({
                 selectedId={selectedId}
                 onEleveClick={handleEleveClick}
                 onAssignerDirect={handleAssignerDirect}
+                onEditer={() => setGroupeAEditer(g)}
+                onSupprimer={() => setGroupeASuppr({ id: g.id, nom: g.nom })}
               />
             ))}
           </div>
@@ -868,6 +1114,33 @@ export default function GroupesClient({
           </div>
         )}
       </div>
+
+      {showCreer && (
+        <ModaleGroupe
+          anneeId={anneeId}
+          parcours={parcours}
+          onClose={() => setShowCreer(false)}
+          onSaved={() => { setShowCreer(false); router.refresh(); }}
+        />
+      )}
+
+      {groupeAEditer && (
+        <ModaleGroupe
+          anneeId={anneeId}
+          parcours={parcours}
+          groupe={groupeAEditer}
+          onClose={() => setGroupeAEditer(null)}
+          onSaved={() => { setGroupeAEditer(null); router.refresh(); }}
+        />
+      )}
+
+      {groupeASuppr && (
+        <ModaleSupprimer
+          groupe={groupeASuppr}
+          onClose={() => setGroupeASuppr(null)}
+          onDeleted={() => { setGroupeASuppr(null); router.refresh(); }}
+        />
+      )}
     </div>
   );
 }

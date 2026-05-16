@@ -1,92 +1,118 @@
+// app/plateforme/dossier/page.tsx
 import { createClient } from "@/lib/plateforme/supabase/server";
+import { supabaseAdmin } from "@/lib/plateforme/supabase/admin";
 import { redirect } from "next/navigation";
 import DossierClient from "./DossierClient";
+import { ShellProfile, ShellEleve } from "@/app/components/plateforme/PlatformShell";
+
+interface ProgressionNiveau {
+  id: string;
+  periode: string;
+  date_evaluation: string;
+  eval_chant: number;
+  eval_danse: number;
+  eval_theatre: number;
+  eval_ecriture: number;
+  eval_scenique: number;
+  eval_studio: number;
+  commentaire_global?: string;
+}
+
+interface NoteCours {
+  id: string;
+  contenu: string;
+  created_at: string;
+  cours_discipline?: string;
+  cours_date?: string;
+  prof_prenom?: string;
+  prof_nom?: string;
+}
+
+interface CoursIndividuel {
+  id: string;
+  discipline: string;
+  date_heure_debut: string;
+  date_heure_fin: string;
+  prof_prenom?: string;
+  prof_nom?: string;
+  statut: string;
+  note?: string;
+}
+
+interface LocationSalle {
+  id: string;
+  salle_nom?: string;
+  date_heure_debut: string;
+  date_heure_fin: string;
+  statut: string;
+}
+
+interface Fidelite {
+  id: string;
+  type_carte: string;
+  compteur: number;
+  total_offerts: number;
+}
 
 export default async function DossierPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/plateforme/login");
 
+  // ── Profil & foyer ────────────────────────────────────────────────────────
   const { data: profile } = await supabase
     .from("profiles")
-    .select("*")
+    .select("id, prenom, nom, role, photo_url")
     .eq("id", user.id)
     .single();
 
+  if (!profile || profile.role === "direction" || profile.role === "prof_salarie" || profile.role === "prof_independant") {
+    redirect("/plateforme");
+  }
+
   const { data: foyer } = await supabase
     .from("foyers")
-    .select("*, eleves(*)")
+    .select("id, nom_famille")
     .eq("user_id", user.id)
     .single();
 
-  const eleves = foyer?.eleves ?? [];
+  const { data: elevesData } = await supabase
+    .from("eleves")
+    .select("id, prenom, nom, statut_premium, photo_url")
+    .eq("foyer_id", foyer?.id ?? "");
 
-  // ── Fidélité (liée au foyer, pas à l'élève) ──────────────────────────────
+  const eleves: ShellEleve[] = (elevesData ?? []).map((e: any) => ({
+    id: e.id,
+    prenom: e.prenom,
+    nom: e.nom,
+    statut_premium: e.statut_premium ?? false,
+    photo_url: e.photo_url ?? null,
+  }));
+
   const { data: fidelite } = await supabase
     .from("fidelite")
     .select("*")
     .eq("foyer_id", foyer?.id ?? "");
 
   // ── Données par élève ─────────────────────────────────────────────────────
-  type NoteCours = {
-    id: string;
-    contenu: string;
-    created_at: string;
-    cours_discipline?: string;
-    cours_date?: string;
-    prof_prenom?: string;
-    prof_nom?: string;
-  };
-
-  type ProgressionNiveau = {
-    id: string;
-    periode: string;
-    date_evaluation: string;
-    eval_chant: number;
-    eval_danse: number;
-    eval_theatre: number;
-    eval_ecriture: number;
-    eval_scenique: number;
-    eval_studio: number;
-    commentaire_global?: string;
-  };
-
-  type CoursIndividuel = {
-    id: string;
-    discipline: string;
-    date_heure_debut: string;
-    date_heure_fin: string;
-    prof_prenom?: string;
-    prof_nom?: string;
-    statut: string;
-    note?: string;
-  };
-
-  type LocationSalle = {
-    id: string;
-    salle_nom?: string;
-    date_heure_debut: string;
-    date_heure_fin: string;
-    statut: string;
-  };
-
-  type EleveData = {
+  const eleveData: Record<string, {
     notes: NoteCours[];
     niveaux: ProgressionNiveau[];
-    niveauInitial: ProgressionNiveau | null; // depuis candidatures
+    niveauInitial: ProgressionNiveau | null;
     coursIndividuels: CoursIndividuel[];
     locations: LocationSalle[];
-  };
-
-  const eleveData: Record<string, EleveData> = {};
+  }> = {};
 
   for (const eleve of eleves) {
-    // ── Notes de cours (parcours annuel) ────────────────────────────────────
+    // ── Notes de cours ───────────────────────────────────────────────────────
     const { data: notesData } = await supabase
       .from("notes_cours")
-      .select(`*, cours(discipline, date_heure_debut), prof:profs(prenom, nom)`)
+      .select(`
+        id, contenu, created_at,
+        cours:cours_id(discipline, date_heure_debut),
+        prof:prof_id(prenom, nom)
+      `)
       .eq("eleve_id", eleve.id)
-      .eq("visible_eleve", true)
       .order("created_at", { ascending: false });
 
     const notes: NoteCours[] = (notesData ?? []).map((n: any) => ({
@@ -119,65 +145,71 @@ export default async function DossierPage() {
       commentaire_global: n.commentaire_global,
     }));
 
-    // ── Niveau initial depuis candidatures (email matching) ──────────────────
-    // On cherche la candidature acceptée correspondant à cet élève
-    // via email du foyer — lien indirect car pas de FK directe
+    // ── Niveau initial depuis candidatures (UUID, plus d'email matching) ─────
+    // On cherche la candidature liée au user_id directement.
+    // Fallback sur email uniquement pour les comptes créés avant la migration.
     let niveauInitial: ProgressionNiveau | null = null;
 
-    // Récupérer l'email du foyer pour matcher la candidature
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("id", user.id)
-      .single();
+    // 1. Recherche prioritaire par user_id (propre, rapide)
+    const { data: candidatureParUserId } = await supabaseAdmin
+      .from("candidatures")
+      .select("eval_chant, eval_danse, eval_theatre, eval_ecriture, eval_scenique, eval_studio, created_at")
+      .eq("user_id", user.id)
+      .in("statut", ["acceptee", "inscrit"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    if (profileData) {
-      // Chercher via auth.users l'email
-      const { data: authUser } = await supabase.auth.getUser();
-      const email = authUser?.user?.email;
+    if (candidatureParUserId) {
+      niveauInitial = {
+        id: "initial",
+        periode: "Entrée",
+        date_evaluation: candidatureParUserId.created_at,
+        eval_chant: candidatureParUserId.eval_chant ?? 0,
+        eval_danse: candidatureParUserId.eval_danse ?? 0,
+        eval_theatre: candidatureParUserId.eval_theatre ?? 0,
+        eval_ecriture: candidatureParUserId.eval_ecriture ?? 0,
+        eval_scenique: candidatureParUserId.eval_scenique ?? 0,
+        eval_studio: candidatureParUserId.eval_studio ?? 0,
+      };
+    } else {
+      // 2. Fallback email — pour les comptes créés avant qu'on ajoute user_id
+      // On en profite pour lier rétroactivement si trouvé
+      const { data: candidatureParEmail } = await supabaseAdmin
+        .from("candidatures")
+        .select("id, eval_chant, eval_danse, eval_theatre, eval_ecriture, eval_scenique, eval_studio, created_at")
+        .eq("email", user.email ?? "")
+        .in("statut", ["acceptee", "inscrit"])
+        .is("user_id", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (email) {
-        const { data: candidature } = await supabase
+      if (candidatureParEmail) {
+        // Lier rétroactivement pour que ce fallback ne soit plus nécessaire
+        await supabaseAdmin
           .from("candidatures")
-          .select("eval_chant, eval_danse, eval_theatre, eval_ecriture, eval_scenique, eval_studio, created_at")
-          .eq("email", email)
-          .eq("statut", "acceptee")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
+          .update({ user_id: user.id })
+          .eq("id", candidatureParEmail.id);
 
-        if (candidature) {
-          niveauInitial = {
-            id: "initial",
-            periode: "Entrée",
-            date_evaluation: candidature.created_at,
-            eval_chant: candidature.eval_chant ?? 0,
-            eval_danse: candidature.eval_danse ?? 0,
-            eval_theatre: candidature.eval_theatre ?? 0,
-            eval_ecriture: candidature.eval_ecriture ?? 0,
-            eval_scenique: candidature.eval_scenique ?? 0,
-            eval_studio: candidature.eval_studio ?? 0,
-          };
-        }
+        niveauInitial = {
+          id: "initial",
+          periode: "Entrée",
+          date_evaluation: candidatureParEmail.created_at,
+          eval_chant: candidatureParEmail.eval_chant ?? 0,
+          eval_danse: candidatureParEmail.eval_danse ?? 0,
+          eval_theatre: candidatureParEmail.eval_theatre ?? 0,
+          eval_ecriture: candidatureParEmail.eval_ecriture ?? 0,
+          eval_scenique: candidatureParEmail.eval_scenique ?? 0,
+          eval_studio: candidatureParEmail.eval_studio ?? 0,
+        };
       }
     }
 
     // ── Cours individuels (phase 5 — désactivé pour l'instant) ───────────────
-    // TODO: brancher à la phase 5
-    // const { data: creneaux } = await supabase
-    //   .from("creneaux_individuels")
-    //   .select(`*, prof:profs(prenom, nom)`)
-    //   .eq("eleve_id", eleve.id)
-    //   .order("date_heure_debut", { ascending: false });
     const coursIndividuels: CoursIndividuel[] = [];
 
     // ── Locations de salles (phase 7 — désactivé pour l'instant) ─────────────
-    // TODO: brancher à la phase 7
-    // const { data: locs } = await supabase
-    //   .from("reservations_salles")
-    //   .select(`*, salle:salles(nom)`)
-    //   .eq("user_id", user.id)
-    //   .order("date_heure_debut", { ascending: false });
     const locations: LocationSalle[] = [];
 
     eleveData[eleve.id] = { notes, niveaux, niveauInitial, coursIndividuels, locations };
@@ -185,11 +217,11 @@ export default async function DossierPage() {
 
   return (
     <DossierClient
-      profile={profile}
-      foyer={{ id: foyer?.id, nom_famille: foyer?.nom_famille }}
+      profile={profile as ShellProfile}
+      foyer={{ id: foyer?.id ?? "", nom_famille: foyer?.nom_famille ?? "" }}
       eleves={eleves}
       eleveData={eleveData}
-      fidelite={fidelite ?? []}
+      fidelite={(fidelite ?? []) as Fidelite[]}
       initialEleveId={eleves[0]?.id ?? ""}
     />
   );
