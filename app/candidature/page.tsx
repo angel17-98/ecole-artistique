@@ -183,60 +183,46 @@ function CandidatureForm() {
     setError(null);
 
     try {
-      let videoUrl = "";
+      let driveVideoUrl = "";
+      let driveFileId = "";
 
-      // Upload fichier si présent
+      // ── Upload vidéo vers Google Drive ────────────────────────────────────
       if (form.video) {
-        // Obtenir URL signée
-        const presignRes = await fetch("/api/candidature/presign-video", {
+        setUploadStatus("uploading");
+
+        const fd = new FormData();
+        fd.append("file", form.video);
+        fd.append("email", form.email);
+        fd.append("prenom", form.prenom);
+        fd.append("nom", form.nom);
+        fd.append("parcours", form.parcours);
+        fd.append("annee", "2025-2026");
+
+        // Simuler progression (Drive ne supporte pas XHR progress sur multipart)
+        const progressInterval = setInterval(() => {
+          setUploadProgress((prev) => Math.min(prev + 8, 85));
+        }, 400);
+
+        const uploadRes = await fetch("/api/candidature/upload-video-drive", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: form.email,
-            parcours: form.parcours,
-            filename: form.video.name,
-            contentType: form.video.type,
-            fileSize: form.video.size, // ← ajout : taille pour vérif côté serveur
-          }),
+          body: fd,
         });
 
-        // 507 = storage plein → basculer en mode lien sans bloquer le candidat
-        if (presignRes.status === 507) {
-          setSubmitting(false);
-          setForm((prev) => ({ ...prev, video_mode: "link", video: null }));
-          if (fileRef.current) fileRef.current.value = "";
-          setError(
-            "L'envoi de fichier vidéo est temporairement indisponible dû à un nombre de candidatures important aujourd'hui. " +
-            "Tu peux envoyer ta candidature avec un lien YouTube ou Google Drive — " +
-            "ça fonctionne exactement pareil !"
-          );
-          return;
+        clearInterval(progressInterval);
+        setUploadProgress(100);
+
+        if (!uploadRes.ok) {
+          const data = await uploadRes.json();
+          throw new Error(data.error ?? "Erreur lors de l'upload vidéo");
         }
 
-        if (!presignRes.ok) throw new Error("Impossible de préparer l'upload");
-        const { uploadUrl, readUrl } = await presignRes.json();
-
-        // Upload direct navigateur → Supabase (bypass limite Vercel)
-        setUploadStatus("uploading");
-        await new Promise<void>((resolve, reject) => {
-          const xhr = new XMLHttpRequest();
-          xhr.upload.addEventListener("progress", (e) => {
-            if (e.lengthComputable) setUploadProgress(Math.round((e.loaded / e.total) * 100));
-          });
-          xhr.addEventListener("load", () => {
-            xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(`Upload échoué (${xhr.status})`));
-          });
-          xhr.addEventListener("error", () => reject(new Error("Erreur réseau pendant l'upload")));
-          xhr.open("PUT", uploadUrl);
-          xhr.setRequestHeader("Content-Type", form.video!.type);
-          xhr.send(form.video);
-        });
-
+        const uploadData = await uploadRes.json();
+        driveVideoUrl = uploadData.url;
+        driveFileId = uploadData.fileId;
         setUploadStatus("done");
-        videoUrl = readUrl;
       }
 
-      // Soumettre la candidature complète
+      // ── Soumettre la candidature complète ─────────────────────────────────
       const submitRes = await fetch("/api/candidature/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -250,8 +236,11 @@ function CandidatureForm() {
           eval_chant: form.eval_chant, eval_danse: form.eval_danse,
           eval_theatre: form.eval_theatre, eval_ecriture: form.eval_ecriture,
           eval_scenique: form.eval_scenique, eval_studio: form.eval_studio,
-          video_url: videoUrl,
-          video_link: form.video_link,
+          // Drive remplace Supabase Storage
+          drive_video_url: driveVideoUrl || null,
+          drive_file_id: driveFileId || null,
+          video_url: null, // plus utilisé
+          video_link: form.video_link || null,
         }),
       });
 
@@ -260,9 +249,7 @@ function CandidatureForm() {
 
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Erreur inconnue";
-      setError(`Une erreur s'est produite : ${msg}. Vérifie ta connexion et réessaie.`);
-      setUploadStatus("idle");
-      setUploadProgress(0);
+      setError(`Une erreur s'est produite : ${msg}. Réessaie ou contacte-nous directement.`);
     } finally {
       setSubmitting(false);
     }
