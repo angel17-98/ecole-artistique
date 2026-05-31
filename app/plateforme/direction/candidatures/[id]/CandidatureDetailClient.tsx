@@ -703,7 +703,9 @@ export default function CandidatureDetailClient({
               {/* Bouton transfert Supabase → Drive */}
               <DriveTransferButton
                 candidatureId={candidature.id}
+                candidatNom={`${candidature.prenom} ${candidature.nom}`}
                 hasVideoOnSupabase={!!candidature.video_url}
+                supabaseUrl={candidature.video_url ?? undefined}
                 hasVideoOnDrive={!!candidature.drive_video_url}
                 driveUrl={candidature.drive_video_url ?? undefined}
               />
