@@ -1,6 +1,7 @@
 // app/plateforme/direction/candidatures/[id]/CandidatureDetailClient.tsx
 "use client";
 
+import DriveTransferButton from "@/app/components/plateforme/direction/DriveTransferButton";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -684,34 +685,35 @@ export default function CandidatureDetailClient({
           )}
 
           <Card title="Vidéo de candidature">
-            {candidature.drive_video_url ? (
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-[12px] flex items-center justify-center flex-shrink-0"
-                  style={{ background: "rgba(22,92,71,0.08)" }}>
-                  <FileVideo size={20} style={{ color: "rgb(22,92,71)" }} />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-semibold text-black mb-1">Vidéo sur Google Drive</p>
-                  <a href={candidature.drive_video_url} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-sm font-medium hover:underline"
-                    style={{ color: "rgb(22,92,71)" }}>
-                    <ExternalLink size={13} /> Visionner la vidéo
-                  </a>
-                </div>
-              </div>
-            ) : candidature.video_url ? (
-              <a href={candidature.video_url} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm font-medium hover:underline" style={{ color: "rgb(22,92,71)" }}>
-                <FileVideo size={16} /><ExternalLink size={13} /> Vidéo Supabase Storage
-              </a>
-            ) : candidature.video_link ? (
-              <a href={candidature.video_link} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm font-medium hover:underline" style={{ color: "rgb(22,92,71)" }}>
-                <ExternalLink size={13} /> Lien vidéo externe
-              </a>
-            ) : (
-              <p className="text-sm" style={{ color: "rgba(0,0,0,0.4)" }}>Aucune vidéo soumise.</p>
-            )}
+            <div className="space-y-3">
+              {/* Lien externe (YouTube, Drive manuel) */}
+              {candidature.video_link && (
+                
+                <a
+                  href={candidature.video_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-sm font-medium hover:underline"
+                  style={{ color: "rgb(22,92,71)" }}
+                >
+                  <ExternalLink size={13} /> Lien vidéo externe
+                </a>
+              )}
+
+              {/* Bouton transfert Supabase → Drive */}
+              <DriveTransferButton
+                candidatureId={candidature.id}
+                hasVideoOnSupabase={!!candidature.video_url}
+                hasVideoOnDrive={!!candidature.drive_video_url}
+                driveUrl={candidature.drive_video_url ?? undefined}
+              />
+
+              {!candidature.video_url && !candidature.drive_video_url && !candidature.video_link && (
+                <p className="text-sm" style={{ color: "rgba(0,0,0,0.4)" }}>
+                  Aucune vidéo soumise.
+                </p>
+              )}
+            </div>
           </Card>
         </div>
 
