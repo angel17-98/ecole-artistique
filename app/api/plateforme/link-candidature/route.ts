@@ -35,7 +35,6 @@ export async function POST(req: NextRequest) {
       const STATUT_LABELS: Record<string, string> = {
         "en_attente":          "En attente",
         "validee":             "Retenue",
-        "acceptee":            "Acceptée",
         "liste_attente":       "Liste d'attente",
         "place_proposee":      "Place proposée",
         "inscrit":             "Inscrit",

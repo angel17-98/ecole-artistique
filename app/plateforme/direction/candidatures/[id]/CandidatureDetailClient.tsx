@@ -13,7 +13,7 @@ import {
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 type Statut =
-  | "en_attente" | "info_complementaire" | "validee" | "acceptee"
+  | "en_attente" | "info_complementaire" | "validee"
   | "liste_attente" | "place_proposee" | "inscrit" | "refusee"
   | "expiree" | "sans_reponse";
 
@@ -94,7 +94,6 @@ function statutConfig(statut: string) {
     case "en_attente":          return { label: "En attente",       bg: "rgba(185,151,83,0.1)", color: "rgb(185,151,83)",  icon: <Clock size={14} /> };
     case "info_complementaire": return { label: "Info demandée",    bg: "rgba(139,92,246,0.1)", color: "rgb(139,92,246)",  icon: <AlertCircle size={14} /> };
     case "validee":
-    case "acceptee":            return { label: "Acceptable",       bg: "rgba(22,92,71,0.1)",   color: "rgb(22,92,71)",    icon: <CheckCircle2 size={14} /> };
     case "liste_attente":       return { label: "Liste d'attente",  bg: "rgba(59,130,246,0.08)",color: "rgb(59,130,246)",  icon: <Hourglass size={14} /> };
     case "place_proposee":      return { label: "Place proposée",   bg: "rgba(16,185,129,0.1)", color: "rgb(16,185,129)",  icon: <Send size={14} /> };
     case "inscrit":             return { label: "Inscrit ✓",        bg: "rgba(22,92,71,0.15)",  color: "rgb(22,92,71)",    icon: <CheckCircle2 size={14} /> };
@@ -116,7 +115,6 @@ function getActions(statut: string) {
         { id: "refuser",       label: "Refuser",                     style: "danger",    icon: "x"         },
       ];
     case "validee":
-    case "acceptee":
       return [
         { id: "email",         label: "Envoyer un email",            style: "ghost",     icon: "mail"      },
         { id: "refuser",       label: "Refuser",                     style: "danger",    icon: "x"         },
@@ -248,7 +246,7 @@ function BandeauGroupe({
   }
  
   // Pas de groupe assigné — candidature acceptable en attente d'assignation
-  if (!groupe && (statut === "validee" || statut === "acceptee")) {
+  if (!groupe && statut === "validee") {
     return (
       <div className="flex items-center gap-3 rounded-[14px] px-4 py-3"
         style={{ background: "rgba(22,92,71,0.06)", border: "1px solid rgba(22,92,71,0.12)" }}>
