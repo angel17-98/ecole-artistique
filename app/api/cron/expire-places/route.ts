@@ -103,14 +103,18 @@ export async function GET(req: NextRequest) {
 
       // ── 5. Notification in-app si le candidat a un compte ─────────────────
       if (candidature.user_id) {
-        await supabaseAdmin.from("notifications").insert({
-          user_id: candidature.user_id,
-          type: "systeme",
-          titre: "Ta place a expiré",
-          contenu: `La place proposée dans le parcours ${parcoursLabel} a expiré. Tu es toujours sur liste d'attente.`,
-          lu: false,
-          lien: "/plateforme/dashboard",
-        }).catch(console.error);
+        try {
+          await supabaseAdmin.from("notifications").insert({
+            user_id: candidature.user_id,
+            type: "systeme",
+            titre: "Ta place a expiré",
+            contenu: `La place proposée dans le parcours ${parcoursLabel} a expiré. Tu es toujours sur liste d'attente.`,
+            lu: false,
+            lien: "/plateforme/dashboard",
+          });
+        } catch (notifErr) {
+          console.error("Notif error:", notifErr);
+        }
       }
 
       // ── 6. Email direction ────────────────────────────────────────────────
