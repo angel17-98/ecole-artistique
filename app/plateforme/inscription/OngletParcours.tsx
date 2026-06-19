@@ -752,7 +752,7 @@ export default function OngletParcours({ user, candidature, eleves }: {
         </div>
       )}
 
-      <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
+      <div className="grid gap-8 lg:grid-cols-[1fr_500px]">
         <div className="space-y-8">
           <VueStatutCandidature candidature={candidature} />
           {candidature.statut === "place_proposee" && (
