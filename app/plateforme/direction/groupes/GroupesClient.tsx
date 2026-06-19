@@ -834,6 +834,125 @@ function ModaleSupprimer({
   );
 }
 
+
+const PARCOURS_LABELS_BANDEAU: Record<string, string> = {
+  "full-artist":      "Full Artist",
+  "comedie-musicale": "Comédie Musicale",
+  "eveil-musical":    "Éveil Musical",
+};
+ 
+function BandeauPlacesExpirees({
+  expirees,
+  loadingId,
+  onLiberer,
+}: {
+  expirees: Candidature[];
+  loadingId: string | null;
+  onLiberer: (id: string) => void;
+}) {
+  if (expirees.length === 0) return null;
+ 
+  return (
+    <div style={{
+      margin: "0 0 20px",
+      borderRadius: 16,
+      border: "1px solid rgba(220,38,38,0.2)",
+      background: "rgba(254,242,242,0.8)",
+      overflow: "hidden",
+    }}>
+      {/* Header bandeau */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 10,
+        padding: "12px 18px",
+        borderBottom: expirees.length > 0 ? "1px solid rgba(220,38,38,0.12)" : "none",
+        background: "rgba(220,38,38,0.06)",
+      }}>
+        <span style={{ fontSize: 16 }}>⏰</span>
+        <div style={{ flex: 1 }}>
+          <p style={{ fontSize: 13, fontWeight: 700, color: "rgb(185,28,28)", margin: 0 }}>
+            {expirees.length} place{expirees.length > 1 ? "s" : ""} expirée{expirees.length > 1 ? "s" : ""} — action requise
+          </p>
+          <p style={{ fontSize: 11, color: "rgba(185,28,28,0.7)", margin: "2px 0 0" }}>
+            Ces candidats n'ont pas répondu dans le délai imparti. Libère la place pour la proposer au suivant.
+          </p>
+        </div>
+      </div>
+ 
+      {/* Liste des expirés */}
+      <div style={{ padding: "10px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
+        {expirees.map(c => {
+          const joursDepuis = c.place_expire_at
+            ? Math.floor((Date.now() - new Date(c.place_expire_at).getTime()) / (1000 * 60 * 60 * 24))
+            : null;
+ 
+          return (
+            <div key={c.id} style={{
+              display: "flex", alignItems: "center", gap: 12,
+              background: "white", borderRadius: 12,
+              padding: "10px 14px",
+              border: "1px solid rgba(220,38,38,0.1)",
+            }}>
+              {/* Initiales */}
+              <div style={{
+                width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
+                background: "rgba(220,38,38,0.12)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 11, fontWeight: 700, color: "rgb(185,28,28)",
+              }}>
+                {c.prenom?.[0]}{c.nom?.[0]}
+              </div>
+ 
+              {/* Infos */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: "rgb(8,20,14)", margin: 0 }}>
+                  {c.prenom} {c.nom}
+                </p>
+                <p style={{ fontSize: 11, color: "rgba(0,0,0,0.45)", margin: "2px 0 0" }}>
+                  {PARCOURS_LABELS_BANDEAU[c.parcours] ?? c.parcours}
+                  {joursDepuis !== null && (
+                    <span style={{ color: "rgb(185,28,28)", fontWeight: 600, marginLeft: 6 }}>
+                      · expiré il y a {joursDepuis === 0 ? "aujourd'hui" : `${joursDepuis}j`}
+                    </span>
+                  )}
+                </p>
+              </div>
+ 
+              {/* Lien fiche */}
+              <a
+                href={`/plateforme/direction/candidatures/${c.id}`}
+                style={{
+                  fontSize: 11, color: "rgba(0,0,0,0.4)", textDecoration: "none",
+                  padding: "5px 10px", borderRadius: 8,
+                  border: "1px solid rgba(0,0,0,0.08)",
+                  background: "rgb(249,248,245)",
+                  flexShrink: 0,
+                }}
+              >
+                Voir la fiche →
+              </a>
+ 
+              {/* Bouton libérer */}
+              <button
+                onClick={() => onLiberer(c.id)}
+                disabled={loadingId === c.id}
+                style={{
+                  fontSize: 12, fontWeight: 600,
+                  padding: "6px 14px", borderRadius: 100, border: "none",
+                  background: loadingId === c.id ? "rgba(220,38,38,0.4)" : "rgb(220,38,38)",
+                  color: "white", cursor: loadingId === c.id ? "not-allowed" : "pointer",
+                  flexShrink: 0, transition: "background 0.15s",
+                }}
+              >
+                {loadingId === c.id ? "Libération…" : "Libérer la place"}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function GroupesClient({
   groupes, aPlacerRaw, placesRaw, parametres, annees, anneeActiveId,
 }: {
@@ -856,6 +975,7 @@ export default function GroupesClient({
   const [showCreer, setShowCreer]         = useState(false);
   const [groupeAEditer, setGroupeAEditer] = useState<Groupe | null>(null);
   const [groupeASuppr, setGroupeASuppr]   = useState<{ id: string; nom: string } | null>(null);
+  const [loadingLiberer, setLoadingLiberer] = useState<string | null>(null);
 
 
   const showToast = (msg: string, type: "success" | "error" = "success") => {
@@ -869,6 +989,12 @@ export default function GroupesClient({
   const aPlacerParcours = aPlacerRaw.filter(c => c.parcours === parcours);
   const elevesParGroupe = (gId: string) =>
     placesRaw.filter(c => c.groupe_inscription_id === gId && c.parcours === parcours);
+
+  const placesExpirees = placesRaw.filter(
+      c => c.statut === "place_proposee" &&
+           c.place_expire_at &&
+           new Date(c.place_expire_at) < new Date()
+  );
 
   const handleSelectChip = (c: Candidature) => {
     if (selectedId === c.id) { closeFiche(); return; }
@@ -936,6 +1062,25 @@ export default function GroupesClient({
     const delaiJours = parseInt(parametres.delai_reponse_candidat_jours ?? "5");
     callApi(ficheOuverte!.id, { action: "proposer_place", delaiJours }, `Proposition envoyée à ${ficheOuverte!.prenom} · ${delaiJours}j ✓`);
   };
+  const handleLibererPlace = async (id: string) => {
+     setLoadingLiberer(id);
+     try {
+       const res = await fetch(`/api/direction/candidatures/${id}`, {
+         method: "PATCH",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({ action: "liste_attente" }),
+       });
+       let data: any = {};
+       try { const t = await res.text(); if (t) data = JSON.parse(t); } catch {}
+       if (!res.ok) throw new Error(data.error ?? "Erreur");
+       showToast("Place libérée — candidat remis en liste d'attente ✓");
+       router.refresh();
+     } catch (e: any) {
+       showToast(e.message, "error");
+     } finally {
+       setLoadingLiberer(null);
+     }
+   };
 
   return (
     <div className="min-h-screen" style={{ background: "rgb(239,244,239)" }}>
@@ -991,6 +1136,12 @@ export default function GroupesClient({
             <Plus size={14} /> Créer un groupe
           </button>
         </div>
+
+        <BandeauPlacesExpirees
+          expirees={placesExpirees}
+          loadingId={loadingLiberer}
+          onLiberer={handleLibererPlace}
+        />
 
         {/* Stats */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>

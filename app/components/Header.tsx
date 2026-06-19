@@ -198,7 +198,7 @@ export default function Header() {
               <DesktopDropdown label="À propos" items={aboutItems} />
               <DesktopDropdown label="Nos cours" items={courseItems} />
               <NavLink href="/stages" label="Stages & Workshops" />
-              <NavLink href="/inscriptions" label="Inscriptions" />
+              <NavLink href="/plateforme/inscription" label="Inscriptions" />
               <NavLink href="/locations" label="Réservation studio / salles" />
             </nav>
 

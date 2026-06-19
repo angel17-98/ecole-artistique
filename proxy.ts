@@ -62,11 +62,14 @@ export async function proxy(req: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
+  // Routes accessibles sans connexion
   const publicRoutes = [
     "/plateforme/login",
     "/plateforme/register",
     "/plateforme/forgot-password",
     "/plateforme/reset-password",
+    "/plateforme/inscription",   // ← visible sans compte
+    "/plateforme/candidature",   // ← candidature sans compte possible
   ];
 
   const isPublicRoute = publicRoutes.some(r => pathname.startsWith(r));
@@ -79,21 +82,30 @@ export async function proxy(req: NextRequest) {
   }
 
   if (isPublicRoute && user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
+    // Sur les routes auth pures (login/register), rediriger si déjà connecté
+    const authOnlyRoutes = [
+      "/plateforme/login",
+      "/plateforme/register",
+      "/plateforme/forgot-password",
+      "/plateforme/reset-password",
+    ];
+    const isAuthOnlyRoute = authOnlyRoutes.some(r => pathname.startsWith(r));
 
-    const dashboardUrl = req.nextUrl.clone();
-    dashboardUrl.pathname = profile?.role === "direction"
-      ? "/plateforme/direction/profs"
-      : "/plateforme/dashboard";
+    if (isAuthOnlyRoute) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
 
-    return NextResponse.redirect(dashboardUrl);
+      const dashboardUrl = req.nextUrl.clone();
+      dashboardUrl.pathname = profile?.role === "direction"
+        ? "/plateforme/direction"
+        : "/plateforme/dashboard";
+      return NextResponse.redirect(dashboardUrl);
+    }
+    // Pour /inscription et /candidature : laisser passer même connecté
   }
 
-  // ── Injecter le pathname pour masquer Header/Footer ────────
-  supabaseResponse.headers.set("x-pathname", pathname);
   return supabaseResponse;
 }
