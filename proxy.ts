@@ -1,4 +1,4 @@
-/* Proxy — protection site + auth plateforme */
+/* proxy.ts — protection site + auth plateforme */
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -68,8 +68,8 @@ export async function proxy(req: NextRequest) {
     "/plateforme/register",
     "/plateforme/forgot-password",
     "/plateforme/reset-password",
-    "/plateforme/inscription",   // ← visible sans compte
-    "/plateforme/candidature",   // ← candidature sans compte possible
+    "/plateforme/inscription",
+    "/plateforme/candidature",
   ];
 
   const isPublicRoute = publicRoutes.some(r => pathname.startsWith(r));
@@ -82,7 +82,6 @@ export async function proxy(req: NextRequest) {
   }
 
   if (isPublicRoute && user) {
-    // Sur les routes auth pures (login/register), rediriger si déjà connecté
     const authOnlyRoutes = [
       "/plateforme/login",
       "/plateforme/register",
@@ -99,13 +98,70 @@ export async function proxy(req: NextRequest) {
         .single();
 
       const dashboardUrl = req.nextUrl.clone();
-      dashboardUrl.pathname = profile?.role === "direction"
-        ? "/plateforme/direction"
-        : "/plateforme/dashboard";
+
+      // ── Redirection selon le rôle ──────────────────────────
+      if (profile?.role === "direction") {
+        dashboardUrl.pathname = "/plateforme/direction";
+      } else if (
+        profile?.role === "prof_salarie" ||
+        profile?.role === "prof_independant"
+      ) {
+        dashboardUrl.pathname = "/plateforme/prof";
+      } else {
+        dashboardUrl.pathname = "/plateforme/dashboard";
+      }
+
       return NextResponse.redirect(dashboardUrl);
     }
-    // Pour /inscription et /candidature : laisser passer même connecté
   }
 
+  // ─── Protéger /plateforme/prof contre les non-profs ───────
+  if (pathname.startsWith("/plateforme/prof")) {
+    if (!user) {
+      const loginUrl = req.nextUrl.clone();
+      loginUrl.pathname = "/plateforme/login";
+      loginUrl.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (
+      profile?.role !== "prof_salarie" &&
+      profile?.role !== "prof_independant" &&
+      profile?.role !== "direction" // direction peut accéder pour supervision
+    ) {
+      const dashboardUrl = req.nextUrl.clone();
+      dashboardUrl.pathname = "/plateforme/dashboard";
+      return NextResponse.redirect(dashboardUrl);
+    }
+  }
+
+  // ─── Rediriger les profs hors de /plateforme/dashboard ────
+  if (pathname === "/plateforme/dashboard" || pathname === "/plateforme") {
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (profile?.role === "prof_salarie" || profile?.role === "prof_independant") {
+        const profUrl = req.nextUrl.clone();
+        profUrl.pathname = "/plateforme/prof";
+        return NextResponse.redirect(profUrl);
+      }
+
+      if (profile?.role === "direction") {
+        const dirUrl = req.nextUrl.clone();
+        dirUrl.pathname = "/plateforme/direction";
+        return NextResponse.redirect(dirUrl);
+      }
+    }
+  }
+  
   return supabaseResponse;
 }
