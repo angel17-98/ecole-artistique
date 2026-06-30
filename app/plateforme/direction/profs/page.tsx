@@ -1,342 +1,163 @@
-// // app/plateforme/direction/profs/page.tsx
-// import { createClient } from "@/lib/plateforme/supabase/server";
-// import Link from "next/link";
-
-// export default async function DirectionProfsPage() {
-//   const supabase = await createClient();
-
-//   // Récupérer tous les profs avec leur profil
-//   const { data: profs } = await supabase
-//     .from("profs")
-//     .select(`
-//       id,
-//       type_contrat,
-//       disciplines,
-//       actif,
-//       created_at,
-//       profile:profiles!profs_user_id_fkey(prenom, nom, telephone, is_active)
-//     `)
-//     .order("created_at", { ascending: false });
-
-//   return (
-//     <main className="min-h-screen bg-[rgb(239,244,239)] px-6 py-10">
-//       <div className="max-w-4xl mx-auto">
-
-//         {/* En-tête */}
-//         <div className="flex items-center justify-between mb-8">
-//           <div>
-//             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[rgb(185,151,83)] mb-2">
-//               Espace direction
-//             </p>
-//             <h1 className="text-3xl font-semibold tracking-tight text-black">
-//               Professeurs
-//             </h1>
-//             <p className="mt-1 text-sm text-black/50">
-//               {profs?.length ?? 0} prof{(profs?.length ?? 0) > 1 ? "s" : ""} enregistré{(profs?.length ?? 0) > 1 ? "s" : ""}
-//             </p>
-//           </div>
-//           <Link
-//             href="/plateforme/direction/profs/nouveau"
-//             className="inline-flex items-center gap-2 rounded-full bg-[rgb(22,92,71)] px-6 py-3 text-sm font-semibold text-white hover:bg-[rgb(18,75,58)] transition"
-//           >
-//             + Ajouter un prof
-//           </Link>
-//         </div>
-
-//         {/* Liste */}
-//         <div className="space-y-3">
-//           {profs?.length === 0 && (
-//             <div className="rounded-2xl border border-black/8 bg-white p-10 text-center text-sm text-black/40">
-//               Aucun professeur pour l'instant. Commence par en ajouter un.
-//             </div>
-//           )}
-
-//           {profs?.map((prof) => {
-//             const p = prof.profile as any;
-//             return (
-//               <div
-//                 key={prof.id}
-//                 className="rounded-2xl border border-black/8 bg-white px-6 py-4 flex items-center justify-between"
-//               >
-//                 <div className="flex items-center gap-4">
-//                   {/* Avatar initiales */}
-//                   <div className="w-10 h-10 rounded-full bg-[rgb(22,92,71)]/10 flex items-center justify-center text-sm font-semibold text-[rgb(22,92,71)]">
-//                     {p?.prenom?.[0]}{p?.nom?.[0]}
-//                   </div>
-//                   <div>
-//                     <p className="font-semibold text-black text-sm">
-//                       {p?.prenom} {p?.nom}
-//                     </p>
-//                     <p className="text-xs text-black/45 mt-0.5">
-//                       {prof.type_contrat === "independant" ? "Indépendant" : "Salarié"} · {prof.disciplines?.join(", ")}
-//                     </p>
-//                   </div>
-//                 </div>
-
-//                 <div className="flex items-center gap-3">
-//                   <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
-//                     prof.actif
-//                       ? "bg-[rgb(22,92,71)]/10 text-[rgb(22,92,71)]"
-//                       : "bg-black/8 text-black/40"
-//                   }`}>
-//                     {prof.actif ? "Actif" : "Inactif"}
-//                   </span>
-//                 </div>
-//               </div>
-//             );
-//           })}
-//         </div>
-
-//       </div>
-//     </main>
-//   );
-// }
-
-// app/plateforme/direction/profs/nouveau/page.tsx
-"use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+// app/plateforme/direction/profs/page.tsx
+import { createClient } from "@/lib/plateforme/supabase/server";
+import { supabaseAdmin } from "@/lib/plateforme/supabase/admin";
+import { redirect } from "next/navigation";
 import Link from "next/link";
+import { ChevronRight, Plus } from "lucide-react";
 
-const DISCIPLINES_DISPONIBLES = [
-  "Chant", "Danse", "Théâtre", "Écriture", "Expression scénique", "Studio / production",
-];
+export default async function DirectionProfsPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/plateforme/login");
 
-export default function NouveauProfPage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const { data: profile } = await supabase
+    .from("profiles").select("role").eq("id", user.id).single();
+  if (profile?.role !== "direction") redirect("/plateforme/direction");
 
-  const [prenom, setPrenom] = useState("");
-  const [nom, setNom] = useState("");
-  const [email, setEmail] = useState("");
-  const [telephone, setTelephone] = useState("");
-  const [typeContrat, setTypeContrat] = useState<"salarie" | "independant">("salarie");
-  const [disciplines, setDisciplines] = useState<string[]>([]);
+  // Profs avec leur profil + contrat actif
+  const { data: profs } = await supabaseAdmin
+    .from("profs")
+    .select(`
+      id, type_contrat, disciplines, actif, created_at,
+      profile:profiles!profs_user_id_fkey(prenom, nom, telephone, is_active)
+    `)
+    .order("created_at", { ascending: false });
 
-  const toggleDiscipline = (d: string) => {
-    setDisciplines((prev) =>
-      prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]
-    );
-  };
+  const today = new Date().toISOString().split("T")[0];
 
-  const canSubmit = prenom && nom && email && disciplines.length > 0;
+  // Récupérer les contrats actifs pour tous les profs en une requête
+  const profIds = (profs ?? []).map(p => p.id);
+  const { data: contratsActifs } = profIds.length > 0
+    ? await supabaseAdmin
+        .from("contrats")
+        .select("prof_id, type, salaire_fixe, tarif_cours_indiv, date_fin")
+        .in("prof_id", profIds)
+        .or(`date_fin.is.null,date_fin.gte.${today}`)
+    : { data: [] };
 
-  const handleSubmit = async () => {
-    setLoading(true);
-    setError("");
+  const contratParProf = Object.fromEntries(
+    (contratsActifs ?? []).map(c => [c.prof_id, c])
+  );
 
-    try {
-      const res = await fetch("/api/direction/create-prof", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prenom, nom, email, telephone, typeContrat, disciplines }),
-      });
-
-      // Lire le texte brut d'abord pour éviter le crash si la réponse est vide
-      const text = await res.text();
-      console.log("Réponse API brute:", res.status, text);
-
-      let data: any = {};
-      if (text) {
-        try {
-          data = JSON.parse(text);
-        } catch {
-          setError(`Réponse invalide du serveur (${res.status}): ${text.slice(0, 200)}`);
-          setLoading(false);
-          return;
-        }
-      }
-
-      if (!res.ok) {
-        setError(data.error || `Erreur serveur (${res.status})`);
-        setLoading(false);
-        return;
-      }
-
-      setSuccess(true);
-    } catch (err: any) {
-      setError(`Erreur réseau : ${err.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (success) {
-    return (
-      <main className="min-h-screen bg-[rgb(239,244,239)] flex items-center justify-center px-6">
-        <div className="max-w-sm w-full text-center">
-          <div className="w-16 h-16 rounded-full bg-[rgb(22,92,71)]/10 flex items-center justify-center mx-auto mb-6 text-3xl">
-            ✓
-          </div>
-          <h2 className="text-2xl font-semibold text-black mb-2">Compte créé</h2>
-          <p className="text-sm text-black/50 mb-8">
-            {prenom} {nom} va recevoir un email avec son lien de connexion.
-          </p>
-          <div className="flex flex-col gap-3">
-            <button
-              onClick={() => {
-                setSuccess(false);
-                setPrenom(""); setNom(""); setEmail("");
-                setTelephone(""); setDisciplines([]);
-              }}
-              className="rounded-full bg-[rgb(22,92,71)] px-6 py-3 text-sm font-semibold text-white hover:bg-[rgb(18,75,58)] transition"
-            >
-              Ajouter un autre prof
-            </button>
-            <Link
-              href="/plateforme/direction/profs"
-              className="rounded-full border border-black/15 px-6 py-3 text-sm font-semibold text-black/70 hover:bg-black/5 transition text-center"
-            >
-              Retour à la liste
-            </Link>
-          </div>
-        </div>
-      </main>
-    );
-  }
+  const typeLabel = (t: string) =>
+    t === "independant" ? "Indépendant"
+    : t === "mixte" ? "Mixte"
+    : "Salarié";
 
   return (
-    <main className="min-h-screen bg-[rgb(239,244,239)] px-6 py-10">
-      <div className="max-w-lg mx-auto">
+    <div className="min-h-screen" style={{ background: "rgb(239,244,239)" }}>
+      <div className="px-10 lg:px-14" style={{ paddingTop: "calc(96px + 24px)", paddingBottom: 24 }}>
 
-        <Link
-          href="/plateforme/direction/profs"
-          className="inline-flex items-center gap-2 text-xs text-black/40 hover:text-black/60 transition mb-8"
-        >
-          ← Retour à la liste
-        </Link>
-
-        <div className="mb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[rgb(185,151,83)] mb-2">
-            Espace direction
-          </p>
-          <h1 className="text-3xl font-semibold tracking-tight text-black">
-            Nouveau professeur
-          </h1>
-          <p className="mt-1 text-sm text-black/50">
-            Un email de connexion sera envoyé automatiquement.
-          </p>
+        {/* En-tête */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgb(185,151,83)", marginBottom: 6 }}>
+              Direction · Professeurs
+            </p>
+            <h1 style={{ fontSize: 30, fontWeight: 600, color: "rgb(8,20,14)", margin: "0 0 4px" }}>
+              Professeurs
+            </h1>
+            <p style={{ fontSize: 13, color: "rgba(0,0,0,0.45)", margin: 0 }}>
+              {profs?.length ?? 0} prof{(profs?.length ?? 0) > 1 ? "s" : ""} enregistré{(profs?.length ?? 0) > 1 ? "s" : ""}
+            </p>
+          </div>
+          <Link
+            href="/plateforme/direction/profs/nouveau"
+            className="inline-flex items-center gap-2 rounded-full text-sm font-semibold text-white transition hover:bg-[rgb(18,75,58)]"
+            style={{ background: "rgb(22,92,71)", padding: "12px 24px" }}
+          >
+            <Plus size={14} /> Ajouter un prof
+          </Link>
         </div>
 
-        <div className="bg-white rounded-2xl border border-black/8 p-6 space-y-5">
-
-          {/* Prénom + Nom */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-black/40 mb-2">
-                Prénom
-              </label>
-              <input
-                value={prenom}
-                onChange={(e) => setPrenom(e.target.value)}
-                placeholder="Marie"
-                className="w-full rounded-[14px] border border-black/10 bg-[rgb(247,250,247)] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/20 focus:border-[rgb(22,92,71)]"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-black/40 mb-2">
-                Nom
-              </label>
-              <input
-                value={nom}
-                onChange={(e) => setNom(e.target.value)}
-                placeholder="Dubois"
-                className="w-full rounded-[14px] border border-black/10 bg-[rgb(247,250,247)] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/20 focus:border-[rgb(22,92,71)]"
-              />
-            </div>
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-black/40 mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="marie.dubois@email.com"
-              className="w-full rounded-[14px] border border-black/10 bg-[rgb(247,250,247)] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/20 focus:border-[rgb(22,92,71)]"
-            />
-          </div>
-
-          {/* Téléphone */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-black/40 mb-2">
-              Téléphone <span className="text-black/25 normal-case font-normal">(optionnel)</span>
-            </label>
-            <input
-              type="tel"
-              value={telephone}
-              onChange={(e) => setTelephone(e.target.value)}
-              placeholder="+32 470 00 00 00"
-              className="w-full rounded-[14px] border border-black/10 bg-[rgb(247,250,247)] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/20 focus:border-[rgb(22,92,71)]"
-            />
-          </div>
-
-          {/* Type de contrat */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-black/40 mb-3">
-              Type de contrat
-            </label>
-            <div className="flex gap-3">
-              {(["salarie", "independant"] as const).map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setTypeContrat(type)}
-                  className={`flex-1 rounded-[14px] border py-3 text-sm font-semibold transition ${
-                    typeContrat === type
-                      ? "border-[rgb(22,92,71)] bg-[rgb(22,92,71)]/8 text-[rgb(22,92,71)]"
-                      : "border-black/10 bg-[rgb(247,250,247)] text-black/50"
-                  }`}
-                >
-                  {type === "salarie" ? "Salarié" : "Indépendant"}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Disciplines */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-black/40 mb-3">
-              Disciplines <span className="text-black/25 normal-case font-normal">(plusieurs possibles)</span>
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {DISCIPLINES_DISPONIBLES.map((d) => (
-                <button
-                  key={d}
-                  onClick={() => toggleDiscipline(d)}
-                  className={`rounded-full border px-4 py-2 text-xs font-semibold transition ${
-                    disciplines.includes(d)
-                      ? "border-[rgb(22,92,71)] bg-[rgb(22,92,71)] text-white"
-                      : "border-black/10 bg-[rgb(247,250,247)] text-black/50 hover:border-black/20"
-                  }`}
-                >
-                  {d}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {error && (
-            <div className="rounded-[14px] border border-red-200 bg-red-50 px-4 py-3">
-              <p className="text-sm text-red-600">{error}</p>
+        {/* Liste */}
+        <div className="space-y-2 max-w-3xl">
+          {(!profs || profs.length === 0) && (
+            <div className="rounded-[20px] border border-black/6 bg-white p-10 text-center text-sm text-black/40">
+              Aucun professeur pour l'instant. Commence par en ajouter un.
             </div>
           )}
 
-          <button
-            onClick={handleSubmit}
-            disabled={!canSubmit || loading}
-            className="w-full rounded-full bg-[rgb(22,92,71)] px-6 py-4 text-sm font-semibold text-white hover:bg-[rgb(18,75,58)] transition disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            {loading ? "Création en cours..." : "Créer le compte →"}
-          </button>
+          {profs?.map((prof) => {
+            const p = prof.profile as any;
+            const contrat = contratParProf[prof.id];
+            const initiales = `${p?.prenom?.[0] ?? ""}${p?.nom?.[0] ?? ""}`.toUpperCase();
 
+            return (
+              <Link
+                key={prof.id}
+                href={`/plateforme/direction/profs/${prof.id}`}
+                className="group flex items-center gap-4 rounded-[18px] border border-black/6 bg-white px-6 py-4 transition-all hover:-translate-y-px hover:shadow-md"
+                style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
+              >
+                {/* Avatar */}
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+                  style={{ background: "rgba(22,92,71,0.1)", color: "rgb(22,92,71)" }}
+                >
+                  {initiales || "?"}
+                </div>
+
+                {/* Infos */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <p className="text-sm font-semibold text-black">
+                      {p?.prenom} {p?.nom}
+                    </p>
+                    {/* Badge type contrat */}
+                    {contrat ? (
+                      <span
+                        className="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
+                        style={{ background: "rgba(22,92,71,0.1)", color: "rgb(22,92,71)" }}
+                      >
+                        {typeLabel(contrat.type)}
+                      </span>
+                    ) : (
+                      <span
+                        className="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
+                        style={{ background: "rgba(185,151,83,0.12)", color: "rgb(146,95,14)" }}
+                      >
+                        Sans contrat
+                      </span>
+                    )}
+                    {/* Badge inactif */}
+                    {!prof.actif && (
+                      <span
+                        className="text-[9px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full"
+                        style={{ background: "rgba(220,38,38,0.08)", color: "rgb(220,38,38)" }}
+                      >
+                        Inactif
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-black/40 mt-0.5 truncate">
+                    {prof.disciplines?.join(", ") || "Aucune discipline"}
+                    {p?.telephone ? ` · ${p.telephone}` : ""}
+                  </p>
+                </div>
+
+                {/* Infos contrat à droite */}
+                <div className="text-right flex-shrink-0 hidden sm:block">
+                  {contrat?.salaire_fixe != null && (
+                    <p className="text-xs font-semibold text-black">{contrat.salaire_fixe} € / mois</p>
+                  )}
+                  {contrat?.tarif_cours_indiv != null && (
+                    <p className="text-xs text-black/40">{contrat.tarif_cours_indiv} € / cours</p>
+                  )}
+                  {!contrat && (
+                    <p className="text-xs text-[rgb(185,151,83)] font-semibold">Contrat à créer →</p>
+                  )}
+                </div>
+
+                <ChevronRight
+                  size={16}
+                  className="text-black/20 group-hover:text-black/50 transition-colors flex-shrink-0"
+                />
+              </Link>
+            );
+          })}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

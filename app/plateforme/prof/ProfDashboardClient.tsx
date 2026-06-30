@@ -18,6 +18,8 @@ interface ProfStats {
   montantEstime: number | null;
   nbDisciplines: number;
   messagesNonLus: number;
+  heuresOuvertesPeriode?: number;
+  joursRestantsPeriode?: number;
 }
 
 interface ProchainCours {
@@ -169,11 +171,24 @@ export default function ProfDashboardClient({
       {/* ══ HERO ═════════════════════════════════════════════════════════════ */}
       <div className="px-10 lg:px-14"
         style={{
-          paddingTop: "calc(88px + 0px)",
+          paddingTop: "calc(96px + 0px)",
           background: "linear-gradient(135deg, rgb(8,20,14) 0%, rgb(12,40,28) 60%, rgb(18,55,38) 100%)",
           marginLeft: 0,
         }}>
         <div className="flex items-end justify-between py-8 gap-6">
+
+          {/* Pattern géométrique décoratif */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full opacity-10"
+              style={{ background: "radial-gradient(circle, rgb(185,151,83) 0%, transparent 70%)" }} />
+            <div className="absolute right-40 bottom-0 w-48 h-48 rounded-full opacity-5"
+              style={{ background: "radial-gradient(circle, white 0%, transparent 70%)" }} />
+            <div className="absolute inset-0 opacity-[0.015]"
+              style={{
+                backgroundImage: "repeating-linear-gradient(60deg, white 0, white 1px, transparent 0, transparent 50%)",
+                backgroundSize: "30px 30px",
+              }} />
+          </div>
 
           {/* Gauche : salutation + stats */}
           <div className="flex-1 min-w-0">
@@ -347,26 +362,52 @@ export default function ProfDashboardClient({
         {/* ── COLONNE DROITE ── */}
         <div className="space-y-4">
 
-          {/* Actions rapides */}
-          <section>
-            <SectionLabel noMargin>Actions rapides</SectionLabel>
-            <div className="space-y-2 mt-3">
-              {[
-                { label: "Ouvrir des créneaux", href: "/plateforme/prof/creneaux/nouveau", icon: <Plus size={14} /> },
-                { label: "Voir mon planning", href: "/plateforme/prof/planning", icon: <CalendarDays size={14} /> },
-                { label: "Mes élèves", href: "/plateforme/prof/eleves", icon: <Users size={14} /> },
-                { label: "Ma rémunération", href: "/plateforme/prof/remuneration", icon: <Wallet size={14} /> },
-              ].map(a => (
-                <Link key={a.href} href={a.href}
-                  className="flex items-center gap-3 px-4 py-3 rounded-[14px] transition-all hover:-translate-y-px group bg-white"
-                  style={{ border: "1px solid rgba(0,0,0,0.07)", boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
-                  <span style={{ color: "rgb(22,92,71)" }}>{a.icon}</span>
-                  <span className="text-sm font-medium flex-1 text-black/70 group-hover:text-black transition-colors">{a.label}</span>
-                  <ChevronRight size={14} className="text-black/20 group-hover:text-black/50 transition-colors" />
-                </Link>
-              ))}
-            </div>
-          </section>
+          {/* Suivi heures minimum contractuelles */}
+          {contrat?.heures_min_periode && (
+            <section>
+              <SectionLabel noMargin>Engagement contractuel</SectionLabel>
+              <div className="mt-3 rounded-[16px] border border-black/6 bg-white p-4"
+                style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.03)" }}>
+                {(() => {
+                  const heuresFaites = stats.heuresOuvertesPeriode ?? 0;
+                  const heuresMin = contrat.heures_min_periode;
+                  const pct = Math.min(100, Math.round((heuresFaites / heuresMin) * 100));
+                  const enRetard = pct < 100 && stats.joursRestantsPeriode !== undefined && stats.joursRestantsPeriode <= 7;
+                  return (
+                    <>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs text-black/40">
+                          Créneaux ouverts / {contrat.periode_engagement ?? "3 mois"}
+                        </p>
+                        <p className="text-xs font-semibold" style={{ color: pct >= 100 ? "rgb(22,92,71)" : enRetard ? "rgb(220,38,38)" : "rgb(8,20,14)" }}>
+                          {heuresFaites}h / {heuresMin}h
+                        </p>
+                      </div>
+                      <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: "rgba(0,0,0,0.06)" }}>
+                        <div className="h-full rounded-full transition-all" style={{
+                          width: `${pct}%`,
+                          background: pct >= 100 ? "rgb(22,92,71)" : enRetard ? "rgb(220,38,38)" : "rgb(185,151,83)",
+                        }} />
+                      </div>
+                      {stats.joursRestantsPeriode !== undefined && (
+                        <p className="text-[11px] text-black/35 mt-2">
+                          {pct >= 100
+                            ? "Objectif atteint pour cette période ✓"
+                            : `${stats.joursRestantsPeriode} jour${stats.joursRestantsPeriode > 1 ? "s" : ""} restant${stats.joursRestantsPeriode > 1 ? "s" : ""}`}
+                        </p>
+                      )}
+                      {enRetard && (
+                        <Link href="/plateforme/prof/creneaux/nouveau"
+                          className="mt-3 flex items-center justify-center gap-1.5 rounded-full bg-[rgb(22,92,71)] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[rgb(18,75,58)]">
+                          <Plus size={12} /> Ouvrir des créneaux
+                        </Link>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+            </section>
+          )}
 
           {/* Info contrat */}
           {contrat && (

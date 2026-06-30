@@ -287,7 +287,7 @@ export default function DirectionDashboardClient({
             style={{ background: "linear-gradient(0deg, rgb(239,244,239), transparent)" }} />
 
           {/* Contenu hero */}
-          <div className="relative flex items-stretch px-10 lg:px-14 pt-8 pb-10">
+          <div className="relative flex items-stretch px-15 lg:px-20 pt-16 pb-10">
 
             {/* ── Gauche : texte ── */}
             <div className="flex-1 flex flex-col justify-between pr-8">

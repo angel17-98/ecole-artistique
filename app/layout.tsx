@@ -38,6 +38,12 @@ export default async function RootLayout({
       >
         <div className="min-h-screen flex flex-col">
           <Header />
+          {/*
+            pt-24 toujours présent pour les pages publiques.
+            Les pages /plateforme/* utilisent -mt-24 dans leur propre
+            layout/composant pour annuler ce padding et gérer leur
+            propre espacement sous le header.
+          */}
           <main className="flex-1 pt-24">
             {children}
           </main>

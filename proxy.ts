@@ -8,6 +8,12 @@ const COOKIE_NAME = "site_unlock";
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // ─── Injecter le pathname dans les headers pour app/layout.tsx ─────────────
+  // Sans ça, headers().get("x-pathname") est vide de façon imprévisible
+  // et le footer s'affiche/disparaît au hasard sur /plateforme
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-pathname", pathname);
+
   // ─── Routes statiques toujours autorisées ─────────────────
   const isStaticPath =
     pathname.startsWith("/_next") ||
@@ -17,7 +23,9 @@ export async function proxy(req: NextRequest) {
     pathname.startsWith("/unlock") ||
     pathname.startsWith("/api/unlock");
 
-  if (isStaticPath) return NextResponse.next();
+  if (isStaticPath) {
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
 
   // ─── Protection mot de passe site public ──────────────────
   const isProtected = process.env.SITE_PASSWORD_ENABLED === "true";
@@ -33,11 +41,11 @@ export async function proxy(req: NextRequest) {
 
   // ─── Routes non-plateforme : on passe ─────────────────────
   if (!pathname.startsWith("/plateforme")) {
-    return NextResponse.next();
+    return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
   // ─── Auth plateforme ───────────────────────────────────────
-  let supabaseResponse = NextResponse.next({ request: req });
+  let supabaseResponse = NextResponse.next({ request: { headers: requestHeaders } });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_PLATEFORME_URL!,
@@ -51,7 +59,7 @@ export async function proxy(req: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             req.cookies.set(name, value)
           );
-          supabaseResponse = NextResponse.next({ request: req });
+          supabaseResponse = NextResponse.next({ request: { headers: requestHeaders } });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );
@@ -99,7 +107,6 @@ export async function proxy(req: NextRequest) {
 
       const dashboardUrl = req.nextUrl.clone();
 
-      // ── Redirection selon le rôle ──────────────────────────
       if (profile?.role === "direction") {
         dashboardUrl.pathname = "/plateforme/direction";
       } else if (
@@ -132,7 +139,7 @@ export async function proxy(req: NextRequest) {
     if (
       profile?.role !== "prof_salarie" &&
       profile?.role !== "prof_independant" &&
-      profile?.role !== "direction" // direction peut accéder pour supervision
+      profile?.role !== "direction"
     ) {
       const dashboardUrl = req.nextUrl.clone();
       dashboardUrl.pathname = "/plateforme/dashboard";
@@ -140,7 +147,7 @@ export async function proxy(req: NextRequest) {
     }
   }
 
-  // ─── Rediriger les profs hors de /plateforme/dashboard ────
+  // ─── Rediriger les profs/direction hors de /plateforme/dashboard ──────────
   if (pathname === "/plateforme/dashboard" || pathname === "/plateforme") {
     if (user) {
       const { data: profile } = await supabase
@@ -162,6 +169,6 @@ export async function proxy(req: NextRequest) {
       }
     }
   }
-  
+
   return supabaseResponse;
 }
