@@ -172,6 +172,7 @@ export default function ProfDashboardClient({
       <div className="px-10 lg:px-14"
         style={{
           paddingTop: "calc(96px + 0px)",
+          minHeight: "400px",
           background: "linear-gradient(135deg, rgb(8,20,14) 0%, rgb(12,40,28) 60%, rgb(18,55,38) 100%)",
           marginLeft: 0,
         }}>
@@ -191,7 +192,7 @@ export default function ProfDashboardClient({
           </div>
 
           {/* Gauche : salutation + stats */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 mt-10">
             <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.25em", textTransform: "uppercase", color: "rgba(185,151,83,0.7)", marginBottom: 8 }}>
               {todayFull}
             </p>
@@ -314,7 +315,7 @@ export default function ProfDashboardClient({
                     Crée des créneaux pour que tes élèves puissent réserver.
                   </p>
                   <Link href="/plateforme/prof/creneaux"
-                    className="inline-flex items-center gap-1.5 rounded-full bg-[rgb(22,92,71)] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[rgb(18,75,58)]">
+                    className="inline-flex items-center gap-1.5 rounded-full bg-[rgb(22,92,71)] px-4 py-2 text-xs font-semibold !text-white transition hover:bg-[rgb(18,75,58)]">
                     <Plus size={12} /> Ouvrir des créneaux
                   </Link>
                 </div>
