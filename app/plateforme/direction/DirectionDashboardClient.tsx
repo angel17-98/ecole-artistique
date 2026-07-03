@@ -282,9 +282,9 @@ export default function DirectionDashboardClient({
               }} />
           </div>
 
-          {/* Fade bas vers la page */}
+          {/* Fade bas vers la page
           <div className="absolute bottom-0 left-0 right-0 h-16"
-            style={{ background: "linear-gradient(0deg, rgb(239,244,239), transparent)" }} />
+            style={{ background: "linear-gradient(0deg, rgb(239,244,239), transparent)" }} /> */}
 
           {/* Contenu hero */}
           <div className="relative flex items-stretch px-15 lg:px-20 pt-16 pb-10">

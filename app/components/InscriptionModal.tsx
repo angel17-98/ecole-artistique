@@ -44,7 +44,7 @@ export default function InscriptionModal({ parcours, onClose }: Props) {
       />
 
       {/* Modale */}
-      <div className="relative z-10 w-full max-w-[600px] max-h-[90vh] overflow-y-auto rounded-[24px] border border-black/8 bg-white shadow-[0_32px_80px_rgba(0,0,0,0.22)]">
+      <div className="relative z-10 w-full max-w-[1000px] max-h-[90vh] overflow-y-auto rounded-[24px] border border-black/8 bg-white shadow-[0_32px_80px_rgba(0,0,0,0.22)]">
 
         {/* Header */}
         <div className="sticky top-0 z-10 bg-[rgb(22,92,71)] px-7 pb-5 pt-6 sm:px-8">

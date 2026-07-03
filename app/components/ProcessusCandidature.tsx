@@ -57,7 +57,7 @@ export default function ProcessusCandidature({ parcours, onClose }: Props) {
             num: "3b",
             titre: "Profil retenu → liste d'attente",
             desc: "Si les groupes sont complets au moment où ton dossier est retenu, tu es placé·e sur liste d'attente. Tu es prévenu·e dès qu'une place se libère, dans l'ordre d'attente.",
-            color: "rgb(59,130,246)",
+            color: "rgb(22,92,71)",
           },
           {
             num: "4",
@@ -88,7 +88,7 @@ export default function ProcessusCandidature({ parcours, onClose }: Props) {
         <Link
           href={`/candidature?parcours=${parcours}`}
           onClick={onClose}
-          className="flex-1 flex items-center justify-center rounded-full py-3 text-sm font-semibold text-white transition hover:brightness-110"
+          className="flex-1 flex items-center justify-center rounded-full py-3 text-sm font-semibold !text-white transition hover:brightness-110"
           style={{ background: "rgb(22,92,71)" }}
         >
           Déposer ma candidature →

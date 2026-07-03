@@ -52,6 +52,9 @@ export default function ProfFicheClient({
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [confirmText, setConfirmText] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   // ── Formulaire nouveau contrat ────────────────────────────────────────────
   const [typeContrat, setTypeContrat] = useState<"salarie" | "independant" | "mixte">(
@@ -124,6 +127,35 @@ export default function ProfFicheClient({
     }
   };
 
+  const handleDelete = async (force = false) => {
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/direction/profs/${prof.id}${force ? "?force=true" : ""}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (!force && (data.creneauxReserves > 0 || data.coursFuturs > 0)) {
+          const ok = confirm(
+            `${data.error}\n\nForcer la suppression quand même ? Les créneaux/cours liés seront supprimés avec le professeur.`
+          );
+          if (ok) { await handleDelete(true); return; }
+        } else {
+          showToast("error", data.error ?? "Erreur lors de la suppression");
+        }
+        setDeleting(false);
+        return;
+      }
+
+      router.push("/plateforme/direction/profs");
+      router.refresh();
+    } catch (e: any) {
+      showToast("error", e.message);
+      setDeleting(false);
+    }
+  };
+
   const initiales = `${p?.prenom?.[0] ?? ""}${p?.nom?.[0] ?? ""}`.toUpperCase();
 
   const typeLabel = (t: string) =>
@@ -134,6 +166,49 @@ export default function ProfFicheClient({
 
   return (
     <div className="min-h-screen" style={{ background: "rgb(239,244,239)" }}>
+
+      {/* Modale de confirmation suppression */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-5">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)} />
+          <div className="relative w-full max-w-sm rounded-[24px] bg-white shadow-[0_24px_80px_rgba(0,0,0,0.20)] p-6">
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50">
+              <span className="text-xl">⚠️</span>
+            </div>
+            <h2 className="text-center text-base font-semibold text-black mb-2">
+              Supprimer {p?.prenom} {p?.nom} ?
+            </h2>
+            <p className="text-center text-sm text-black/55 leading-6 mb-4">
+              Compte, contrats, créneaux, cours et messages liés seront supprimés définitivement.
+            </p>
+            <p className="text-center text-xs text-black/40 mb-2">
+              Tape <strong>{p?.prenom}</strong> pour confirmer
+            </p>
+            <input
+              value={confirmText}
+              onChange={(e) => setConfirmText(e.target.value)}
+              placeholder={p?.prenom}
+              className="w-full rounded-[12px] border border-black/10 bg-[rgb(247,250,247)] px-4 py-3 text-sm text-center mb-4 focus:outline-none focus:ring-2 focus:ring-red-200"
+            />
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => handleDelete(false)}
+                disabled={deleting || confirmText !== p?.prenom}
+                className="w-full rounded-full py-3 text-sm font-semibold text-white transition active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed bg-red-500 hover:bg-red-600"
+              >
+                {deleting ? "Suppression..." : "Supprimer définitivement"}
+              </button>
+              <button
+                onClick={() => { setShowDeleteModal(false); setConfirmText(""); }}
+                disabled={deleting}
+                className="w-full rounded-full border border-black/10 py-3 text-sm font-medium text-black/60 transition hover:bg-black/4 disabled:opacity-50"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Toast */}
       {toast && (
@@ -488,7 +563,7 @@ export default function ProfFicheClient({
 
         {/* PARAMÈTRES */}
         {onglet === "parametres" && (
-          <div className="max-w-2xl">
+          <div className="max-w-2xl space-y-4">
             <div className="rounded-[20px] border border-black/6 bg-white overflow-hidden"
               style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
               <div className="px-6 py-4 border-b border-black/5">
@@ -508,6 +583,26 @@ export default function ProfFicheClient({
                     <p className="text-sm font-semibold text-black">{row.value}</p>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* ZONE DE DANGER — visible uniquement dans Paramètres */}
+            <div className="rounded-[20px] border border-red-100 bg-red-50/40 overflow-hidden">
+              <div className="px-6 py-4 border-b border-red-100">
+                <p className="text-sm font-semibold text-red-700">Zone de danger</p>
+                <p className="text-xs text-red-700/60 mt-0.5">Suppression définitive et irréversible</p>
+              </div>
+              <div className="px-6 py-4 flex items-center justify-between gap-4">
+                <p className="text-xs text-black/45 leading-5 max-w-xs">
+                  Pour un vrai départ de professeur, préfère clôturer le contrat plutôt que supprimer — ça garde l'historique. Réserve la suppression aux comptes de test ou créés par erreur.
+                </p>
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className="shrink-0 px-5 py-2.5 rounded-full text-xs font-semibold transition hover:bg-red-100"
+                  style={{ border: "1px solid rgba(220,38,38,0.3)", color: "rgb(220,38,38)" }}
+                >
+                  Supprimer le professeur
+                </button>
               </div>
             </div>
           </div>

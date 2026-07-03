@@ -418,7 +418,7 @@ export default function FullArtistPage() {
                 {/* CTA secondaire dans la colonne droite */}
                 <button
                   onClick={() => setModalOpen(true)}
-                  className="mt-2 w-full inline-flex items-center justify-center rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-primary-strong"
+                  className="mt-2 w-full inline-flex items-center justify-center rounded-full bg-primary px-6 py-3.5 text-sm font-semibold !text-white transition hover:bg-primary-strong"
                 >
                   Déposer ma candidature
                 </button>
