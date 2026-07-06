@@ -1,13 +1,13 @@
 // app/plateforme/direction/profs/[id]/ProfFicheClient.tsx
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ChevronLeft, CheckCircle2, X, Plus, Pencil,
   CalendarDays, Clock, Wallet, FileText, Users, Upload,
-  Trash2, Download, Save,
+  Trash2, Download, Save, Search,
 } from "lucide-react";
 
 const DISCIPLINES_DISPO = [
@@ -54,6 +54,7 @@ interface EleveIndividuel {
 interface DocumentProf {
   id: string;
   nom: string;
+  label: string | null;
   type: string;
   taille_octets: number | null;
   created_at: string;
@@ -123,7 +124,18 @@ export default function ProfFicheClient({
   // ── Documents ────────────────────────────────────────────────────────────
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [docType, setDocType] = useState("contrat_signe");
+  const [docLabel, setDocLabel] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [docSearch, setDocSearch] = useState("");
+  const [docTypeFiltre, setDocTypeFiltre] = useState("tous");
+
+  const documentsFiltres = useMemo(() => {
+    return documents.filter((doc) => {
+      const matchType = docTypeFiltre === "tous" || doc.type === docTypeFiltre;
+      const matchSearch = (doc.label ?? doc.nom).toLowerCase().includes(docSearch.toLowerCase());
+      return matchType && matchSearch;
+    });
+  }, [documents, docSearch, docTypeFiltre]);
 
   const showToast = (type: "success" | "error", msg: string) => {
     setToast({ type, msg });
@@ -267,6 +279,7 @@ export default function ProfFicheClient({
       const formData = new FormData();
       formData.append("file", file);
       formData.append("type", docType);
+      formData.append("label", docLabel.trim() || file.name);
       const res = await fetch(`/api/direction/profs/${prof.id}/documents`, {
         method: "POST",
         body: formData,
@@ -275,6 +288,7 @@ export default function ProfFicheClient({
       if (!res.ok) throw new Error(data.error ?? "Erreur");
       showToast("success", "Document ajouté.");
       if (fileInputRef.current) fileInputRef.current.value = "";
+      setDocLabel("");
       router.refresh();
     } catch (e: any) {
       showToast("error", e.message);
@@ -303,8 +317,6 @@ export default function ProfFicheClient({
     if (octets < 1024 * 1024) return `${Math.round(octets / 1024)} Ko`;
     return `${(octets / 1024 / 1024).toFixed(1)} Mo`;
   };
-
-  const initiales = `${p?.prenom?.[0] ?? ""}${p?.nom?.[0] ?? ""}`.toUpperCase();
 
   const typeLabel = (t: string) =>
     t === "salarie" ? "Salarié" : t === "independant" ? "Indépendant" : "Mixte";
@@ -367,23 +379,23 @@ export default function ProfFicheClient({
         </div>
       )}
 
-      {/* ── En-tête ── */}
+      {/* ── En-tête + layout deux colonnes ── */}
       <div className="px-10 lg:px-14 pb-10" style={{ paddingTop: "calc(96px + 24px)" }}>
         <Link href="/plateforme/direction/profs"
           className="inline-flex items-center gap-1.5 text-xs text-black/40 hover:text-black/60 transition mb-6">
           <ChevronLeft size={14} /> Retour aux professeurs
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[400px_1fr] gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-8">
 
           {/* ── Colonne gauche : identité, sticky ── */}
           <aside className="lg:sticky lg:top-[calc(96px+24px)] lg:self-start space-y-4">
             <div className="rounded-[20px] border border-black/6 bg-white p-6 text-center"
               style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
-              <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-bold mx-auto mb-4"
+              <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-bold mx-auto mb-4 overflow-hidden"
                 style={{ background: "rgba(22,92,71,0.12)", color: "rgb(22,92,71)" }}>
                 {p?.photo_url
-                  ? <img src={p.photo_url} className="w-full h-full rounded-2xl object-cover" />
+                  ? <img src={p.photo_url} className="w-full h-full object-cover" alt="" />
                   : `${p?.prenom?.[0] ?? ""}${p?.nom?.[0] ?? ""}`}
               </div>
               <h1 className="text-lg font-semibold text-black">{p?.prenom} {p?.nom}</h1>
@@ -406,28 +418,45 @@ export default function ProfFicheClient({
                   ))}
                 </div>
               )}
+
+              <div className="flex items-center justify-center gap-2 mt-4">
+                <span className="rounded-full px-2.5 py-1 text-[10px] font-medium"
+                  style={{
+                    background: prof.accepte_duo ? "rgba(22,92,71,0.1)" : "rgba(0,0,0,0.04)",
+                    color: prof.accepte_duo ? "rgb(22,92,71)" : "rgba(0,0,0,0.3)",
+                  }}>
+                  {prof.accepte_duo ? "✓" : "✕"} Duo
+                </span>
+                <span className="rounded-full px-2.5 py-1 text-[10px] font-medium"
+                  style={{
+                    background: prof.accepte_trio ? "rgba(22,92,71,0.1)" : "rgba(0,0,0,0.04)",
+                    color: prof.accepte_trio ? "rgb(22,92,71)" : "rgba(0,0,0,0.3)",
+                  }}>
+                  {prof.accepte_trio ? "✓" : "✕"} Trio
+                </span>
+              </div>
             </div>
 
-            {/* Stats compactes empilées, plus des lignes dans une colonne étroite */}
+            {/* Stats compactes empilées */}
             <div className="rounded-[20px] border border-black/6 bg-white divide-y divide-black/5"
               style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
               {[
-                { label: "Cours ce mois", value: stats.coursEffectuesMois },
-                { label: "Créneaux dispo", value: stats.creneauxDisponibles },
-                { label: "Montant du mois", value: stats.montantMois != null ? `${stats.montantMois} €` : "—" },
+                { label: "Cours ce mois", value: stats.coursEffectuesMois, icon: <CalendarDays size={13} /> },
+                { label: "Créneaux dispo", value: stats.creneauxDisponibles, icon: <Clock size={13} /> },
+                { label: "Montant du mois", value: stats.montantMois != null ? `${stats.montantMois} €` : "—", icon: <Wallet size={13} /> },
               ].map((s) => (
                 <div key={s.label} className="px-4 py-3 flex items-center justify-between">
-                  <span className="text-xs text-black/45">{s.label}</span>
+                  <span className="flex items-center gap-2 text-xs text-black/45">{s.icon} {s.label}</span>
                   <span className="text-sm font-semibold text-black">{s.value}</span>
                 </div>
               ))}
             </div>
           </aside>
 
-          {/* ── Colonne droite : tabs + contenu actuel ── */}
-          <div>
-            {/* ── Onglets ── */}
-            <div className="px-10 lg:px-14 mb-5">
+          {/* ── Colonne droite : tabs + contenu ── */}
+          <div className="min-w-0">
+            {/* Onglets */}
+            <div className="mb-5">
               <div className="flex gap-1 p-1 rounded-full w-fit flex-wrap"
                 style={{ background: "white", border: "1px solid rgba(0,0,0,0.08)" }}>
                 {([
@@ -449,12 +478,12 @@ export default function ProfFicheClient({
               </div>
             </div>
 
-            {/* ── Contenu onglets ── */}
-            <div className="px-10 lg:px-14 pb-10">
+            {/* Contenu onglets */}
+            <div>
 
               {/* CONTRAT ACTIF */}
               {onglet === "contrat" && (
-                <div className="max-w-[min(92vw,1152px)] space-y-4">
+                <div className="space-y-4">
                   {contratActif ? (
                     <div className="rounded-[20px] border border-black/6 bg-white overflow-hidden"
                       style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
@@ -486,10 +515,20 @@ export default function ProfFicheClient({
                             ? { label: "Tarif cours solo (1 élève)", value: `${contratActif.tarif_cours_indiv} €` }
                             : null,
                           contratActif.tarif_duo != null
-                            ? { label: "Tarif cours duo (2 élèves)", value: `${contratActif.tarif_duo} €` }
+                            ? {
+                                label: "Tarif cours duo (2 élèves)",
+                                value: prof.accepte_duo
+                                  ? `${contratActif.tarif_duo} €`
+                                  : `${contratActif.tarif_duo} € (non proposé par le prof)`,
+                              }
                             : null,
                           contratActif.tarif_trio != null
-                            ? { label: "Tarif cours trio (3 élèves)", value: `${contratActif.tarif_trio} €` }
+                            ? {
+                                label: "Tarif cours trio (3 élèves)",
+                                value: prof.accepte_trio
+                                  ? `${contratActif.tarif_trio} €`
+                                  : `${contratActif.tarif_trio} € (non proposé par le prof)`,
+                              }
                             : null,
                           contratActif.heures_min_periode != null
                             ? { label: "Heures min. par période", value: `${contratActif.heures_min_periode}h / ${contratActif.periode_engagement ?? "3 mois"}` }
@@ -501,9 +540,9 @@ export default function ProfFicheClient({
                             ? { label: "Date de fin prévue", value: formatDate(contratActif.date_fin) }
                             : { label: "Durée", value: "Indéterminée" },
                         ].filter(Boolean).map((row: any) => (
-                          <div key={row.label} className="px-6 py-3.5 flex items-center justify-between">
+                          <div key={row.label} className="px-6 py-3.5 flex items-center justify-between gap-4">
                             <p className="text-sm text-black/45">{row.label}</p>
-                            <p className="text-sm font-semibold text-black">{row.value}</p>
+                            <p className="text-sm font-semibold text-black text-right">{row.value}</p>
                           </div>
                         ))}
                       </div>
@@ -583,8 +622,22 @@ export default function ProfFicheClient({
                                 <Input type="number" placeholder="65" value={tarifTrio} onChange={e => setTarifTrio(e.target.value)} />
                               </div>
                             </div>
+
+                            {/* Rappel : c'est le prof qui active/désactive duo et trio, pas la direction */}
+                            <div className="flex items-center gap-3 text-xs rounded-[10px] px-3 py-2.5"
+                              style={{ background: "rgb(247,250,247)" }}>
+                              <span className="text-black/45">Ce prof accepte :</span>
+                              <span style={{ color: prof.accepte_duo ? "rgb(22,92,71)" : "rgba(0,0,0,0.3)" }} className="font-semibold">
+                                {prof.accepte_duo ? "✓" : "✕"} Duo
+                              </span>
+                              <span style={{ color: prof.accepte_trio ? "rgb(22,92,71)" : "rgba(0,0,0,0.3)" }} className="font-semibold">
+                                {prof.accepte_trio ? "✓" : "✕"} Trio
+                              </span>
+                              <span className="ml-auto italic text-black/30">Choix géré par le prof</span>
+                            </div>
+
                             <p className="text-[11px] text-black/35 leading-4">
-                              Laisse vide si le prof ne propose pas ce format de cours.
+                              Laisse un tarif vide si tu ne veux pas encore le fixer — l'option ne sera de toute façon proposée aux élèves que si le prof l'a activée.
                             </p>
                           </div>
                         )}
@@ -645,7 +698,7 @@ export default function ProfFicheClient({
 
               {/* HISTORIQUE */}
               {onglet === "historique" && (
-                <div className="max-w-[min(92vw,1152px)] space-y-3">
+                <div className="space-y-3">
                   {contrats.length === 0 ? (
                     <div className="rounded-[20px] border border-black/6 bg-white p-10 text-center">
                       <p className="text-sm text-black/40">Aucun contrat dans l'historique.</p>
@@ -710,7 +763,7 @@ export default function ProfFicheClient({
 
               {/* ÉLÈVES / GROUPES */}
               {onglet === "eleves" && (
-                <div className="max-w-[min(92vw,1152px)] space-y-6">
+                <div className="space-y-6">
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-black/30 mb-3">
                       Groupes / parcours enseignés
@@ -720,7 +773,7 @@ export default function ProfFicheClient({
                         Aucun cours collectif assigné à ce prof pour l'instant.
                       </div>
                     ) : (
-                      <div className="space-y-2">
+                      <div className="grid sm:grid-cols-2 gap-2">
                         {groupes.map((g) => (
                           <div key={g.id} className="rounded-[16px] border border-black/6 bg-white px-5 py-3.5 flex items-center justify-between">
                             <div className="flex items-center gap-3">
@@ -757,9 +810,19 @@ export default function ProfFicheClient({
 
               {/* DOCUMENTS */}
               {onglet === "documents" && (
-                <div className="max-w-[min(92vw,1152px)] space-y-4">
-                  <div className="rounded-[20px] border border-black/6 bg-white p-5">
-                    <p className="text-sm font-semibold text-black mb-3">Ajouter un document</p>
+                <div className="space-y-4">
+                  <div className="rounded-[20px] border border-black/6 bg-white p-5 space-y-3">
+                    <p className="text-sm font-semibold text-black">Ajouter un document</p>
+                    <p className="text-xs text-black/40 -mt-2">
+                      Uploadé sur Google Drive — consultable ici et dans l'espace du prof.
+                    </p>
+                    <input
+                      type="text"
+                      placeholder="Nom du document (ex : Contrat CDI signé 2026)"
+                      value={docLabel}
+                      onChange={(e) => setDocLabel(e.target.value)}
+                      className="w-full rounded-[12px] border border-black/10 bg-[rgb(247,250,247)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/20"
+                    />
                     <div className="flex flex-col sm:flex-row gap-3">
                       <select value={docType} onChange={(e) => setDocType(e.target.value)}
                         className="rounded-[12px] border border-black/10 bg-[rgb(247,250,247)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[rgb(22,92,71)]/20"
@@ -776,21 +839,51 @@ export default function ProfFicheClient({
                     </div>
                   </div>
 
-                  {documents.length === 0 ? (
+                  {documents.length > 0 && (
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <div className="flex gap-1 p-1 rounded-full bg-white border border-black/8 flex-wrap">
+                        {[{ value: "tous", label: "Tous" }, ...TYPES_DOCUMENT].map((t) => (
+                          <button
+                            key={t.value}
+                            onClick={() => setDocTypeFiltre(t.value)}
+                            className="px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+                            style={{
+                              background: docTypeFiltre === t.value ? "rgb(22,92,71)" : "transparent",
+                              color: docTypeFiltre === t.value ? "white" : "rgba(0,0,0,0.5)",
+                            }}>
+                            {t.label}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="relative ml-auto">
+                        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-black/30" />
+                        <input
+                          type="text"
+                          placeholder="Rechercher…"
+                          value={docSearch}
+                          onChange={(e) => setDocSearch(e.target.value)}
+                          className="pl-8 pr-3 py-1.5 rounded-full text-xs border border-black/10 bg-white outline-none focus:border-black/20 w-48"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {documentsFiltres.length === 0 ? (
                     <div className="rounded-[20px] border border-black/6 bg-white p-8 text-center text-sm text-black/35">
-                      Aucun document pour l'instant.
+                      {documents.length === 0 ? "Aucun document pour l'instant." : "Aucun résultat pour ce filtre."}
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {documents.map((doc) => (
+                      {documentsFiltres.map((doc) => (
                         <div key={doc.id} className="rounded-[16px] border border-black/6 bg-white px-5 py-3.5 flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3 min-w-0">
                             <FileText size={16} style={{ color: "rgb(22,92,71)" }} className="flex-shrink-0" />
                             <div className="min-w-0">
-                              <p className="text-sm font-medium text-black truncate">{doc.nom}</p>
+                              <p className="text-sm font-medium text-black truncate">{doc.label ?? doc.nom}</p>
                               <p className="text-[11px] text-black/35">
                                 {TYPES_DOCUMENT.find((t) => t.value === doc.type)?.label ?? doc.type}
                                 {doc.taille_octets ? ` · ${formatTaille(doc.taille_octets)}` : ""}
+                                {" · "}{new Date(doc.created_at).toLocaleDateString("fr-BE", { day: "numeric", month: "short", year: "numeric" })}
                               </p>
                             </div>
                           </div>
@@ -817,7 +910,7 @@ export default function ProfFicheClient({
 
               {/* PARAMÈTRES */}
               {onglet === "parametres" && (
-                <div className="max-w-[min(92vw,1152px)] space-y-4">
+                <div className="space-y-4">
                   <div className="rounded-[20px] border border-black/6 bg-white overflow-hidden"
                     style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
                     <div className="px-6 py-4 border-b border-black/5 flex items-center justify-between">
@@ -847,6 +940,7 @@ export default function ProfFicheClient({
                           { label: "Bio", value: prof.bio || "—" },
                           { label: "Tarif horaire de référence", value: prof.tarif_horaire ? `${prof.tarif_horaire} €/h` : "—" },
                           { label: "Disciplines", value: prof.disciplines?.join(", ") || "—" },
+                          { label: "Accepte duo / trio", value: `${prof.accepte_duo ? "Duo" : ""}${prof.accepte_duo && prof.accepte_trio ? " · " : ""}${prof.accepte_trio ? "Trio" : ""}` || "Aucun (géré par le prof)" },
                           { label: "Deadline annulation par défaut", value: prof.deadline_defaut ?? "24h" },
                           { label: "Abonnement annuel activé", value: prof.abonnement_possible_defaut ? "Oui" : "Non" },
                           { label: "Compte actif", value: prof.actif ? "Oui" : "Non" },
@@ -959,6 +1053,11 @@ export default function ProfFicheClient({
                           </div>
                         </div>
 
+                        <div className="rounded-[12px] px-4 py-3 text-xs text-black/40 italic"
+                          style={{ background: "rgb(247,250,247)" }}>
+                          L'acceptation des cours duo/trio est gérée par le prof lui-même depuis son espace, pas ici.
+                        </div>
+
                         <button onClick={handleSaveParams} disabled={savingParams}
                           className="w-full rounded-full py-3 text-sm font-semibold text-white transition disabled:opacity-40 flex items-center justify-center gap-2"
                           style={{ background: "rgb(22,92,71)" }}>
@@ -990,40 +1089,9 @@ export default function ProfFicheClient({
                 </div>
               )}
             </div>
-
           </div>
         </div>
       </div>
-      
-      {/* ── Stats rapides ──
-      <div className="px-10 lg:px-14 mb-5">
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { label: "Cours ce mois", value: stats.coursEffectuesMois, icon: <CalendarDays size={14} /> },
-            { label: "Créneaux ouverts", value: stats.creneauxDisponibles, icon: <Clock size={14} /> },
-            {
-              label: "Rémunération mois",
-              value: stats.montantMois !== null ? `${stats.montantMois} €` : "—",
-              icon: <Wallet size={14} />,
-              sub: stats.statutPaiement === "vire" ? "Viré ✓"
-                : stats.statutPaiement === "valide" ? "Validé"
-                : stats.statutPaiement === "en_attente" ? "En attente"
-                : null,
-            },
-          ].map((s) => (
-            <div key={s.label} className="rounded-[16px] border border-black/6 bg-white px-5 py-4"
-              style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}>
-              <div className="flex items-center gap-2 mb-1" style={{ color: "rgba(0,0,0,0.3)" }}>
-                {s.icon}
-                <span className="text-[10px] uppercase tracking-[0.16em]">{s.label}</span>
-              </div>
-              <p className="text-2xl font-semibold text-black">{s.value}</p>
-              {s.sub && <p className="text-[11px] text-black/35 mt-0.5">{s.sub}</p>}
-            </div>
-          ))}
-        </div>
-      </div> */}
-
     </div>
   );
 }

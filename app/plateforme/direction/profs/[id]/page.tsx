@@ -31,6 +31,7 @@ export default async function DirectionProfFichePage({
     .select(`
       id, user_id, type_contrat, disciplines, actif,
       bio, tarif_horaire, deadline_defaut, abonnement_possible_defaut,
+      accepte_duo, accepte_trio,
       created_at,
       profile:profiles!profs_user_id_fkey(
         id, prenom, nom, telephone, photo_url, is_active, created_at
@@ -132,18 +133,26 @@ export default async function DirectionProfFichePage({
   const elevesIndividuels = Array.from(elevesMap.values());
 
   // ── Documents ──────────────────────────────────────────────────────────────
+  // drive_url = documents uploadés depuis la migration Drive (lien direct, pas besoin de signed url)
+  // storage_path = anciens documents encore sur Supabase Storage (compat historique)
   const { data: documentsRaw } = await supabaseAdmin
     .from("documents_profs")
-    .select("id, nom, type, storage_path, taille_octets, created_at")
+    .select("id, nom, label, type, storage_path, drive_file_id, drive_url, taille_octets, created_at")
     .eq("prof_id", id)
     .order("created_at", { ascending: false });
 
   const documents = await Promise.all(
     (documentsRaw ?? []).map(async (doc) => {
-      const { data: signedUrl } = await supabaseAdmin.storage
-        .from(DOCS_BUCKET)
-        .createSignedUrl(doc.storage_path, 3600);
-      return { ...doc, url: signedUrl?.signedUrl ?? null };
+      if (doc.drive_url) {
+        return { ...doc, url: doc.drive_url };
+      }
+      if (doc.storage_path) {
+        const { data: signedUrl } = await supabaseAdmin.storage
+          .from(DOCS_BUCKET)
+          .createSignedUrl(doc.storage_path, 3600);
+        return { ...doc, url: signedUrl?.signedUrl ?? null };
+      }
+      return { ...doc, url: null };
     })
   );
 

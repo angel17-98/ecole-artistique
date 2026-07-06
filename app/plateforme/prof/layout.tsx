@@ -1,6 +1,7 @@
 // app/plateforme/prof/layout.tsx
 import { createClient } from "@/lib/plateforme/supabase/server";
 import { redirect } from "next/navigation";
+import ProfSidebar from "./ProfSidebar";
 
 export default async function ProfLayout({
   children,
@@ -13,7 +14,7 @@ export default async function ProfLayout({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, prenom, nom, photo_url")
     .eq("id", user.id)
     .single();
 
@@ -26,6 +27,7 @@ export default async function ProfLayout({
     // -mt-24 annule le pt-24 du RootLayout
     // pl-[72px] compense la sidebar fixe de 72px
     <div style={{ marginTop: "-96px", paddingLeft: "72px", minHeight: "100vh" }}>
+      <ProfSidebar profile={profile} photoSrc={profile.photo_url ?? null} />
       {children}
     </div>
   );

@@ -12,7 +12,8 @@ async function checkProf() {
   if (!user) return null;
   const { data: profile } = await supabase
     .from("profiles").select("role").eq("id", user.id).single();
-  return profile?.role === "prof" ? user : null;
+  const isProf = profile?.role === "prof_salarie" || profile?.role === "prof_independant";
+  return isProf ? user : null;
 }
 
 // ── GET — Récupérer les préférences actuelles ─────────────────────────────────

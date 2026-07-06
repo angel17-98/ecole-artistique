@@ -1,3 +1,4 @@
+
 // app/plateforme/prof/page.tsx
 import { createClient } from "@/lib/plateforme/supabase/server";
 import { supabaseAdmin } from "@/lib/plateforme/supabase/admin";
