@@ -1,9 +1,9 @@
-
 // app/plateforme/prof/page.tsx
 import { createClient } from "@/lib/plateforme/supabase/server";
 import { supabaseAdmin } from "@/lib/plateforme/supabase/admin";
 import { redirect } from "next/navigation";
 import ProfDashboardClient from "./ProfDashboardClient";
+import { heuresOuvertes, periodeEngagementCourante } from "@/lib/plateforme/heures-ouvertes";
 
 export default async function ProfDashboardPage() {
   const supabase = await createClient();
@@ -76,15 +76,6 @@ export default async function ProfDashboardPage() {
         .gte("debut", debutMois.toISOString())
     : { count: 0 };
 
-  const { count: creneauxDisponibles } = prof
-    ? await supabaseAdmin
-        .from("creneaux")
-        .select("id", { count: "exact", head: true })
-        .eq("prof_id", prof.id)
-        .eq("statut", "disponible")
-        .gte("debut", new Date().toISOString())
-    : { count: 0 };
-
   // Rémunération mois courant
   const moisCourant = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-01`;
   const { data: remuneration } = prof
@@ -111,6 +102,41 @@ export default async function ProfDashboardPage() {
       (m: any) => !m.lu_par?.includes(user.id) && m.sender_id !== user.id
     ).length;
   }, 0);
+
+  // ── Heures d'ouverture réelles ─────────────────────────────────────────────
+  // Calculées à partir des INTERVALLES (pas des créneaux générés, qui se
+  // chevauchent) — utilisées à la fois pour la stat "30 prochains jours" et,
+  // si un contrat a des heures minimum, pour la barre de progression.
+  const { data: intervallesActifs } = prof
+    ? await supabaseAdmin
+        .from("intervalles_prof")
+        .select("heure_debut, heure_fin, recurrence, date_unique, jour_semaine, recurrence_fin, actif")
+        .eq("prof_id", prof.id)
+        .eq("actif", true)
+    : { data: [] };
+
+  const heuresDisponibles30j = heuresOuvertes(
+    intervallesActifs ?? [],
+    new Date(),
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+  );
+
+  // ── Objectif du contrat : heures ouvertes vs heures_min_periode ───────────
+  let heuresOuvertesPeriode: number | undefined;
+  let joursRestantsPeriode: number | undefined;
+
+  if (prof && contrat?.heures_min_periode) {
+    const { debut: periodeDebut, fin: periodeFin } = periodeEngagementCourante(
+      new Date(contrat.date_debut),
+      contrat.periode_engagement
+    );
+
+    heuresOuvertesPeriode = heuresOuvertes(intervallesActifs ?? [], periodeDebut, periodeFin);
+    joursRestantsPeriode = Math.max(
+      0,
+      Math.ceil((periodeFin.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+    );
+  }
 
   // Fusionner et trier les prochains cours
   const prochainsCours = [
@@ -139,10 +165,12 @@ export default async function ProfDashboardPage() {
       contrat={contrat}
       stats={{
         coursEffectuesMois: coursEffectuesMois ?? 0,
-        creneauxDisponibles: creneauxDisponibles ?? 0,
+        heuresDisponibles30j,
         montantEstime,
         nbDisciplines: prof?.disciplines?.length ?? 0,
         messagesNonLus,
+        heuresOuvertesPeriode,
+        joursRestantsPeriode,
       }}
       prochainsCours={prochainsCours}
       photoSrc={photoSrc}

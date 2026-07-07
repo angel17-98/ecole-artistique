@@ -10,7 +10,7 @@ import {
 // ─── TYPES ───────────────────────────────────────────────────────────────────
 interface ProfStats {
   coursEffectuesMois: number;
-  creneauxDisponibles: number;
+  heuresDisponibles30j: number;
   montantEstime: number | null;
   nbDisciplines: number;
   messagesNonLus: number;
@@ -67,10 +67,10 @@ export default function ProfDashboardClient({
           background: "linear-gradient(135deg, rgb(8,20,14) 0%, rgb(12,40,28) 60%, rgb(18,55,38) 100%)",
           marginLeft: 0,
         }}>
-        <div className="flex items-end justify-between py-8 gap-6">
+        <div className="relative flex items-end justify-between py-8 gap-6">
 
           {/* Pattern géométrique décoratif */}
-          <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full opacity-10"
               style={{ background: "radial-gradient(circle, rgb(185,151,83) 0%, transparent 70%)" }} />
             <div className="absolute right-40 bottom-0 w-48 h-48 rounded-full opacity-5"
@@ -99,7 +99,7 @@ export default function ProfDashboardClient({
             <div className="flex items-end gap-10">
               {[
                 { value: stats.coursEffectuesMois, label: "cours ce mois", icon: <CalendarDays size={13} /> },
-                { value: stats.creneauxDisponibles, label: "créneaux ouverts", icon: <Clock size={13} /> },
+                { value: `${stats.heuresDisponibles30j}h`, label: "dispo. 30 jours", icon: <Clock size={13} /> },
                 { value: stats.montantEstime !== null ? `${stats.montantEstime} €` : "—", label: "revenus estimés", icon: <Wallet size={13} /> },
               ].map(s => (
                 <div key={s.label} className="flex flex-col">
@@ -169,7 +169,7 @@ export default function ProfDashboardClient({
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {[
                 { href: "/plateforme/prof/planning",     icon: <CalendarDays size={20} />, label: "Planning",      sub: "Tes cours collectifs & individuels" },
-                { href: "/plateforme/prof/creneaux",     icon: <Clock size={20} />,        label: "Créneaux",      sub: stats.creneauxDisponibles > 0 ? `${stats.creneauxDisponibles} disponibles` : "Aucun ouvert" },
+                { href: "/plateforme/prof/creneaux",     icon: <Clock size={20} />,        label: "Créneaux",      sub: stats.heuresDisponibles30j > 0 ? `${stats.heuresDisponibles30j}h dispo (30j)` : "Aucune heure ouverte" },
                 { href: "/plateforme/prof/eleves",       icon: <Users size={20} />,        label: "Élèves",        sub: "Tes élèves & notes" },
                 { href: "/plateforme/prof/remuneration", icon: <Wallet size={20} />,       label: "Rémunération",  sub: stats.montantEstime !== null ? `${stats.montantEstime} € estimés` : "À calculer" },
                 { href: "/plateforme/messages",          icon: <MessageSquare size={20} />, label: "Messages",     sub: stats.messagesNonLus > 0 ? `${stats.messagesNonLus} non lu(s)` : "Aucun message" },
@@ -269,7 +269,7 @@ export default function ProfDashboardClient({
                     <>
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-xs text-black/40">
-                          Créneaux ouverts / {contrat.periode_engagement ?? "3 mois"}
+                          Heures ouvertes / {contrat.periode_engagement ?? "3 mois"}
                         </p>
                         <p className="text-xs font-semibold" style={{ color: pct >= 100 ? "rgb(22,92,71)" : enRetard ? "rgb(220,38,38)" : "rgb(8,20,14)" }}>
                           {heuresFaites}h / {heuresMin}h
@@ -289,7 +289,7 @@ export default function ProfDashboardClient({
                         </p>
                       )}
                       {enRetard && (
-                        <Link href="/plateforme/prof/creneaux/nouveau"
+                        <Link href="/plateforme/prof/creneaux"
                           className="mt-3 flex items-center justify-center gap-1.5 rounded-full bg-[rgb(22,92,71)] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[rgb(18,75,58)]">
                           <Plus size={12} /> Ouvrir des créneaux
                         </Link>
