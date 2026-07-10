@@ -21,6 +21,8 @@ interface Props {
   eleves: any[];
   groupesEveil: any[];
   creneauxIndividuels: any[];
+  carteFidelite: any | null;
+  disciplinesADecouvrir: { discipline: string; prochainCreneau: any | null }[];
   profs: any[];
 }
 
@@ -79,7 +81,7 @@ const OFFRES: {
 
 export default function InscriptionClient({
   ongletInitial, user, profile, candidature, foyer, eleves,
-  groupesEveil, creneauxIndividuels, profs,
+  groupesEveil, creneauxIndividuels, carteFidelite, disciplinesADecouvrir, profs,
 }: Props) {
   const router = useRouter();
   const [onglet, setOnglet] = useState<Onglet>(toOnglet(ongletInitial));
@@ -278,7 +280,7 @@ export default function InscriptionClient({
             <OngletEveil user={user} eleves={eleves} groupes={groupesEveil} />
           )}
           {onglet === "cours" && (
-            <OngletCoursIndividuels user={user} profs={profs} creneaux={creneauxIndividuels} />
+            <OngletCoursIndividuels user={user} profs={profs} creneaux={creneauxIndividuels} carteFidelite={carteFidelite} eleves={eleves} disciplinesADecouvrir={disciplinesADecouvrir}/>
           )}
         </div>
       </section>

@@ -6,6 +6,8 @@ import { createClient } from "@/lib/plateforme/supabase/server";
 import { supabaseAdmin } from "@/lib/plateforme/supabase/admin";
 import InscriptionClient from "./InscriptionClient";
 
+const COURS_POUR_GRATUIT = 10;
+
 export const metadata = {
   title: "Inscriptions — Crea'Star",
   description: "Rejoins un parcours annuel, l'éveil musical ou réserve un cours individuel.",
@@ -83,18 +85,114 @@ export default async function InscriptionPage({
   );
 
   // ── Données publiques — Cours individuels ────────────────────────────────
-  // Créneaux disponibles des profs indépendants (Flux 4 — structure à venir)
-  // Pour l'instant on retourne un tableau vide — sera branché en Flux 4
-  const creneauxIndividuels: any[] = [];
-
-  // Profs actifs avec disciplines (pour les filtres)
-  const { data: profsActifs } = await supabaseAdmin
+    const { data: profsActifsRaw } = await supabaseAdmin
     .from("profs")
-    .select("id, prenom, nom, disciplines, photo_url, tarif_horaire, type_contrat")
+    .select(`
+      id, disciplines, bio, tarif_horaire, type_contrat, accepte_duo, accepte_trio,
+      profile:profiles!profs_user_id_fkey(prenom, nom, photo_url)
+    `)
     .eq("actif", true)
-    .eq("type_contrat", "independant")
-    .order("nom");
+    .in("type_contrat", ["independant", "salarie"]);
 
+    const profsActifs = (profsActifsRaw ?? [])
+      .map((p: any) => ({
+        id: p.id,
+        prenom: p.profile?.prenom ?? "",
+        nom: p.profile?.nom ?? "",
+        disciplines: p.disciplines,
+        photo_url: p.profile?.photo_url ?? null,
+        bio: p.bio,
+        tarif_horaire: p.tarif_horaire,
+        type_contrat: p.type_contrat,
+        accepte_duo: p.accepte_duo,
+        accepte_trio: p.accepte_trio,
+      }))
+      .sort((a, b) => a.nom.localeCompare(b.nom));
+
+    const profIds = (profsActifs ?? []).map((p) => p.id);
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    // Contrats actifs — tarifs solo/duo par prof
+    const { data: contratsActifs } = profIds.length > 0
+    ? await supabaseAdmin
+        .from("contrats")
+        .select("prof_id, tarif_cours_indiv, tarif_duo, tarif_trio")
+        .in("prof_id", profIds)
+        .or(`date_fin.is.null,date_fin.gte.${todayStr}`)
+    : { data: [] };
+
+    const tarifParProf = Object.fromEntries((contratsActifs ?? []).map((c) => [c.prof_id, c]));
+
+    // Créneaux disponibles à venir
+    const { data: creneauxRaw, error: creneauxErr } = profIds.length > 0
+      ? await supabaseAdmin
+          .from("creneaux")
+          .select("id, prof_id, discipline, debut, fin_blocage, statut, abonnement_possible")
+          .in("prof_id", profIds)
+          .eq("statut", "disponible")
+          .gte("debut", new Date().toISOString())
+          .order("debut", { ascending: true })
+      : { data: [], error: null  };
+
+    const creneauxIndividuels = (creneauxRaw ?? []).map((c) => {
+      const t = tarifParProf[c.prof_id];
+      const prof = profsActifs.find((p) => p.id === c.prof_id);
+      return {
+        id: c.id,
+        prof_id: c.prof_id,
+        date_heure_debut: c.debut,
+        date_heure_fin: c.fin_blocage,
+        discipline: c.discipline,
+        tarif_solo: t?.tarif_cours_indiv ?? 0,
+        tarif_duo: t?.tarif_duo ?? null,
+        tarif_trio: t?.tarif_trio ?? null,
+        places_max: prof?.accepte_trio ? 3 : prof?.accepte_duo ? 2 : 1,
+        places_restantes: 1,
+        disponible: true,
+        accepte_abonnement: c.abonnement_possible,
+      };
+    });
+
+    // ── Disciplines jamais essayées par ce foyer (incentive découverte) ──────
+    let disciplinesADecouvrir: { discipline: string; prochainCreneau: any | null }[] = [];
+
+    if (foyer?.id) {
+      const eleveIdsFoyer = eleves.map((e: any) => e.id);
+      const { data: historique } = eleveIdsFoyer.length > 0
+        ? await supabaseAdmin
+            .from("reservations_indiv")
+            .select("creneau:creneaux(discipline)")
+            .in("eleve_id", eleveIdsFoyer)
+            .in("statut", ["confirmee", "effectuee"])
+        : { data: [] };
+
+      const disciplinesDejaEssayees = new Set(
+        (historique ?? []).map((h: any) => h.creneau?.discipline).filter(Boolean)
+      );
+      const toutesDisciplines = Array.from(new Set((profsActifs ?? []).flatMap((p) => p.disciplines)));
+
+      disciplinesADecouvrir = toutesDisciplines
+        .filter((d) => !disciplinesDejaEssayees.has(d))
+        .map((d) => ({
+          discipline: d,
+          prochainCreneau: creneauxIndividuels.find((c) => c.discipline === d) ?? null,
+        }));
+    }
+
+    // Carte fidélité "cours individuel" du foyer connecté
+    let carteFidelite = null;
+    if (foyer?.id) {
+      const { data: carte } = await supabaseAdmin
+        .from("fidelite")
+        .select("compteur, total_offerts")
+        .eq("foyer_id", foyer.id)
+        .eq("type_carte", "cours_individuel")
+        .maybeSingle();
+      if (carte) {
+        carteFidelite = { nb_cours_valides: carte.compteur, cours_pour_gratuit: COURS_POUR_GRATUIT };
+      }
+    }
+  
   return (
     <InscriptionClient
       ongletInitial={ongletInitial}
@@ -105,6 +203,8 @@ export default async function InscriptionPage({
       eleves={eleves}
       groupesEveil={groupesEveilAvecPlaces}
       creneauxIndividuels={creneauxIndividuels}
+      carteFidelite={carteFidelite}
+      disciplinesADecouvrir={disciplinesADecouvrir}
       profs={profsActifs ?? []}
     />
   );
