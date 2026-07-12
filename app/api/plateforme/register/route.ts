@@ -40,6 +40,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Erreur foyer : " + foyerError?.message }, { status: 500 });
     }
 
+    // ── 2bis. Initialiser la carte fidélité à 0 ──────────────────────────────
+    const { error: fideliteError } = await supabaseAdmin
+      .from("fidelite")
+      .insert({ foyer_id: foyerData.id, type_carte: "cours_individuel", compteur: 0, total_offerts: 0 });
+
+    if (fideliteError) {
+      // Non bloquant pour l'inscription — le fallback côté page couvre ce cas
+      console.error("Erreur création carte fidélité:", fideliteError);
+    }
+
     // ── 3. Créer le premier élève ─────────────────────────────────────────────
     const { error: eleveError } = await supabaseAdmin
       .from("eleves")

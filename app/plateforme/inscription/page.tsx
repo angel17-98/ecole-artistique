@@ -176,7 +176,8 @@ export default async function InscriptionPage({
         .map((d) => ({
           discipline: d,
           prochainCreneau: creneauxIndividuels.find((c) => c.discipline === d) ?? null,
-        }));
+        }))
+        .filter((d) => d.prochainCreneau !== null); // n'afficher que s'il existe un créneau réellement ouvert
     }
 
     // Carte fidélité "cours individuel" du foyer connecté
@@ -188,9 +189,9 @@ export default async function InscriptionPage({
         .eq("foyer_id", foyer.id)
         .eq("type_carte", "cours_individuel")
         .maybeSingle();
-      if (carte) {
-        carteFidelite = { nb_cours_valides: carte.compteur, cours_pour_gratuit: COURS_POUR_GRATUIT };
-      }
+      // Toujours une carte visible pour un foyer connecté, même à 0 — couvre aussi
+      // les comptes créés avant l'initialisation automatique à l'inscription.
+      carteFidelite = { nb_cours_valides: carte?.compteur ?? 0, cours_pour_gratuit: COURS_POUR_GRATUIT };
     }
   
   return (

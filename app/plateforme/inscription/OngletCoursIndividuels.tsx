@@ -162,6 +162,30 @@ function CarteFideliteWidget({ carte }: { carte: CarteFidelite }) {
   );
 }
 
+function CarteFideliteCompacte({ carte }: { carte: CarteFidelite }) {
+  const { nb_cours_valides, cours_pour_gratuit } = carte;
+  const pct = Math.min(100, Math.round((nb_cours_valides / cours_pour_gratuit) * 100));
+  const complet = nb_cours_valides >= cours_pour_gratuit;
+
+  return (
+    <div className="rounded-[14px] border border-black/8 bg-white px-4 py-2.5 shrink-0" style={{ width: 300 }}>
+      <div className="flex items-center gap-2">
+        <span className="text-sm shrink-0" style={{ color: "rgb(185,151,83)" }}>✦</span>
+        <p className="text-[13px] font-semibold text-black truncate">
+          {complet ? "🎉 Cours gratuit !" : "Carte de fidélité"}
+        </p>
+        <span className="ml-auto text-[10px] font-bold text-black/40 shrink-0">{nb_cours_valides}/{cours_pour_gratuit}</span>
+      </div>
+      <div className="mt-1.5 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(0,0,0,0.06)" }}>
+        <div className="h-full rounded-full transition-all duration-700"
+          style={{ width: `${pct}%`, background: complet ? "rgb(185,151,83)" : "rgba(22,92,71,0.5)" }} />
+      </div>
+    </div>
+  );
+}
+
+
+
 // ─── CARTE PROF ───────────────────────────────────────────────────────────────
 function CarteProfHero({
   prof, selected, onClick, nbCreneaux,
@@ -170,81 +194,63 @@ function CarteProfHero({
 }) {
   return (
     <button onClick={onClick}
-      className="w-full text-left rounded-[20px] overflow-hidden border-2 transition-all duration-200"
+      className="w-full text-left rounded-[16px] border-2 transition-all duration-200 flex items-center gap-3 px-3 py-2.5"
       style={{
-        borderColor:  selected ? "rgb(22,92,71)" : "rgba(0,0,0,0.07)",
-        boxShadow:    selected ? "0 0 0 4px rgba(22,92,71,0.08)" : "0 2px 12px rgba(0,0,0,0.05)",
-        background:   "white",
+        borderColor: selected ? "rgb(22,92,71)" : "rgba(0,0,0,0.07)",
+        boxShadow:   selected ? "0 0 0 3px rgba(22,92,71,0.08)" : "0 1px 6px rgba(0,0,0,0.04)",
+        background:  "white",
       }}>
 
-      {/* Photo */}
-      <div className="relative overflow-hidden" style={{ height: 180 }}>
+      {/* Avatar */}
+      <div className="relative w-11 h-11 rounded-full overflow-hidden shrink-0">
         {prof.photo_url ? (
           <img src={prof.photo_url} alt={`${prof.prenom} ${prof.nom}`}
-            className="absolute inset-0 w-full h-full object-cover object-top" />
+            className="absolute inset-0 w-full h-full object-cover" />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-4xl font-bold text-white"
+          <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-white"
             style={{ background: "linear-gradient(135deg, rgb(18,56,44), rgb(22,92,71))" }}>
             {prof.prenom[0]}{prof.nom[0]}
           </div>
         )}
-
-        {/* Overlay gradient bas */}
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_40%,rgba(8,20,14,0.7)_100%)]" />
-
-        {/* Nom sur la photo */}
-        <div className="absolute bottom-0 left-0 right-0 p-4">
-          <p className="text-lg font-semibold text-white leading-tight">
-            {prof.prenom} {prof.nom}
-          </p>
-          <div className="flex flex-wrap gap-1 mt-1.5">
-            {prof.disciplines.slice(0, 3).map(d => {
-              const c = getCol(d);
-              return (
-                <span key={d} className="text-[9px] font-semibold px-2 py-0.5 rounded-full"
-                  style={{ background: "rgba(255,255,255,0.15)", color: "white", backdropFilter: "blur(4px)" }}>
-                  {d}
-                </span>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Badge sélectionné */}
         {selected && (
-          <div className="absolute top-3 right-3 w-7 h-7 rounded-full flex items-center justify-center"
+          <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center"
             style={{ background: "rgb(22,92,71)", border: "2px solid white" }}>
-            <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <svg className="w-2 h-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
             </svg>
           </div>
         )}
       </div>
 
-      {/* Infos bas */}
-      <div className="px-4 py-3">
-        {prof.bio_courte && (
-          <p className="text-xs text-black/50 leading-5 mb-2 line-clamp-2">{prof.bio_courte}</p>
-        )}
-        <div className="flex items-center justify-between">
-          <div>
-            {prof.tarif_horaire && (
-              <p className="text-sm font-bold" style={{ color: "rgb(22,92,71)" }}>
-                {prof.tarif_horaire} €
-                <span className="text-xs font-normal text-black/30 ml-1">/h · solo</span>
-              </p>
-            )}
-            {prof.tarif_duo && (
-              <p className="text-[11px] text-black/40">
-                {prof.tarif_duo} €/pers. à deux
-              </p>
-            )}
-          </div>
-          <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full"
-            style={{ background: nbCreneaux > 0 ? "rgba(22,92,71,0.08)" : "rgba(0,0,0,0.05)", color: nbCreneaux > 0 ? "rgb(15,75,57)" : "rgba(0,0,0,0.35)" }}>
-            {nbCreneaux > 0 ? `${nbCreneaux} créneau${nbCreneaux > 1 ? "x" : ""}` : "Complet"}
-          </span>
+      {/* Infos */}
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-black leading-tight truncate">
+          {prof.prenom} {prof.nom}
+        </p>
+        <div className="flex flex-wrap gap-1 mt-1">
+          {prof.disciplines.slice(0, 2).map(d => {
+            const c = getCol(d);
+            return (
+              <span key={d} className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full"
+                style={{ background: c.bg, color: c.text }}>
+                {d}
+              </span>
+            );
+          })}
         </div>
+      </div>
+
+      {/* Tarif + créneaux */}
+      <div className="text-right shrink-0">
+        {prof.tarif_horaire && (
+          <p className="text-xs font-bold" style={{ color: "rgb(22,92,71)" }}>
+            {prof.tarif_horaire} €
+          </p>
+        )}
+        <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full inline-block mt-0.5"
+          style={{ background: nbCreneaux > 0 ? "rgba(22,92,71,0.08)" : "rgba(0,0,0,0.05)", color: nbCreneaux > 0 ? "rgb(15,75,57)" : "rgba(0,0,0,0.35)" }}>
+          {nbCreneaux > 0 ? nbCreneaux : "Complet"}
+        </span>
       </div>
     </button>
   );
@@ -307,8 +313,10 @@ function ModalConnexion({ onClose }: { onClose: () => void }) {
   );
 }
 
-function PlanningHebdo({ creneaux, onReserver }: { creneaux: Creneau[]; onReserver: (c: Creneau) => void }) {
-  const lundiSemaine = (offset: number) => {
+function PlanningHebdo({ creneaux, onReserver, disciplinesDecouverte }: {
+  creneaux: Creneau[]; onReserver: (c: Creneau) => void; disciplinesDecouverte: Set<string>;
+}) {
+    const lundiSemaine = (offset: number) => {
     const d = new Date();
     const jour = d.getDay();
     const diffLundi = jour === 0 ? -6 : 1 - jour;
@@ -378,20 +386,31 @@ function PlanningHebdo({ creneaux, onReserver }: { creneaux: Creneau[]; onReserv
                 {jours.map((j, i) => {
                   const c = getCreneau(j, h);
                   if (!c) return <div key={i} className="h-9 rounded-[6px]" style={{ background: "rgb(249,250,249)" }} />;
+                  
+                  const enDecouverte = disciplinesDecouverte.has(c.discipline);
+                  const prixDecouverte = Math.round(c.tarif_solo / 2);
+                  
                   return (
                     <button key={i} onClick={() => onReserver(c)}
                       className="h-9 rounded-[6px] text-[13px] font-semibold flex items-center justify-center transition hover:brightness-95 relative overflow-hidden"
-                      style={{ background: "rgb(15,75,57)", color: "rgb(202, 219, 214)" }}>
+                      style={{
+                        background: "rgb(15,75,57)",
+                        color: "rgb(202, 219, 214)",
+                        boxShadow: enDecouverte ? "inset 0 0 0 2px rgb(185,151,83)" : undefined,
+                      }}>
                       {c.accepte_abonnement && (
                         <span className="absolute top-0 right-0"
-                          style={{
-                            width: 0, height: 0,
-                            borderStyle: "solid",
-                            borderWidth: "0 30px 30px 0",
-                            borderColor: "transparent rgb(185,151,83) transparent transparent",
-                          }} />
+                          style={{ width: 0, height: 0, borderStyle: "solid", borderWidth: "0 30px 30px 0",
+                            borderColor: "transparent rgb(185,151,83) transparent transparent" }} />
                       )}
-                      {c.tarif_solo}€
+                      {enDecouverte ? (
+                        <span className="flex flex-col items-center leading-[11px]">
+                          <span className="text-[9px] line-through opacity-60">{c.tarif_solo}€</span>
+                          <span>{prixDecouverte}€</span>
+                        </span>
+                      ) : (
+                        <span>{c.tarif_solo}€</span>
+                      )}
                     </button>
                   );
                 })}
@@ -411,6 +430,41 @@ function PlanningHebdo({ creneaux, onReserver }: { creneaux: Creneau[]; onReserv
           </span>
           + réservable à l'année
         </span>
+        <span className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-[3px]" style={{ background: "rgb(15,75,57)", boxShadow: "inset 0 0 0 2px rgb(185,151,83)" }} />
+          1er cours -50% (découverte)
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function PitchAbonnementAnnuel({ onEnSavoirPlus }: { onEnSavoirPlus: () => void }) {
+  return (
+    <div className="rounded-[20px] overflow-hidden border border-black/8 shadow-[0_4px_24px_rgba(22,92,71,0.08)]">
+      <div className="relative px-6 py-6 sm:px-8 sm:py-7 overflow-hidden" style={{ background: "rgb(18,56,44)" }}>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(185,151,83,0.18),transparent_55%)]" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/50">Formule recommandée</span>
+              <span className="text-[15px] font-bold px-2 py-0.5 rounded-full" style={{ background: "rgb(185,151,83)", color: "rgb(18,56,44)" }}>
+                -10%
+              </span>
+            </div>
+            <p className="text-lg sm:text-xl font-semibold text-white leading-snug">
+              Réserve à l'année, garde ta place chaque semaine
+            </p>
+            <p className="text-sm text-white/55 mt-1.5 max-w-3xl">
+              Même créneau, même prof, toute l'année — sans avoir à réserver chaque semaine. 10% moins cher qu'à la séance.
+            </p>
+          </div>
+          <button onClick={onEnSavoirPlus}
+            className="shrink-0 rounded-full px-6 py-3 text-sm font-semibold hover:brightness-110 transition"
+            style={{ background: "rgb(185,151,83)", color: "rgb(18,56,44)" }}>
+            Comment ça marche →
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -469,10 +523,10 @@ function ModalAbonnementInfo({ onClose }: { onClose: () => void }) {
 
 // ─── TUNNEL RÉSERVATION ───────────────────────────────────────────────────────
 function TunnelReservation({
-  creneau, prof, user, carteFidelite, eleves, onClose,
+  creneau, prof, user, carteFidelite, eleves, estDecouverte, onClose,
 }: {
   creneau: Creneau; prof: Prof; user: { id: string; email: string };
-  carteFidelite?: CarteFidelite | null; eleves: Eleve[]; onClose: () => void;
+  carteFidelite?: CarteFidelite | null; eleves: Eleve[]; estDecouverte?: boolean; onClose: () => void;
 }) {
   const router = useRouter();
   const [etape, setEtape]         = useState<"options" | "recap" | "paiement">("options");
@@ -493,6 +547,12 @@ function TunnelReservation({
   
   const tarifAnnuel = Math.round(tarif * 35 * 0.9);
 
+  // Même règle que côté serveur : la remise "1er cours" ne s'applique jamais à l'abonnement annuel
+  const remiseDecouverteApplicable = !!estDecouverte;
+  const remiseDecouverteActive = remiseDecouverteApplicable && mode !== "annuel";
+  const tarifSeance = remiseDecouverteActive
+    ? Math.round(tarif * participants * 0.5 * 100) / 100
+    : tarif * participants;
 
   const handlePayer = async () => {
     if (!eleveId) { setErreur("Sélectionne un élève."); return; }
@@ -520,7 +580,7 @@ function TunnelReservation({
   return createPortal(
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-5"
       style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}>
-      <div className="w-full sm:max-w-md rounded-t-[28px] sm:rounded-[28px] overflow-hidden shadow-[0_24px_80px_rgba(0,0,0,0.3)]">
+      <div className="w-full sm:max-w-md max-h-[90vh] flex flex-col rounded-t-[28px] sm:rounded-[28px] overflow-hidden shadow-[0_24px_80px_rgba(0,0,0,0.3)]">
 
         {/* Header */}
         <div className="relative px-6 py-5 overflow-hidden" style={{ background: "rgb(18,56,44)" }}>
@@ -559,14 +619,22 @@ function TunnelReservation({
           </div>
         </div>
 
-        <div className="bg-white px-6 py-5">
+        <div className="bg-white px-6 py-5 overflow-y-auto flex-1">
 
           {/* ── Étape 1 : options ── */}
           {etape === "options" && (
             <div className="space-y-5">
 
-              {/* Cours gratuit dispo */}
-              {coursGratuit && (
+              {remiseDecouverteActive && (
+                <div className="rounded-[14px] px-4 py-3 flex items-center gap-3"
+                  style={{ background: "rgba(185,151,83,0.08)", border: "1px solid rgba(185,151,83,0.25)" }}>
+                  <span className="text-lg shrink-0" style={{ color: "rgb(185,151,83)" }}>✦</span>
+                  <p className="text-sm font-semibold" style={{ color: "rgb(110,80,20)" }}>
+                    1er cours dans cette discipline : -50% appliqué automatiquement.
+                  </p>
+                </div>
+              )}
+              {coursGratuit && !remiseDecouverteActive && (
                 <div className="rounded-[14px] px-4 py-3 flex items-center gap-3"
                   style={{ background: "rgba(185,151,83,0.08)", border: "1px solid rgba(185,151,83,0.25)" }}>
                   <span className="text-lg shrink-0" style={{ color: "rgb(185,151,83)" }}>✦</span>
@@ -618,11 +686,18 @@ function TunnelReservation({
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="text-sm font-semibold text-black">À la séance</p>
-                        <p className="text-xs text-black/45 mt-0.5">Ce créneau uniquement · Paiement immédiat</p>
+                        <p className="text-xs text-black/45 mt-0.5">
+                          {remiseDecouverteApplicable ? "1er cours -50% · Paiement immédiat" : "Ce créneau uniquement · Paiement immédiat"}
+                        </p>
                       </div>
-                      <p className="text-base font-bold" style={{ color: "rgb(22,92,71)" }}>
-                        {tarif} €
-                      </p>
+                      <div className="text-right shrink-0">
+                        <p className="text-base font-bold" style={{ color: "rgb(22,92,71)" }}>
+                          {remiseDecouverteApplicable ? Math.round(tarif * 0.5 * 100) / 100 : tarif} €
+                        </p>
+                        {remiseDecouverteApplicable && (
+                          <p className="text-[11px] text-black/35 line-through leading-none mt-0.5">{tarif} €</p>
+                        )}
+                      </div>
                     </div>
                   </button>
 
@@ -630,13 +705,17 @@ function TunnelReservation({
                     <button onClick={() => setMode("annuel")}
                       className="w-full text-left rounded-[14px] p-4 border-2 transition"
                       style={{
-                        borderColor: mode === "annuel" ? "rgb(22,92,71)" : "rgba(0,0,0,0.08)",
-                        background: mode === "annuel" ? "rgba(22,92,71,0.04)" : "rgb(249,250,249)",
+                        borderColor: mode === "annuel" ? "rgb(22,92,71)" : "rgba(185,151,83,0.35)",
+                        background: mode === "annuel" ? "rgba(22,92,71,0.04)" : "rgba(185,151,83,0.05)",
                       }}>
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <div className="flex items-center gap-2 mb-0.5">
+                          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                             <p className="text-sm font-semibold text-black">Abonnement annuel</p>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wide"
+                              style={{ background: "rgba(185,151,83,0.18)", color: "rgb(110,80,20)" }}>
+                              Recommandé
+                            </span>
                             <span className="text-[13px] font-bold px-2 py-0.5 rounded-full"
                               style={{ background: "rgba(77, 92, 22, 0.1)", color: "rgb(54, 75, 15)" }}>
                               −10%
@@ -645,9 +724,7 @@ function TunnelReservation({
                           <p className="text-xs text-black/45">Même créneau chaque semaine · 35 séances</p>
                         </div>
                         <div className="text-right shrink-0">
-                          <p className="text-base font-bold" style={{ color: "rgb(22,92,71)" }}>
-                            {tarifAnnuel} €
-                          </p>
+                          <p className="text-base font-bold" style={{ color: "rgb(22,92,71)" }}>{tarifAnnuel} €</p>
                           <p className="text-[10px] text-black/30">/an</p>
                         </div>
                       </div>
@@ -681,6 +758,12 @@ function TunnelReservation({
                         : creneau.tarif_solo;
                       const sel = participants === n;
                       const label = n === 1 ? "Solo" : n === 2 ? "Duo" : "Trio";
+
+                      const prixAffiche = mode === "annuel"
+                        ? Math.round(t * 35 * 0.9)
+                        : remiseDecouverteApplicable ? Math.round(t * 0.5 * 100) / 100 : t;
+                      const suffixe = mode === "annuel" ? "/an" : "/cours";
+
                       return (
                         <button key={n} onClick={() => setParticipants(n)}
                           className="rounded-[14px] p-3 border-2 transition text-left"
@@ -690,8 +773,11 @@ function TunnelReservation({
                           }}>
                           <p className="text-sm font-semibold text-black mb-0.5">{label}</p>
                           <p className="text-base font-bold" style={{ color: "rgb(22,92,71)" }}>
-                            {t} €<span className="text-xs font-normal text-black/35 ml-1"></span>
+                            {prixAffiche} €<span className="text-xs font-normal text-black/35 ml-1">{suffixe}</span>
                           </p>
+                          {mode !== "annuel" && remiseDecouverteApplicable && (
+                            <p className="text-[11px] text-black/35 line-through leading-none">{t} €</p>
+                          )}
                         </button>
                       );
                     })}
@@ -736,17 +822,21 @@ function TunnelReservation({
                   { l: "Durée",       v: `${duree} min` },
                   { l: "Format",      v: mode === "annuel" ? "Abonnement annuel (−10%)" : "À la séance" },
                   { l: "Participants",v: participants === 1 ? "Solo" : "Duo (2 pers.)" },
-                  ...(coursGratuit && mode === "seance"
+                  ...(coursGratuit && mode === "seance" && !remiseDecouverteActive
                     ? [{ l: "Cours gratuit", v: "Appliqué ✓", accent: true }]
+                    : []
+                  ),
+                  ...(remiseDecouverteActive
+                    ? [{ l: "1er cours · discipline", v: "-50% appliqué ✓", accent: true }]
                     : []
                   ),
                   {
                     l: "Total",
-                    v: coursGratuit && mode === "seance"
+                    v: coursGratuit && mode === "seance" && !remiseDecouverteActive
                       ? "0 € 🎉"
                       : mode === "annuel"
                         ? `${tarifAnnuel} €/an`
-                        : `${tarif * participants} €`,
+                        : `${tarifSeance} €`,
                     accent: true,
                   },
                 ].map((row: any, i, arr) => (
@@ -791,19 +881,23 @@ function TunnelReservation({
               <div className="rounded-[20px] py-8 text-center space-y-1"
                 style={{ background: "rgba(22,92,71,0.04)", border: "1.5px solid rgba(22,92,71,0.12)" }}>
                 <p className="text-5xl font-bold tracking-tight" style={{ color: "rgb(22,92,71)" }}>
-                  {coursGratuit && mode === "seance" ? "0 €" : mode === "annuel" ? `${tarifAnnuel} €` : `${tarif * participants} €`}
+                  {coursGratuit && mode === "seance" && !remiseDecouverteActive
+                    ? "0 €"
+                    : mode === "annuel" ? `${tarifAnnuel} €` : `${tarifSeance} €`}
                 </p>
                 <p className="text-sm text-black/40">
-                  {coursGratuit && mode === "seance"
+                  {coursGratuit && mode === "seance" && !remiseDecouverteActive
                     ? "Cours offert · Carte fidélité"
-                    : "Bancontact · Sécurisé par Mollie"}
+                    : remiseDecouverteActive
+                      ? "1er cours -50% · Bancontact"
+                      : "Bancontact · Sécurisé par Mollie"}
                 </p>
               </div>
               <button onClick={handlePayer} disabled={loading}
                 className="w-full rounded-full py-4 text-base font-semibold text-white flex items-center justify-center gap-2 hover:brightness-110 disabled:opacity-50 transition"
                 style={{ background: "rgb(22,92,71)" }}>
                 {loading ? "Redirection…"
-                  : coursGratuit && mode === "seance" ? "Confirmer la réservation gratuite →"
+                  : coursGratuit && mode === "seance" && !remiseDecouverteActive ? "Confirmer la réservation gratuite →"
                   : `Payer par Bancontact →`}
               </button>
               <button onClick={() => setEtape("recap")}
@@ -841,6 +935,11 @@ export default function OngletCoursIndividuels({ user, profs, creneaux, carteFid
 
   const creneauxFiltres = creneaux.filter(c =>
     c.disponible && (!profId || c.prof_id === profId) && (!disc || c.discipline === disc)
+  );
+
+  const disciplinesDecouverte = useMemo(
+    () => new Set(disciplinesADecouvrir.map(d => d.discipline)),
+    [disciplinesADecouvrir]
   );
 
   const handleDisc = (d: string | null) => {
@@ -890,64 +989,87 @@ export default function OngletCoursIndividuels({ user, profs, creneaux, carteFid
           <p className="text-base font-semibold text-black mb-1">Découvre une nouvelle discipline</p>
           <p className="text-xs text-black/40 mb-3">Ton premier cours dans ces disciplines est à moitié prix</p>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {disciplinesADecouvrir.map(d => (
+            {disciplinesADecouvrir
+              .filter(d => d.prochainCreneau) // garde-fou côté client, en plus du filtre côté serveur
+              .map(d => (
               <div key={d.discipline} className="rounded-[16px] border-2 p-4" style={{ borderColor: "rgba(185,151,83,0.4)" }}>
                 <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
                   style={{ background: "rgba(185,151,83,0.12)", color: "rgb(110,80,20)" }}>
                   1er cours -50%
                 </span>
                 <p className="text-sm font-semibold text-black mt-2">{d.discipline}</p>
-                {d.prochainCreneau ? (
-                  <>
-                    <p className="text-xs text-black/45">
-                      {formatDate(d.prochainCreneau.date_heure_debut)} · {formatHeure(d.prochainCreneau.date_heure_debut)}
-                    </p>
-                    <div className="flex items-center justify-between mt-3">
-                      <p className="text-sm font-bold" style={{ color: "rgb(22,92,71)" }}>
-                        {Math.round(d.prochainCreneau.tarif_solo / 2)} €
-                        <span className="text-xs font-normal text-black/35 ml-1 line-through">{d.prochainCreneau.tarif_solo} €</span>
-                      </p>
-                      <button onClick={() => ouvrirReservation(d.prochainCreneau!)}
-                        className="rounded-full px-3 py-1.5 text-xs font-semibold text-white hover:brightness-110 transition"
-                        style={{ background: "rgb(22,92,71)" }}>
-                        Réserver
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <p className="text-xs text-black/35 mt-2">Aucun créneau ouvert pour l'instant.</p>
-                )}
+                <p className="text-xs text-black/45 mt-1">
+                  La réduction s'applique automatiquement, quel que soit le créneau choisi
+                </p>
+                <div className="flex items-center justify-between mt-3">
+                  <p className="text-sm font-bold" style={{ color: "rgb(22,92,71)" }}>
+                    dès {Math.round(d.prochainCreneau!.tarif_solo / 2)} €
+                    <span className="text-xs font-normal text-black/35 ml-1 line-through">{d.prochainCreneau!.tarif_solo} €</span>
+                  </p>
+                  <button
+                    onClick={() => {
+                      handleDisc(d.discipline);
+                      document.getElementById("planning-cours")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                    className="rounded-full px-3 py-1.5 text-xs font-semibold text-white hover:brightness-110 transition"
+                    style={{ background: "rgb(22,92,71)" }}>
+                    Choisir mon créneau →
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         </div>
       )}
 
+      <PitchAbonnementAnnuel onEnSavoirPlus={() => setShowInfoAbonnement(true)} />
+
       <div>
-        <p className="text-base font-semibold text-black mb-3">Réserver un créneau</p>
-        <div className="flex flex-wrap items-end gap-3 mb-4">
+        <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
+          <p className="text-base font-semibold text-black">Réserver un créneau</p>
+          {user && carteFidelite && <CarteFideliteCompacte carte={carteFidelite} />}
+        </div>
+
+        {/* Discipline (gauche) + Professeur (droite), même ligne à partir de lg */}
+        <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-6 mb-6 items-start">
+
+          {/* Colonne gauche — Discipline */}
           <div>
-            <label className="block text-[10px] font-semibold uppercase tracking-wide text-black/35 mb-1">Discipline</label>
+            <label className="block text-[10px] font-semibold uppercase tracking-wide text-black/35 mb-1">Type de cours</label>
             <select value={disc ?? ""} onChange={e => handleDisc(e.target.value || null)}
-              className="rounded-[10px] border border-black/10 px-3 py-2 text-sm bg-white min-w-[160px]">
+              className="w-full rounded-[10px] border border-black/10 px-3 py-2 text-sm bg-white">
               <option value="">Choisir une discipline</option>
               {disciplinesDisponibles.map(d => <option key={d} value={d}>{d}</option>)}
             </select>
+            {(disc || profId) && (
+              <button onClick={() => { setDisc(null); setProfId(null); }}
+                className="mt-2 text-xs text-black/40 hover:text-black/70 underline underline-offset-2">
+                Réinitialiser
+              </button>
+            )}
           </div>
+
+          {/* Colonne droite — Professeur */}
           <div>
-            <label className="block text-[10px] font-semibold uppercase tracking-wide text-black/35 mb-1">Professeur</label>
-            <select value={profId ?? ""} onChange={e => handleProf(e.target.value || null)}
-              className="rounded-[10px] border border-black/10 px-3 py-2 text-sm bg-white min-w-[160px]">
-              <option value="">Tous les profs</option>
-              {profsDisponibles.map(p => <option key={p.id} value={p.id}>{p.prenom} {p.nom}</option>)}
-            </select>
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-black/35 mb-2">Professeur</p>
+            {profsDisponibles.length === 0 ? (
+              <p className="text-sm text-black/40 py-6 text-center rounded-[16px]" style={{ background: "rgb(249,250,249)" }}>
+                Aucun professeur pour cette discipline.
+              </p>
+            ) : (
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {profsDisponibles.map(p => {
+                  const nbCreneaux = creneaux.filter(c =>
+                    c.disponible && c.prof_id === p.id && (!disc || c.discipline === disc)
+                  ).length;
+                  return (
+                    <CarteProfHero key={p.id} prof={p} selected={profId === p.id}
+                      onClick={() => handleProf(profId === p.id ? null : p.id)} nbCreneaux={nbCreneaux} />
+                  );
+                })}
+              </div>
+            )}
           </div>
-          {(disc || profId) && (
-            <button onClick={() => { setDisc(null); setProfId(null); }}
-              className="text-xs text-black/40 hover:text-black/70 underline underline-offset-2 pb-2.5">
-              Réinitialiser
-            </button>
-          )}
         </div>
 
         {!disc ? (
@@ -955,27 +1077,10 @@ export default function OngletCoursIndividuels({ user, profs, creneaux, carteFid
             Choisis une discipline pour voir le planning.
           </p>
         ) : (
-          <PlanningHebdo creneaux={creneauxFiltres} onReserver={ouvrirReservation} />
+          <PlanningHebdo creneaux={creneauxFiltres} onReserver={ouvrirReservation} disciplinesDecouverte={disciplinesDecouverte} />
         )}
       </div>
 
-
-      {user && (
-        <div className="rounded-[16px] border border-black/8 overflow-hidden">
-          {carteFidelite && <CarteFideliteWidget carte={carteFidelite} />}
-          <div className="px-5 py-4 flex items-center justify-between gap-4 border-t border-black/6 bg-white/80">
-            <div>
-              <p className="text-sm font-semibold text-black">Passe à l'abonnement annuel</p>
-              <p className="text-xs text-black/45 mt-0.5">-10% sur tous tes cours · même horaire réservé chaque semaine</p>
-            </div>
-            <button onClick={() => setShowInfoAbonnement(true)}
-              className="shrink-0 rounded-full px-4 py-2 text-xs font-semibold hover:brightness-110 transition"
-              style={{ background: "rgb(22,92,71)", color: "white" }}>
-              En savoir plus
-            </button>          
-          </div>
-        </div>
-      )}
 
       {modalConnexion && <ModalConnexion onClose={() => setModalConnexion(false)} />}
       {showInfoAbonnement && <ModalAbonnementInfo onClose={() => setShowInfoAbonnement(false)} />}
@@ -986,6 +1091,7 @@ export default function OngletCoursIndividuels({ user, profs, creneaux, carteFid
           user={user}
           carteFidelite={carteFidelite}
           eleves={eleves}
+          estDecouverte={disciplinesDecouverte.has(creneauReserv.discipline)}
           onClose={() => setCreneauReserv(null)}
         />
       )}

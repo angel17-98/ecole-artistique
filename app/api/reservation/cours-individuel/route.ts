@@ -109,9 +109,11 @@ export async function POST(req: Request) {
     }
   }
 
-  // 5. Carte fidélité — seulement si pas déjà en tarif découverte
+  // 5. Carte fidélité — le compteur avance sur toute séance payante, y compris un cours
+  //    découverte à -50%. Le cours gratuit, lui, ne se déclenche jamais en même temps
+  //    qu'un tarif découverte (pas de cumul des deux réductions).
   let coursGratuit = false;
-  if (mode === "seance" && origineTarif !== "decouverte") {
+  if (mode === "seance") {
     const { data: carte } = await supabaseAdmin
       .from("fidelite")
       .select("id, compteur, total_offerts")
@@ -119,7 +121,7 @@ export async function POST(req: Request) {
       .eq("type_carte", "cours_individuel")
       .maybeSingle();
 
-    if (carte && carte.compteur >= COURS_POUR_GRATUIT) {
+    if (origineTarif !== "decouverte" && carte && carte.compteur >= COURS_POUR_GRATUIT) {
       coursGratuit = true;
       tarifFinal = 0;
       origineTarif = "fidelite";
