@@ -425,7 +425,7 @@ export default function OngletEveil({ user, eleves, groupes }: Props) {
                   ? "Aucun groupe ouvert pour le moment"
                   : "Tous les groupes sont complets"}
               </h3>
-              <p className="text-sm text-white/55 leading-6 max-w-sm">
+              <p className="text-sm text-white/55 leading-6 max-w-3xl">
                 {groupes.length === 0
                   ? "La direction n'a pas encore ouvert de groupe d'éveil musical. Laisse-nous tes coordonnées, on te prévient dès l'ouverture."
                   : "Il n'y a plus de place disponible. Laisse-nous tes coordonnées, on te prévient dès qu'une place se libère."}
@@ -434,7 +434,7 @@ export default function OngletEveil({ user, eleves, groupes }: Props) {
           </div>
           <div className="bg-white px-7 py-4 flex flex-col sm:flex-row gap-3">
             <Link href="/contact?sujet=eveil-musical"
-              className="inline-flex rounded-full px-5 py-2.5 text-sm font-semibold text-white hover:brightness-110 transition"
+              className="inline-flex rounded-full px-5 py-2.5 text-sm font-semibold !text-white hover:brightness-110 transition"
               style={{ background: "rgb(22,92,71)" }}>
               Me faire notifier →
             </Link>
