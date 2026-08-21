@@ -21,7 +21,8 @@ export async function proxy(req: NextRequest) {
     pathname === "/robots.txt" ||
     pathname === "/sitemap.xml" ||
     pathname.startsWith("/unlock") ||
-    pathname.startsWith("/api/unlock");
+    pathname.startsWith("/api/unlock")||
+    pathname.startsWith("/api/webhooks");
 
   if (isStaticPath) {
     return NextResponse.next({ request: { headers: requestHeaders } });
