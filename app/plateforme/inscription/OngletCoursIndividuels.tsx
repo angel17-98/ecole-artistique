@@ -566,6 +566,16 @@ function TunnelReservation({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Erreur lors de la réservation");
+
+      // Cours payant : l'API renvoie l'URL de paiement Mollie au lieu de
+      // confirmer directement — redirection complète du navigateur (le
+      // checkout Mollie est hébergé, pas un simple appel AJAX).
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+        return;
+      }
+
+      // Cours gratuit (fidélité) : déjà confirmé côté serveur, comme avant.
       onClose();
       router.refresh();
     } catch (e: any) {
