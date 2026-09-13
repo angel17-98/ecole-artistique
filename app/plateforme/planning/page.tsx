@@ -7,8 +7,8 @@ import PlanningClient from "./PlanningClient";
 // Un cours individuel dure réellement 45 minutes (cf. DUREE_COURS_MIN dans
 // OngletCoursIndividuels.tsx). Le créneau, lui, bloque 60 minutes dans
 // l'agenda (marge de battement pour le prof) — "fin_blocage" ne doit jamais
-// être montré comme heure de fin du cours, sous peine d'afficher un cours de
-// 60min au lieu de 45min. Bug repéré le 20/08/2026 par Angélie.
+// être montré comme heure de fin du cours affichée à la famille. Bug repéré
+// le 20/08/2026 par Angélie.
 const DUREE_COURS_MIN = 45;
 function finCoursIndividuel(debut: string): string {
   return new Date(new Date(debut).getTime() + DUREE_COURS_MIN * 60000).toISOString();
@@ -49,15 +49,11 @@ export default async function PlanningPage() {
     salle?: string;
     statut: "planifie" | "annule" | "effectue";
     parcours_nom?: string;
-    type_cours?: "parcours" | "individuel" | "location"; // pour affichage futur
+    type_cours?: "parcours" | "individuel" | "location";
+    tarif_final?: number;
+    origine_tarif?: "decouverte" | "fidelite" | null;
   };
 
-  // reservations_indiv utilise des statuts au féminin — et pour l'annulation,
-  // DEUX valeurs distinctes ("annulee_eleve" / "annulee_prof"), jamais juste
-  // "annulee" (vérifié via la contrainte SQL reservations_indiv_statut_check
-  // le 20/08/2026, en testant le chantier 3 — annulation depuis le compte
-  // élève). On les ramène au masculin utilisé partout ailleurs dans le
-  // Planning (table "cours").
   const STATUT_RESERVATION_VERS_COURS: Record<string, CoursItem["statut"]> = {
     confirmee: "planifie",
     effectuee: "effectue",
@@ -105,24 +101,14 @@ export default async function PlanningPage() {
     }
 
     // ── 2. Cours individuels réservés (table reservations_indiv) ───────────
-    // Les données existent déjà en base (écrites par
-    // /api/reservation/cours-individuel) — reconnecté ici comme dans le
-    // Dossier, qui utilise exactement la même requête.
-    // IMPORTANT : on utilise supabaseAdmin (service role, contourne les RLS)
-    // et non "supabase" (soumis aux RLS de l'utilisateur connecté) — sinon la
-    // requête peut renvoyer un tableau vide selon les règles RLS en place.
-    // Bug corrigé le 20/08/2026.
-    //
-    // La table "profs" n'a pas de colonnes prenom/nom : elles vivent sur
-    // "profiles", reliée via profs.user_id (cf. le même correctif déjà fait
-    // dans app/plateforme/messages/page.tsx). D'où le passage par
-    // profs(profile:profiles!profs_user_id_fkey(prenom, nom)) plutôt que
-    // profs(prenom, nom), qui plantait avec "column profs_2.prenom does not
-    // exist". Bug corrigé le 20/08/2026 (2e correctif du même chantier).
+    // IMPORTANT : supabaseAdmin (service role), pas "supabase" (soumis aux
+    // RLS) — sinon la requête renvoie un tableau vide. Bug corrigé le
+    // 20/08/2026. La table "profs" n'a pas de colonnes prenom/nom (vivent
+    // sur "profiles", reliée via profs.user_id).
     const { data: reservationsData, error: reservationsErr } = await supabaseAdmin
       .from("reservations_indiv")
       .select(`
-        id, statut,
+        id, statut, tarif_final, origine_tarif,
         creneau:creneaux(discipline, debut, fin_blocage, prof:profs(profile:profiles!profs_user_id_fkey(prenom, nom)))
       `)
       .eq("eleve_id", eleve.id);
@@ -145,21 +131,14 @@ export default async function PlanningPage() {
         prof_nom: r.creneau.prof?.profile?.nom,
         statut: STATUT_RESERVATION_VERS_COURS[r.statut] ?? "planifie",
         type_cours: "individuel" as const,
+        tarif_final: r.tarif_final ?? undefined,
+        origine_tarif: r.origine_tarif ?? null,
       }));
 
     cours = [...cours, ...coursIndividuelsFormates];
 
-    // ── 3. Locations de salles (phase 7 — table reservations_salles)
-    // TODO: brancher quand la phase 7 est construite
-    // const { data: locations } = await supabase
-    //   .from("reservations_salles")
-    //   .select(`*, salle:salles(nom)`)
-    //   .eq("user_id", user.id)
-    //   .in("statut", ["confirmee", "effectuee"])
-    //   .order("date_heure_debut", { ascending: true });
-    // cours = [...cours, ...(locations ?? []).map(formatLocation)];
+    // ── 3. Locations de salles (phase 7) — TODO quand back-office existe ────
 
-    // Trier tous les cours par date croissante
     cours.sort((a, b) =>
       new Date(a.date_heure_debut).getTime() - new Date(b.date_heure_debut).getTime()
     );
@@ -167,12 +146,51 @@ export default async function PlanningPage() {
     eleveData[eleve.id] = cours;
   }
 
+  // ── Créneaux individuels disponibles (pour le "+" du calendrier) ─────────
+  // Chantier "Calendrier complet" : le Planning doit pouvoir montrer, sur un
+  // jour vide, qu'il existe des créneaux à réserver ce jour-là — pas
+  // seulement les cours déjà pris. Requête foyer-indépendante (les créneaux
+  // disponibles sont les mêmes pour tout le monde), donc faite une seule
+  // fois, hors de la boucle par élève. Même structure que la requête
+  // équivalente dans app/plateforme/inscription/page.tsx.
+  type CreneauDispo = {
+    id: string;
+    discipline: string;
+    date_heure_debut: string;
+    prof_prenom?: string;
+    prof_nom?: string;
+  };
+
+  const { data: creneauxDispoRaw, error: creneauxDispoErr } = await supabaseAdmin
+    .from("creneaux")
+    .select(`
+      id, discipline, debut,
+      prof:profs(profile:profiles!profs_user_id_fkey(prenom, nom))
+    `)
+    .eq("statut", "disponible")
+    .gte("debut", new Date().toISOString())
+    .order("debut", { ascending: true })
+    .limit(500); // garde-fou : évite de charger un historique infini de créneaux ouverts
+
+  if (creneauxDispoErr) {
+    console.error("[Planning] Erreur requête créneaux disponibles :", creneauxDispoErr);
+  }
+
+  const creneauxDisponibles: CreneauDispo[] = (creneauxDispoRaw ?? []).map((c: any) => ({
+    id: c.id,
+    discipline: c.discipline,
+    date_heure_debut: c.debut,
+    prof_prenom: c.prof?.profile?.prenom,
+    prof_nom: c.prof?.profile?.nom,
+  }));
+
   return (
     <PlanningClient
       profile={profile}
       eleves={eleves}
       eleveData={eleveData}
       initialEleveId={eleves[0]?.id ?? ""}
+      creneauxDisponibles={creneauxDisponibles}
     />
   );
 }
