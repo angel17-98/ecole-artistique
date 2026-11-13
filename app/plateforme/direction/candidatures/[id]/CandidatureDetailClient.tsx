@@ -2,6 +2,7 @@
 "use client";
 
 import DriveTransferButton from "@/app/components/plateforme/direction/DriveTransferButton";
+import BlocInscription from "@/app/components/plateforme/direction/BlocInscription";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -642,6 +643,8 @@ export default function CandidatureDetailClient({
             </div>
           </Card>
 
+          <BlocInscription candidature={candidature} />
+          
           <Card title="Motivations & projet">
             <div className="space-y-5">
               {candidature.pourquoi        && <TextBlock label="Pourquoi Crea'Star ?"         content={candidature.pourquoi} />}

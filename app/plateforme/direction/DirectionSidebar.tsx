@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/plateforme/supabase/client";
 import {
   LayoutDashboard, FileText, Users, GraduationCap,
-  Layers, Megaphone, MessageSquare, LogOut
+  Layers, Megaphone, MessageSquare, LogOut, CalendarDays, Sparkles
 } from "lucide-react";
 
 const NAV = [
@@ -16,6 +16,8 @@ const NAV = [
   { href: "/plateforme/direction/eleves", icon: Users, label: "Élèves" },
   { href: "/plateforme/direction/profs", icon: GraduationCap, label: "Profs" },
   { href: "/plateforme/direction/groupes", icon: Layers, label: "Groupes" },
+  { href: "/plateforme/direction/calendrier", icon: CalendarDays, label: "Calendrier" },
+  { href: "/plateforme/direction/offres", icon: Sparkles, label: "Offres" },
   { href: "/plateforme/direction/communication", icon: Megaphone, label: "Comm." },
   { href: "/plateforme/messages", icon: MessageSquare, label: "Messages", alertKey: "messages" },
 ];

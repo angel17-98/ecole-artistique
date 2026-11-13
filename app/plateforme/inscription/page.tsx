@@ -53,7 +53,7 @@ export default async function InscriptionPage({
       .from("candidatures")
       .select("id, prenom, nom, parcours, statut, place_expire_at, place_proposee_at, created_at, groupe_inscription_id")
       .eq("user_id", user.id)
-      .not("statut", "in", '("refusee","sans_reponse","expiree")')
+      .not("statut", "in", '("refusee","sans_reponse","expiree","annulee")')
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();

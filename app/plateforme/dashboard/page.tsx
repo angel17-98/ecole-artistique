@@ -28,7 +28,7 @@ export default async function DashboardPage() {
     .from("candidatures")
     .select("id, parcours, statut, place_expire_at")
     .eq("user_id", user.id)
-    .not("statut", "in", '("refusee","sans_reponse","expiree")')
+    .not("statut", "in", '("refusee","sans_reponse","expiree","annulee)')
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
