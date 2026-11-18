@@ -36,12 +36,12 @@ function FenetreDemande({
     return () => { window.removeEventListener("keydown", echap); document.body.style.overflow = ""; };
   }, [onFermer]);
 
-  const titre = offre ? offre.titre : "Modules à la carte";
+  const titre = offre ? offre.titre : "Stages & Workshops";
   const intro =
     typeDemande === "attente" ? "C'est complet pour l'instant. Laisse tes coordonnées : on te prévient si une place se libère."
     : typeDemande === "inscription" ? "Laisse tes coordonnées : on revient vers toi pour finaliser ton inscription."
     : offre ? "Les inscriptions ne sont pas encore ouvertes. Laisse tes coordonnées : tu seras parmi les premiers prévenus."
-    : "Tu aimerais suivre un module du Full Artist sans t'engager pour l'année ? Laisse tes coordonnées : on te prévient dès que les places s'ouvrent.";
+    : "Laisse tes coordonnées : on te prévient dès qu'un nouveau stage ou workshop est annoncé.";
 
   const envoyer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -244,51 +244,6 @@ export default function StagesClient({ offres }: { offres: Offre[] }) {
         </div>
       </section>
 
-      {/* ══ MODULES À LA CARTE ════════════════════════════════════════════════ */}
-      <section className="relative bg-[rgb(239,244,239)]">
-        <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(22,92,71,0.12),transparent)]" />
-        <div className="site-shell-wide px-6 py-14 md:px-10 lg:px-14 lg:py-20">
-          <div className="grid gap-10 lg:grid-cols-[1fr_1.2fr] lg:items-start lg:gap-16">
-            <Reveal>
-              <p className="text-xs uppercase tracking-[0.26em] text-primary/80">Modules à la carte · Full Artist</p>
-              <h2 className="mt-4 text-3xl font-semibold leading-tight tracking-tight text-balance sm:text-4xl">
-                Un module, sans t'engager pour l'année
-              </h2>
-              <p className="mt-4 text-sm leading-7 text-black/60 sm:text-base">
-                Chaque période de l'année, le Full Artist propose un module de 7 semaines, avec un certificat à la clé.
-                Quand il reste des places dans un groupe, le module s'ouvre aux personnes extérieures.
-              </p>
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <button onClick={() => setFenetre({ offre: null, type: "interet" })}
-                  className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-primary-strong">
-                  Je suis intéressé·e
-                </button>
-                <Link href="/cours/full-artist" className="rounded-full border border-black/12 bg-white px-6 py-3 text-center text-sm font-medium text-black/70 transition hover:border-black/25">
-                  Découvrir le Full Artist
-                </Link>
-              </div>
-            </Reveal>
-
-            <Reveal delay={1}>
-              <ol className="space-y-3">
-                {[
-                  { n: "01", titre: "Dès maintenant : la liste d'intérêt", texte: "Sans engagement. Tu indiques le ou les modules qui t'intéressent, on te prévient en premier." },
-                  { n: "02", titre: "Fin août : ouverture des places", texte: "Une fois les groupes de l'année composés, les places libres s'ouvrent module par module, environ trois semaines avant chaque période." },
-                  { n: "03", titre: "Envie de continuer ?", texte: "Tu peux rejoindre le parcours Full Artist complet à la période suivante : le prix de ton module est déduit." },
-                ].map((e) => (
-                  <li key={e.n} className="flex gap-4 rounded-[20px] bg-white px-5 py-5" style={{ border: "1px solid rgba(0,0,0,0.05)" }}>
-                    <span className="text-2xl font-semibold tracking-tight" style={{ color: "rgba(22,92,71,0.25)" }}>{e.n}</span>
-                    <div>
-                      <p className="text-sm font-semibold" style={{ color: VERT }}>{e.titre}</p>
-                      <p className="mt-1 text-sm leading-6 text-black/55">{e.texte}</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </Reveal>
-          </div>
-        </div>
-      </section>
     </main>
   );
 }

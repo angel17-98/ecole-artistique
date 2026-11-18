@@ -5,12 +5,12 @@ export const PARCOURS_ANNUELS: { id: ParcoursAnnuel; label: string; accroche: st
   {
     id: "comedie-musicale",
     label: "Comédie musicale",
-    accroche: "Chant, danse et théâtre en alternance, pour créer un spectacle ensemble.",
+    accroche: "Tu crées ta comédie musicale : le texte, l'histoire, la mise en scène, puis l'interprétation.",
   },
   {
     id: "full-artist",
     label: "Full Artist",
-    accroche: "1h de chant chaque semaine + un module de 5 à 6 semaines, avec un certificat par module.",
+    accroche: "Tu crées ton identité d'artiste : ta musique, tes chansons, ta façon d'être sur scène.",
   },
 ];
 
